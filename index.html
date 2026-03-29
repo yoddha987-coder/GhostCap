@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>👻 GhostCap v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ══ THEMES — LIGHT IS DEFAULT ══ */
+:root{
+  --bg:#f4f6fb;--s1:#fff;--s2:#fff;--bd:#e2e8f4;
+  --ac:#4f46e5;--a1:rgba(79,70,229,.07);--a2:rgba(79,70,229,.18);
+  --tx:#1e2140;--mu:#8890b8;--go:#8a5c00;--g1:rgba(138,92,0,.08);
+  --dn:#c02040;--wn:#b84010;--sh:0 1px 4px rgba(0,0,0,.07);
+}
+[data-theme=dark]{
+  --bg:#1c1e2e;--s1:#242638;--s2:#2a2c42;--bd:#34375a;
+  --ac:#818cf8;--a1:rgba(129,140,248,.09);--a2:rgba(129,140,248,.22);
+  --tx:#c8d0f0;--mu:#6870a0;--go:#e8b840;--g1:rgba(232,184,64,.10);
+  --dn:#e84060;--wn:#e06828;--sh:0 1px 4px rgba(0,0,0,.3);
+}
+[data-theme=green]{
+  --bg:#0d1a12;--s1:#111e16;--s2:#152018;--bd:#1e3424;
+  --ac:#00d474;--a1:rgba(0,212,116,.09);--a2:rgba(0,212,116,.22);
+  --tx:#c8e0cc;--mu:#5a7860;--go:#c09820;--g1:rgba(192,152,32,.10);
+  --dn:#e03858;--wn:#d05820;--sh:0 1px 4px rgba(0,0,0,.3);
+}
+
+/* ══ RESET ══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;transition:background .25s,color .25s;-webkit-text-size-adjust:100%;}
+*{transition:background-color .25s,border-color .25s,color .2s;}
+img,svg{display:block;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:inherit;border:none;background:none;}
+input,select,textarea{font-family:'Inter',sans-serif;font-size:14px;}
+::-webkit-scrollbar{width:4px;height:4px;background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px;}
+::placeholder{color:var(--mu);opacity:.7;}
+select option{background:var(--s1);color:var(--tx);}
+
+/* ══ TOPBAR ══ */
+#topbar{
+  position:sticky;top:0;z-index:200;
+  background:var(--s1);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;height:52px;
+  padding:0;gap:0;
+  box-shadow:var(--sh);
+}
+.tl{display:flex;align-items:center;gap:9px;padding:0 14px;flex-shrink:0;}
+.tl-ghost{font-size:20px;}
+.tl-brand{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--ac);letter-spacing:.05em;white-space:nowrap;}
+.tl-sub{font-family:'Cinzel',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:1px;display:none;}
+@media(min-width:480px){.tl-sub{display:block;}}
+
+/* Topbar divider */
+.tb-div{width:1px;height:28px;background:var(--bd);flex-shrink:0;}
+
+/* Tabs - scrollable */
+#tabs{display:flex;align-items:stretch;flex:1;overflow-x:auto;scrollbar-width:none;height:100%;}
+#tabs::-webkit-scrollbar{display:none;}
+.tab{padding:0 12px;height:100%;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--mu);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;white-space:nowrap;flex-shrink:0;transition:color .2s,border-color .2s;}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.tab:hover:not(.on){color:var(--tx);}
+.tbadge{background:var(--ac);color:#fff;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:3px;font-weight:700;}
+
+/* Right controls */
+.tb-right{display:flex;align-items:center;gap:6px;padding:0 10px;flex-shrink:0;margin-left:auto;}
+.prov-pill{display:flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);white-space:nowrap;}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--mu);flex-shrink:0;}
+.pdot.ok{background:#16a34a;box-shadow:0 0 5px #16a34a60;}
+[data-theme=dark] .pdot.ok,[data-theme=green] .pdot.ok{background:var(--ac);box-shadow:0 0 5px var(--a2);}
+.prov-pill span{font-family:'Cinzel',serif;font-size:8px;color:var(--mu);letter-spacing:.08em;}
+
+/* Settings dropdown */
+.dd-wrap{position:relative;}
+.dd-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);color:var(--tx);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;white-space:nowrap;}
+.dd-btn:hover{border-color:var(--ac);color:var(--ac);}
+.dd-panel{position:absolute;top:calc(100% + 7px);right:0;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:6px;min-width:190px;z-index:500;box-shadow:0 10px 30px rgba(0,0,0,.14);display:none;}
+.dd-panel.open{display:block;animation:popIn .18s ease;}
+@keyframes popIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none;}}
+.dd-hdr{font-family:'Cinzel',serif;font-size:8px;color:var(--mu);letter-spacing:.16em;padding:5px 9px 3px;}
+.dd-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--tx);}
+.dd-row:hover{background:var(--a1);color:var(--ac);}
+.dd-row.on{background:var(--a1);color:var(--ac);font-weight:600;}
+.dd-ico{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+.dd-chk{margin-left:auto;font-size:11px;color:var(--ac);display:none;}
+.dd-row.on .dd-chk{display:block;}
+.dd-line{height:1px;background:var(--bd);margin:5px 0;}
+
+/* ══ BODY LAYOUT — mobile first ══ */
+#layout{display:flex;min-height:calc(100vh - 52px);}
+#sidebar{
+  width:100%;background:var(--s1);border-bottom:1px solid var(--bd);
+  padding:14px 14px 16px;
+  display:block; /* always visible on mobile — scrolls with page */
+}
+#main{flex:1;padding:14px;background:var(--bg);min-height:400px;}
+
+/* Desktop: sidebar on left */
+@media(min-width:768px){
+  #layout{display:grid;grid-template-columns:270px 1fr;align-items:start;}
+  #sidebar{
+    height:calc(100vh - 52px);overflow-y:auto;
+    border-bottom:none;border-right:1px solid var(--bd);
+    position:sticky;top:52px;
+  }
+  #main{padding:18px;min-height:calc(100vh - 52px);}
+}
+
+/* ══ SIDEBAR ══ */
+.sb-sec{margin-bottom:16px;}
+.sb-ttl{font-family:'Cinzel',serif;font-size:9px;color:var(--ac);letter-spacing:.2em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--bd);}
+
+/* Provider cards */
+.prov-card{border:1px solid var(--bd);border-radius:8px;padding:9px 11px;cursor:pointer;margin-bottom:6px;transition:border-color .2s,background .2s;}
+.prov-card:hover{border-color:var(--ac);background:var(--a1);}
+.prov-card.on{border-color:var(--ac);background:var(--a1);}
+.pc-row{display:flex;align-items:center;gap:7px;}
+.pc-ico{font-size:15px;flex-shrink:0;}
+.pc-name{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--tx);letter-spacing:.04em;flex:1;}
+.pc-badge{font-family:'Cinzel',serif;font-size:7px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.pb-free{background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25);}
+.pb-paid{background:rgba(185,64,16,.1);color:var(--wn);border:1px solid rgba(185,64,16,.22);}
+[data-theme=dark] .pb-free,[data-theme=green] .pb-free{background:var(--a1);color:var(--ac);border-color:var(--a2);}
+.pc-sub{font-size:10px;color:var(--mu);margin-top:4px;display:flex;align-items:center;justify-content:space-between;}
+.pc-link{font-size:9px;color:var(--go);font-family:'Cinzel',serif;}
+.pc-check{font-size:11px;display:none;}
+.prov-card.on .pc-check{display:block;}
+
+/* Key box */
+.key-box{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px;}
+.key-top{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.kdot{width:7px;height:7px;border-radius:50%;background:var(--mu);flex-shrink:0;}
+.kdot.ok{background:#16a34a;box-shadow:0 0 5px #16a34a60;}
+[data-theme=dark] .kdot.ok,[data-theme=green] .kdot.ok{background:var(--ac);}
+.kstat{font-size:11px;font-family:'Cinzel',serif;letter-spacing:.07em;color:var(--mu);}
+.kstat.ok{color:#16a34a;}
+[data-theme=dark] .kstat.ok,[data-theme=green] .kstat.ok{color:var(--ac);}
+.kstat.err{color:var(--dn);}
+.kinp{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);padding:9px 11px;font-size:13px;outline:none;border-radius:6px;margin-bottom:8px;}
+.kinp:focus{border-color:var(--ac);}
+.kbtn{width:100%;padding:9px;background:var(--a1);border:1px solid var(--ac);color:var(--ac);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;border-radius:6px;}
+.kbtn:hover{background:var(--a2);}
+.kinfo{font-size:10px;color:var(--mu);margin-top:8px;line-height:1.8;}
+.kinfo a{color:var(--go);}
+
+/* Criteria */
+.flbl{font-size:9px;color:var(--mu);letter-spacing:.14em;display:block;margin-bottom:3px;margin-top:10px;font-family:'Cinzel',serif;}
+.fld{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);padding:8px 10px;font-size:12px;outline:none;border-radius:6px;}
+.fld:focus{border-color:var(--ac);}
+select.fld{cursor:pointer;}
+.sbtn{width:100%;margin-top:13px;padding:11px;background:var(--ac);border:none;color:#fff;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.18em;border-radius:8px;font-weight:700;box-shadow:0 2px 10px var(--a2);}
+.sbtn:hover{opacity:.9;}
+.rbtn{width:100%;margin-top:6px;padding:7px;background:transparent;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;border-radius:6px;}
+.rbtn:hover{border-color:var(--ac);color:var(--ac);}
+
+/* ══ MAIN PANELS ══ */
+.pnl{display:none;}
+.pnl.on{display:block;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none;}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shine{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* View toggle */
+.vtog{display:flex;gap:5px;}
+.vbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;padding:5px 11px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--mu);}
+.vbtn.on{background:var(--a1);border-color:var(--ac);color:var(--ac);}
+.vbtn:hover:not(.on){border-color:var(--ac);color:var(--ac);}
+
+/* Warn */
+.wbar{background:rgba(184,64,16,.07);border:1px solid rgba(184,64,16,.18);border-left:3px solid var(--wn);padding:7px 12px;font-size:11px;color:var(--wn);border-radius:4px;line-height:1.5;}
+
+/* ══ TOKEN CARDS ══ */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px;}
+.tcard{background:var(--s1);border:1px solid var(--bd);border-top:2px solid var(--bd);border-radius:8px;padding:14px;cursor:pointer;box-shadow:var(--sh);}
+.tcard:hover,.tcard.open{border-color:var(--ac);border-top-color:var(--ac);box-shadow:0 4px 16px var(--a1);}
+.ctick{font-family:'Cinzel',serif;font-size:14px;font-weight:900;color:var(--ac);letter-spacing:.05em;}
+.cmeta{font-size:11px;color:var(--mu);margin-top:2px;}
+.chi{color:var(--go);font-weight:600;}
+.clo{color:var(--ac);}
+.cdesc{font-size:12px;color:var(--tx);line-height:1.65;margin:8px 0;}
+.cfoot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.clnks{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.cl{font-size:11px;background:none;border:none;padding:0;font-weight:500;letter-spacing:.02em;}
+.cl.a{color:var(--ac);}
+.cl.g{color:var(--go);}
+.cl.m{color:var(--mu);}
+.cl.m:hover{color:var(--tx);}
+.sbox{margin-top:11px;border-top:1px solid var(--bd);padding-top:11px;display:none;}
+.stitle{font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.18em;margin-bottom:7px;}
+.stxt{font-size:12px;color:var(--tx);line-height:1.75;white-space:pre-wrap;background:var(--a1);padding:10px;border-radius:6px;border-left:2px solid var(--ac);}
+.ca-row{margin-top:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ca-lbl{font-size:9px;color:var(--mu);font-family:'Cinzel',serif;letter-spacing:.08em;}
+.ca-val{font-size:10px;color:var(--ac);background:var(--a1);padding:2px 7px;border-radius:4px;font-family:'Inter',sans-serif;letter-spacing:.02em;}
+.ca-copy{font-size:10px;border:1px solid var(--bd);color:var(--mu);padding:2px 7px;border-radius:4px;background:transparent;}
+.ca-copy:hover{border-color:var(--ac);color:var(--ac);}
+
+/* Tags */
+.tag{font-size:10px;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-block;font-weight:500;}
+.ta{color:var(--ac);background:var(--a1);border:1px solid var(--a2);}
+.tg{color:var(--go);background:var(--g1);border:1px solid rgba(138,92,0,.2);}
+.tm{color:var(--mu);background:rgba(136,144,184,.09);border:1px solid rgba(136,144,184,.2);}
+.tw{color:var(--wn);background:rgba(184,64,16,.08);border:1px solid rgba(184,64,16,.2);}
+.tr{color:var(--dn);background:rgba(192,32,64,.07);border:1px solid rgba(192,32,64,.18);}
+.tok{color:#fff;background:var(--ac);border:none;font-weight:700;}
+[data-theme=dark] .tg,[data-theme=green] .tg{border-color:rgba(232,184,64,.25);}
+
+/* Soul meter */
+.soul{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.sring{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bd);}
+.sring span{font-size:12px;font-weight:700;}
+.strack{width:40px;height:3px;background:var(--bd);border-radius:2px;}
+.sfill{height:100%;border-radius:2px;}
+
+/* Table */
+.ttable{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+.ttable th{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.12em;color:var(--mu);padding:8px 10px;border-bottom:2px solid var(--bd);text-align:left;white-space:nowrap;background:var(--s1);}
+.ttable td{padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.ttable tr.trow:hover td{background:var(--a1);cursor:pointer;}
+.tc-t{font-family:'Cinzel',serif;font-size:12px;font-weight:900;color:var(--ac);}
+.tc-hi{color:var(--go);font-weight:600;}
+.tc-lo{color:var(--ac);}
+.tc-l{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.tc-l a{font-size:10px;color:var(--ac);font-weight:500;}
+.tc-l a.g{color:var(--go);}
+.tc-l button{font-size:10px;color:var(--mu);background:none;border:none;cursor:pointer;padding:0;}
+.texpand td{background:var(--s2);padding:10px 14px;}
+.tei{border-left:2px solid var(--ac);padding-left:10px;font-size:12px;color:var(--tx);line-height:1.7;white-space:pre-wrap;}
+
+/* Inner boxes */
+.ibox{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px;box-shadow:var(--sh);}
+.ibox.at{border-top:2px solid var(--ac);}
+.ibox.gt{border-top:2px solid var(--go);}
+.ibox.rt{border-top:2px solid var(--dn);}
+.ibox-ttl{font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.16em;margin-bottom:10px;}
+.ibox-ttl.gld{color:var(--go);}
+.ibox-ttl.red{color:var(--dn);}
+.mbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;padding:7px 15px;border-radius:6px;border:1px solid var(--ac);background:var(--a1);color:var(--ac);}
+.mbtn:hover{background:var(--a2);}
+.mbtn.red{border-color:var(--dn);background:rgba(192,32,64,.07);color:var(--dn);}
+.mbtn.gld{border-color:var(--go);background:var(--g1);color:var(--go);}
+.mbtn.full{width:100%;}
+.mbtn.sm{font-size:8px;padding:4px 9px;}
+.mfld{background:var(--bg);border:1px solid var(--bd);color:var(--tx);padding:8px 10px;font-size:12px;outline:none;border-radius:6px;width:100%;}
+.mfld:focus{border-color:var(--ac);}
+textarea.mfld{resize:vertical;}
+
+/* Oracle */
+.olay{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:640px){.olay{grid-template-columns:210px 1fr;}}
+.scrbtn{width:100%;text-align:left;padding:8px 10px;border-radius:6px;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel',serif;font-size:9px;line-height:1.4;margin-bottom:5px;letter-spacing:.04em;background:transparent;}
+.scrbtn:hover,.scrbtn.on{background:var(--a1);border-color:var(--a2);color:var(--ac);}
+.obox{background:var(--s1);border:1px solid var(--bd);border-top:2px solid var(--ac);border-radius:8px;padding:16px;min-height:280px;box-shadow:var(--sh);}
+.oemp{display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:10px;opacity:.3;}
+.otxt{font-size:13px;color:var(--tx);line-height:1.85;white-space:pre-wrap;}
+
+/* Two col */
+.two{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:640px){.two{grid-template-columns:1fr 1fr;}}
+.divr{display:flex;align-items:center;gap:8px;margin:7px 0;}
+.divr::before,.divr::after{content:'';flex:1;height:1px;background:var(--bd);}
+.divr span{color:var(--bd);font-size:11px;}
+
+/* Loading */
+.loading{text-align:center;padding:50px 0;}
+.lic{font-size:40px;display:block;animation:bob 1.5s ease-in-out infinite;}
+.ltxt{font-family:'Cinzel',serif;font-size:11px;color:var(--ac);letter-spacing:.2em;margin-top:11px;animation:shine 1.5s infinite;}
+.lsub{font-size:12px;color:var(--mu);margin-top:5px;}
+.empty{text-align:center;padding:50px 20px;color:var(--mu);}
+.eico{font-size:38px;display:block;margin-bottom:12px;opacity:.4;}
+.etxt{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;}
+.esub{font-size:12px;margin-top:5px;}
+.brow{display:flex;align-items:center;gap:9px;background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:9px 11px;margin-bottom:6px;}
+.gcard{background:var(--s1);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:6px;padding:14px 16px;margin-bottom:9px;box-shadow:var(--sh);}
+.gemp{text-align:center;padding:60px 0;opacity:.3;}
+</style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<div id="topbar">
+  <div class="tl">
+    <span class="tl-ghost">👻</span>
+    <div>
+      <div class="tl-brand">GHOSTCAP</div>
+      <div class="tl-sub">DEAD COINS · SECOND CHANCES · v3.0</div>
+    </div>
+  </div>
+  <div class="tb-div"></div>
+  <div id="tabs">
+    <button class="tab on" onclick="sw(0)">🔍 SEARCH</button>
+    <button class="tab" onclick="sw(1)">👁 CHECK</button>
+    <button class="tab" onclick="sw(2)">⚔️ DUEL</button>
+    <button class="tab" onclick="sw(3)">🔮 ORACLE</button>
+    <button class="tab" onclick="sw(4)">📜 GRIMOIRE<span id="gbadge" class="tbadge" style="display:none;"></span></button>
+  </div>
+  <div class="tb-right">
+    <div class="prov-pill">
+      <div class="pdot" id="pdot"></div>
+      <span id="plbl">NO KEY</span>
+    </div>
+    <div class="dd-wrap">
+      <button class="dd-btn" onclick="toggleDD()">⚙️ <span id="dd-arr">▾</span></button>
+      <div class="dd-panel" id="dd-panel">
+        <div class="dd-hdr">🎨 THEME</div>
+        <div class="dd-row on" id="dd-light" onclick="setTheme('light')">
+          <span class="dd-ico">☀️</span> Light <span class="dd-chk">✓</span>
+        </div>
+        <div class="dd-row" id="dd-dark" onclick="setTheme('dark')">
+          <span class="dd-ico">🌙</span> Dark <span class="dd-chk">✓</span>
+        </div>
+        <div class="dd-row" id="dd-green" onclick="setTheme('green')">
+          <span class="dd-ico">🟢</span> Green <span class="dd-chk">✓</span>
+        </div>
+        <div class="dd-line"></div>
+        <div class="dd-hdr">🔗 QUICK LINKS</div>
+        <div class="dd-row" onclick="open('https://pump.fun','_blank')">
+          <span class="dd-ico">🚀</span> Pump.fun
+        </div>
+        <div class="dd-row" onclick="open('https://gmgn.ai','_blank')">
+          <span class="dd-ico">🔍</span> GMGN.ai
+        </div>
+        <div class="dd-row" onclick="open('https://dexscreener.com/solana','_blank')">
+          <span class="dd-ico">📊</span> Dexscreener
+        </div>
+        <div class="dd-row" onclick="open('https://birdeye.so','_blank')">
+          <span class="dd-ico">🦅</span> Birdeye
+        </div>
+        <div class="dd-row" onclick="open('https://solscan.io','_blank')">
+          <span class="dd-ico">🔗</span> Solscan
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LAYOUT ══ -->
+<div id="layout">
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+
+  <div class="sb-sec">
+    <div class="sb-ttl">⚡ AI PROVIDER</div>
+    <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
+      <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
+    </div>
+    <div id="pc-gemini" class="prov-card" onclick="pickProv('gemini')">
+      <div class="pc-row"><span class="pc-ico">🌟</span><span class="pc-name">GEMINI</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>Gemini 2.0 Flash · Google</span><a class="pc-link" href="https://aistudio.google.com/app/apikey" target="_blank" onclick="event.stopPropagation()">→ aistudio.google.com</a></div>
+    </div>
+    <div id="pc-openai" class="prov-card" onclick="pickProv('openai')">
+      <div class="pc-row"><span class="pc-ico">🤖</span><span class="pc-name">OPENAI</span><span class="pc-badge pb-free">$5 FREE</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>GPT-4o Mini</span><a class="pc-link" href="https://platform.openai.com/api-keys" target="_blank" onclick="event.stopPropagation()">→ platform.openai.com</a></div>
+    </div>
+    <div id="pc-deepseek" class="prov-card" onclick="pickProv('deepseek')">
+      <div class="pc-row"><span class="pc-ico">🔵</span><span class="pc-name">DEEPSEEK</span><span class="pc-badge pb-free">~FREE</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>DeepSeek Chat</span><a class="pc-link" href="https://platform.deepseek.com/api_keys" target="_blank" onclick="event.stopPropagation()">→ platform.deepseek.com</a></div>
+    </div>
+    <div id="pc-qwen" class="prov-card" onclick="pickProv('qwen')">
+      <div class="pc-row"><span class="pc-ico">🟣</span><span class="pc-name">QWEN</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>Qwen-Plus · Alibaba</span><a class="pc-link" href="https://dashscope.console.aliyun.com/apiKey" target="_blank" onclick="event.stopPropagation()">→ dashscope</a></div>
+    </div>
+    <div id="pc-anthropic" class="prov-card" onclick="pickProv('anthropic')">
+      <div class="pc-row"><span class="pc-ico">🧠</span><span class="pc-name">ANTHROPIC</span><span class="pc-badge pb-paid">PAID $5</span><span class="pc-check">✓</span></div>
+      <div class="pc-sub"><span>Claude Haiku · Best quality</span><a class="pc-link" href="https://console.anthropic.com" target="_blank" onclick="event.stopPropagation()">→ console.anthropic.com</a></div>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl" id="key-ttl">🔑 GROQ API KEY</div>
+    <div class="key-box" id="key-box-inner">
+      <div class="key-top">
+        <div class="kdot" id="kdot"></div>
+        <span class="kstat" id="kstat">Paste your key below</span>
+      </div>
+      <input type="text" id="kinp" class="kinp" placeholder="gsk_..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')connectKey()"/>
+      <button class="kbtn" id="kbtn" onclick="connectKey()">✓ CONNECT KEY</button>
+      <div class="kinfo" id="kinfo">Get free key → <a href="https://console.groq.com" target="_blank">console.groq.com</a><br/>🔒 Browser only. Never stored or shared.</div>
+    </div>
+  </div>
+
+  <div class="sb-sec" id="sb-crit">
+    <div class="sb-ttl">✦ SEARCH CRITERIA</div>
+    <label class="flbl">YEAR FROM</label>
+    <select id="cyf" class="fld"><option>2023</option><option>2024</option><option>2025</option></select>
+    <label class="flbl">YEAR TO</label>
+    <select id="cyt" class="fld"><option>2023</option><option>2024</option><option selected>2025</option><option>2026</option></select>
+    <label class="flbl"># OF TOKENS</label>
+    <select id="cn" class="fld"><option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option></select>
+    <label class="flbl">MIN CURRENT MC ($)</label>
+    <input id="cmn" class="fld" value="2000"/>
+    <label class="flbl">MAX CURRENT MC ($)</label>
+    <input id="cmx" class="fld" value="15000"/>
+    <label class="flbl">MIN PEAK MC ($K)</label>
+    <input id="cpk" class="fld" value="500"/>
+    <label class="flbl">CATEGORY</label>
+    <select id="ccat" class="fld"><option>any</option><option>meme</option><option>dog</option><option>cat</option><option>frog</option><option>celebrity</option><option>ai</option><option>gaming</option></select>
+    <label class="flbl">RISK LEVEL</label>
+    <select id="crisk" class="fld"><option>any</option><option>medium</option><option>high</option><option>very high</option></select>
+    <label class="flbl">KEYWORD / THEME</label>
+    <input id="ckw" class="fld" placeholder="e.g. squirrel, anime..."/>
+    <button class="sbtn" onclick="summon()">👻 SUMMON SPIRITS</button>
+    <button class="rbtn" onclick="resetC()">↺ RESET</button>
+  </div>
+
+</div><!-- /sidebar -->
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+
+  <div class="pnl on" id="p0">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <div class="wbar" style="flex:1;min-width:200px;">⚠ Not financial advice · 98% of pump.fun tokens go to zero · DYOR</div>
+      <div class="vtog">
+        <button id="vb-card" class="vbtn on" onclick="setView('card')">⊞ CARDS</button>
+        <button id="vb-table" class="vbtn" onclick="setView('table')">≡ TABLE</button>
+      </div>
+    </div>
+    <div id="sload" class="loading" style="display:none;">
+      <span class="lic">👻</span>
+      <div class="ltxt">CONSULTING THE SPIRITS...</div>
+      <div class="lsub" id="sload-sub">Analysing via AI</div>
+    </div>
+    <div id="sres"></div>
+    <div id="semp" class="empty">
+      <span class="eico">🔍</span>
+      <div class="etxt">READY TO SUMMON</div>
+      <div class="esub">Select provider → paste key → connect → results load automatically</div>
+    </div>
+  </div>
+
+  <div class="pnl" id="p1">
+    <div class="two">
+      <div class="ibox at">
+        <div class="ibox-ttl">👁 SINGLE TOKEN CHECK</div>
+        <div style="display:flex;gap:7px;margin-bottom:10px;">
+          <input id="siin" class="mfld" placeholder="Token name or ticker..." onkeydown="if(event.key==='Enter')chkSingle()" style="flex:1;"/>
+          <button class="mbtn" onclick="chkSingle()">GO</button>
+        </div>
+        <div id="siload" style="display:none;font-size:12px;color:var(--mu);animation:shine 1s infinite;">👻 Analysing...</div>
+        <div id="sires" style="display:none;">
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--go);letter-spacing:.16em;margin-bottom:7px;" id="silbl"></div>
+          <div class="stxt" id="sitxt"></div>
+          <div style="display:flex;gap:10px;margin-top:9px;flex-wrap:wrap;" id="silnks"></div>
+        </div>
+      </div>
+      <div class="ibox gt">
+        <div class="ibox-ttl gld">💀 BATCH SCAN (UP TO 8)</div>
+        <textarea id="bain" class="mfld" rows="4" style="margin-bottom:9px;" placeholder="One per line or comma:&#10;BOME, SLERF&#10;POPCAT, MICHI"></textarea>
+        <button class="mbtn full" onclick="chkBatch()">👻 BATCH SCAN</button>
+        <div id="baload" style="display:none;font-size:12px;color:var(--mu);margin-top:8px;animation:shine 1s infinite;">Scanning...</div>
+        <div id="bares" style="margin-top:9px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pnl" id="p2">
+    <div class="ibox rt">
+      <div class="ibox-ttl red">⚔️ HEAD-TO-HEAD DUEL</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="dua" class="mfld" placeholder="Token A (e.g. POPCAT)" style="flex:1;min-width:100px;"/>
+        <span style="font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--dn);flex-shrink:0;">VS</span>
+        <input id="dub" class="mfld" placeholder="Token B (e.g. WIF)" style="flex:1;min-width:100px;"/>
+        <button class="mbtn red" onclick="duel()">DUEL</button>
+      </div>
+    </div>
+    <div id="duload" class="loading" style="display:none;">
+      <span style="font-size:34px;display:block;">⚔️</span>
+      <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--dn);letter-spacing:.2em;margin-top:9px;animation:shine 1s infinite;">CLASHING...</div>
+    </div>
+    <div id="dures" class="ibox" style="display:none;">
+      <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--go);letter-spacing:.18em;margin-bottom:9px;">◈ VERDICT</div>
+      <div id="dutxt" class="otxt"></div>
+      <div id="dulnks" style="display:flex;gap:11px;margin-top:11px;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <div class="pnl" id="p3">
+    <div class="olay">
+      <div class="ibox gt" style="margin-bottom:0;">
+        <div class="ibox-ttl gld">📜 QUICK INSIGHTS</div>
+        <button class="scrbtn" onclick="orc(this,0)">🔥 Trending Solana meme narratives?</button>
+        <button class="scrbtn" onclick="orc(this,1)">📈 What causes dead coins to revive?</button>
+        <button class="scrbtn" onclick="orc(this,2)">⚠️ Rug vs dormant — how to tell?</button>
+        <button class="scrbtn" onclick="orc(this,3)">🐋 Track whale buys on low-MC?</button>
+        <button class="scrbtn" onclick="orc(this,4)">💎 Pump.fun coins that hit 100x?</button>
+        <button class="scrbtn" onclick="orc(this,5)">🪦 Legendary pump.fun disasters?</button>
+        <div class="divr"><span>or</span></div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.15em;margin-bottom:6px;">CUSTOM</div>
+        <textarea id="orin" class="mfld" rows="3" placeholder="Ask anything..."></textarea>
+        <button class="mbtn full" style="margin-top:7px;" onclick="orcCustom()">🔮 ASK</button>
+      </div>
+      <div class="obox">
+        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.2em;margin-bottom:9px;">👁 RESPONSE</div>
+        <div id="orload" style="display:none;text-align:center;padding:40px 0;">
+          <span style="font-size:38px;display:block;animation:bob 2s ease-in-out infinite;">🔮</span>
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-top:9px;animation:shine 1.2s infinite;">CONSULTING...</div>
+        </div>
+        <div id="oremp" class="oemp"><span style="font-size:38px;">🔮</span><div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.12em;text-align:center;margin-top:8px;">SELECT A QUESTION</div></div>
+        <div id="orres" class="otxt" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pnl" id="p4">
+    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-bottom:13px;" id="gtitle">📜 YOUR GRIMOIRE</div>
+    <div id="gemp" class="gemp">
+      <span style="font-size:42px;display:block;animation:bob 3s ease infinite;">📜</span>
+      <div style="font-family:'Cinzel',serif;font-size:11px;margin-top:12px;letter-spacing:.16em;">GRIMOIRE IS EMPTY</div>
+      <div style="font-size:12px;color:var(--mu);margin-top:5px;">Save tokens from search results</div>
+    </div>
+    <div id="glist"></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+/* ══ STATE ══ */
+let KEY='', PROV='groq', VIEW='card', grim=[], scache={}, lastData=[];
+const TMAP={};
+
+const PROVS={
+  groq:     {name:'GROQ',     fmt:'openai',   url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
+  gemini:   {name:'GEMINI',   fmt:'gemini',   url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
+  openai:   {name:'OPENAI',   fmt:'openai',   url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
+  deepseek: {name:'DEEPSEEK', fmt:'openai',   url:'https://api.deepseek.com/v1/chat/completions',                                               model:'deepseek-chat',             prefix:'sk-',    hint:'platform.deepseek.com',        hurl:'https://platform.deepseek.com/api_keys'},
+  qwen:     {name:'QWEN',     fmt:'openai',   url:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',                         model:'qwen-plus',                 prefix:'sk-',    hint:'dashscope.console.aliyun.com', hurl:'https://dashscope.console.aliyun.com/apiKey'},
+  anthropic:{name:'ANTHROPIC',fmt:'anthropic',url:'https://api.anthropic.com/v1/messages',                                                      model:'claude-haiku-4-5-20251001', prefix:'sk-ant', hint:'console.anthropic.com',        hurl:'https://console.anthropic.com'}
+};
+
+const ORACLES=[
+  'What meme coin narratives are trending on Solana in 2025-2026? Which categories got most traction? Sharp bullet-point market pulse.',
+  'What conditions cause dead pump.fun tokens to revival-pump? Concrete triggers with examples.',
+  'How to distinguish a rugged token from dormant one that might revive? Practical checklist.',
+  'Best tools to track whale buys on low-MC Solana tokens? Sites, bots, X accounts.',
+  'Which pump.fun tokens achieved 100x in 2024-2025? What patterns made them succeed?',
+  'Most notorious pump.fun failures and rug pulls? What can traders learn?'
+];
+
+/* ══ DROPDOWN ══ */
+function toggleDD(){
+  const p=document.getElementById('dd-panel'), a=document.getElementById('dd-arr');
+  const o=p.classList.toggle('open');
+  a.textContent=o?'▴':'▾';
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.dd-wrap')){
+    document.getElementById('dd-panel').classList.remove('open');
+    document.getElementById('dd-arr').textContent='▾';
+  }
+});
+
+/* ══ THEME ══ */
+function setTheme(t){
+  if(t==='light') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',t);
+  ['light','dark','green'].forEach(n=>{
+    const el=document.getElementById('dd-'+n);
+    if(el)el.classList.toggle('on',n===t);
+  });
+  try{localStorage.setItem('gc-t',t);}catch(e){}
+  // close dropdown
+  document.getElementById('dd-panel').classList.remove('open');
+  document.getElementById('dd-arr').textContent='▾';
+}
+(function(){
+  try{const s=localStorage.getItem('gc-t')||'light';setTheme(s);}catch(e){setTheme('light');}
+})();
+
+/* ══ TABS ══ */
+function sw(i){
+  document.querySelectorAll('.tab').forEach((b,j)=>b.classList.toggle('on',i===j));
+  document.querySelectorAll('.pnl').forEach((p,j)=>p.classList.toggle('on',i===j));
+  document.getElementById('sb-crit').style.display=i===0?'block':'none';
+}
+
+/* ══ PROVIDER ══ */
+function pickProv(id){
+  PROV=id; KEY='';
+  const p=PROVS[id];
+  document.querySelectorAll('.prov-card').forEach(c=>c.classList.remove('on'));
+  document.getElementById('pc-'+id).classList.add('on');
+  document.getElementById('key-ttl').textContent='🔑 '+p.name+' API KEY';
+  const inp=document.getElementById('kinp');
+  inp.value=''; inp.placeholder=(p.prefix||'')+'...'; inp.disabled=false;
+  document.getElementById('kinfo').innerHTML='Get free key → <a href="'+p.hurl+'" target="_blank">'+p.hint+'</a><br/>🔒 Browser only. Never stored.';
+  document.getElementById('kdot').className='kdot';
+  document.getElementById('kstat').textContent='Paste your key below';
+  document.getElementById('kstat').className='kstat';
+  document.getElementById('pdot').className='pdot';
+  document.getElementById('plbl').textContent='NO KEY';
+  const d=document.getElementById('disc-btn'); if(d)d.remove();
+  const f=document.getElementById('force-btn'); if(f)f.remove();
+}
+
+/* ══ CONNECT KEY ══ */
+function connectKey(){
+  const v=document.getElementById('kinp').value.trim();
+  if(!v||v.length<10){
+    document.getElementById('kstat').textContent='⚠ Paste your API key first';
+    document.getElementById('kstat').className='kstat err';
+    return;
+  }
+  const prefix=PROVS[PROV].prefix||'';
+  const ok=!prefix||v.startsWith(prefix);
+  if(!ok){
+    document.getElementById('kstat').textContent='⚠ Expected: '+prefix+'... — or tap USE ANYWAY';
+    document.getElementById('kstat').className='kstat err';
+    const old2=document.getElementById('force-btn'); if(old2)old2.remove();
+    const fb=document.createElement('button');
+    fb.id='force-btn'; fb.className='rbtn'; fb.style.marginTop='5px';
+    fb.textContent='⚠ USE KEY ANYWAY';
+    fb.onclick=function(){doConnect(v);fb.remove();};
+    var kb=document.getElementById('kbtn');
+    if(kb) kb.after(fb); else document.getElementById('key-box-inner').appendChild(fb);
+    return;
+  }
+  doConnect(v);
+}
+
+function doConnect(v){
+  KEY=v;
+  var masked=v.substring(0,8)+'••••'+v.slice(-4);
+  document.getElementById('kdot').className='kdot ok';
+  document.getElementById('kstat').textContent='✓ Connected — '+masked;
+  document.getElementById('kstat').className='kstat ok';
+  document.getElementById('kinp').value='';
+  document.getElementById('kinp').placeholder=masked;
+  document.getElementById('kinp').disabled=true;
+  document.getElementById('pdot').className='pdot ok';
+  document.getElementById('plbl').textContent=PROVS[PROV].name+' ✓';
+  var old=document.getElementById('disc-btn'); if(old)old.remove();
+  var db=document.createElement('button');
+  db.id='disc-btn'; db.className='rbtn'; db.style.marginTop='5px';
+  db.textContent='⟳ DISCONNECT';
+  db.onclick=function(){pickProv(PROV);};
+  var kbtn=document.getElementById('kbtn');
+  if(kbtn) kbtn.after(db);
+  else document.getElementById('key-box-inner').appendChild(db);
+  // Switch to search tab and ensure criteria visible
+  sw(0);
+  document.getElementById('sb-crit').style.display='block';
+  // Auto-summon with delay to let DOM settle
+  setTimeout(function(){ summon(); }, 500);
+}
+
+/* ══ VIEW ══ */
+function setView(v){
+  VIEW=v;
+  document.getElementById('vb-card').classList.toggle('on',v==='card');
+  document.getElementById('vb-table').classList.toggle('on',v==='table');
+  if(!lastData.length)return;
+  v==='card'?renderCards(lastData):renderTable(lastData);
+}
+
+/* ══ AI CALL ══ */
+async function callAI(prompt, json){
+  json = json || false;
+  if(!KEY) return json ? [] : '⚠ Please connect your API key first.';
+  var p = PROVS[PROV];
+  var sys = json
+    ? 'You are a Solana meme coin research expert with knowledge up to 2026. You MUST return ONLY a valid JSON array. Start your response with [ and end with ]. No explanation, no markdown, no backticks, no text before or after the JSON array.'
+    : 'You are a crypto research expert on Solana, pump.fun and DeFi with knowledge up to 2026. Be direct, factual, concise.';
+  try{
+    var raw = '';
+    var errMsg = '';
+
+    if(p.fmt === 'openai'){
+      var r = await fetch(p.url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+        body:JSON.stringify({model:p.model, max_tokens:2000, temperature:0.7,
+          messages:[{role:'system',content:sys},{role:'user',content:prompt}]})
+      });
+      var d = await r.json();
+      if(d.error){ errMsg = d.error.message||'API error'; }
+      else { raw = (((d.choices||[])[0])||{}).message ? (d.choices[0].message.content||'') : ''; }
+
+    } else if(p.fmt === 'gemini'){
+      var r2 = await fetch(p.url+'?key='+KEY, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          system_instruction:{parts:[{text:sys}]},
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{maxOutputTokens:2000,temperature:0.7}
+        })
+      });
+      var d2 = await r2.json();
+      if(d2.error){ errMsg = d2.error.message||'API error'; }
+      else {
+        var cands = d2.candidates||[];
+        var cand0 = cands[0]||{};
+        var cparts = (cand0.content||{}).parts||[];
+        raw = (cparts[0]||{}).text||'';
+      }
+
+    } else if(p.fmt === 'anthropic'){
+      var r3 = await fetch(p.url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':KEY,
+          'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:p.model, max_tokens:2000, system:sys,
+          messages:[{role:'user',content:prompt}]})
+      });
+      var d3 = await r3.json();
+      if(d3.error){ errMsg = d3.error.message||'API error'; }
+      else {
+        var blks = d3.content||[];
+        raw = blks.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('')||'';
+      }
+    }
+
+    if(errMsg){
+      showErr('API Error: '+errMsg);
+      return json ? [] : '⚠ '+errMsg;
+    }
+
+    if(!raw){
+      showErr('Empty response from '+p.name+'. Try again.');
+      return json ? [] : '⚠ Empty response.';
+    }
+
+    if(json){
+      // Extract JSON array from response - try multiple strategies
+      var cleaned = raw.trim();
+      // Strategy 1: direct parse
+      try{ var r1 = JSON.parse(cleaned); if(Array.isArray(r1) && r1.length) return r1; } catch(e1){}
+      // Strategy 2: strip markdown fences
+      cleaned = cleaned.replace(/^```json\s*/,'').replace(/\s*```$/,'').replace(/^```\s*/,'').trim();
+      try{ var r2p = JSON.parse(cleaned); if(Array.isArray(r2p) && r2p.length) return r2p; } catch(e2){}
+      // Strategy 3: find first [ to last ]
+      var start = raw.indexOf('['), end = raw.lastIndexOf(']');
+      if(start !== -1 && end !== -1 && end > start){
+        try{ var r3p = JSON.parse(raw.slice(start, end+1)); if(Array.isArray(r3p) && r3p.length) return r3p; } catch(e3){}
+      }
+      // All failed - show raw for debug
+      showErr('JSON parse failed. Raw: '+raw.substring(0,200));
+      return [];
+    }
+    return raw;
+  } catch(e){
+    showErr('Network error: '+e.message);
+    return json ? [] : '⚠ Error: '+e.message;
+  }
+}
+
+function showErr(msg){
+  document.getElementById('sload').style.display='none';
+  var el=document.getElementById('semp');
+  el.style.display='block';
+  el.querySelector('.etxt').textContent='⚠ ERROR';
+  el.querySelector('.esub').textContent=msg;
+  console.error('GhostCap error:',msg);
+}
+
+/* ══ HELPERS ══ */
+function soul(s){
+  s=Math.min(s||0,100);
+  const c=s>=70?'var(--ac)':s>=50?'var(--go)':'var(--wn)';
+  return `<div class="soul"><div class="sring" style="border-color:${c};background:${c}18;"><span style="color:${c};">${s}</span></div><div class="strack"><div class="sfill" style="width:${s}%;background:${c};"></div></div></div>`;
+}
+function tag(t,c){return `<span class="tag ${c}">${t}</span>`;}
+function rtag(r){const v=(r||'').toLowerCase();return v.includes('very')?tag('⚡ '+r,'tr'):v.includes('high')?tag('⚡ '+r,'tw'):tag('⚡ '+r,'tg');}
+function xtag(s){return s==='active'?tag(s,'ta'):s==='dormant'?tag(s,'tg'):tag(s,'tr');}
+function esc(s){return(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;").replace(/`/g,"&#96;");}
+function safeStr(s){return(s||'').replace(/[<>"'`&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;','&':'&amp;'}[c]));}
+function caLink(t){
+  var ca=t.contractAddress||'',tick=(t.ticker||'').replace(/\$|[^a-zA-Z0-9]/g,'');
+  return{
+    dex: ca ? 'https://dexscreener.com/solana/'+ca : 'https://dexscreener.com/solana?q='+tick,
+    be:  ca ? 'https://birdeye.so/token/'+ca+'?chain=solana' : 'https://birdeye.so/search?keyword='+tick+'&chain=solana',
+    gmgn:ca ? 'https://gmgn.ai/sol/token/'+ca : 'https://gmgn.ai/sol/search?q='+tick,
+    sol: ca ? 'https://solscan.io/token/'+ca : ''
+  };
+}
+
+/* ══ RESET ══ */
+function resetC(){
+  document.getElementById('cyf').selectedIndex=0;
+  document.getElementById('cyt').selectedIndex=2;
+  document.getElementById('cn').selectedIndex=2;
+  document.getElementById('cmn').value='2000';
+  document.getElementById('cmx').value='15000';
+  document.getElementById('cpk').value='500';
+  document.getElementById('ccat').selectedIndex=0;
+  document.getElementById('crisk').selectedIndex=0;
+  document.getElementById('ckw').value='';
+}
+
+/* ══ SUMMON ══ */
+async function summon(){
+  if(!KEY){ showStatus('⚠ Connect your API key first','err'); return; }
+  var yf=document.getElementById('cyf').value;
+  var yt=document.getElementById('cyt').value;
+  var n=document.getElementById('cn').value;
+  var cat=document.getElementById('ccat').value;
+  var kw=document.getElementById('ckw').value;
+
+  console.log('GhostCap summon: provider='+PROV+' n='+n+' yf='+yf);
+
+  document.getElementById('sload').style.display='block';
+  document.getElementById('sload-sub').textContent='Asking '+PROVS[PROV].name+'... please wait';
+  document.getElementById('sres').innerHTML='';
+  document.getElementById('semp').style.display='none';
+  scache={}; lastData=[];
+
+  var prompt = 'List '+n+' real Solana pump.fun meme tokens from '+yf+'-'+yt
+    +(cat!=='any'?' in the '+cat+' category':'')
+    +(kw?' related to '+kw:'')
+    +'. These tokens once had significant market caps but are now very low or dormant.'
+    +' Return a JSON array only. Each item must have: name, ticker, launchYear, peakMC, currentMC, peakDate, category, description, signals (array of 3 strings), risk, score (0-100).'
+    +' Return ONLY the JSON array, no other text.';
+
+  var data = await callAI(prompt, true);
+
+  console.log('GhostCap result: isArray='+Array.isArray(data)+' len='+(Array.isArray(data)?data.length:0));
+
+  document.getElementById('sload').style.display='none';
+
+  if(!Array.isArray(data)||!data.length){
+    document.getElementById('semp').style.display='block';
+    return;
+  }
+  lastData=data;
+  VIEW==='card' ? renderCards(data) : renderTable(data);
+}
+
+function showStatus(msg, type){
+  var el=document.getElementById('semp');
+  el.style.display='block';
+  el.querySelector('.etxt').textContent = type==='err' ? '⚠ ERROR' : 'INFO';
+  el.querySelector('.esub').textContent = msg;
+}
+
+/* ══ RENDER CARDS ══ */
+function renderCards(data){
+  document.getElementById('sres').innerHTML='<div class="tgrid">'+data.map((t,i)=>cardHTML(t,i)).join('')+'</div>';
+}
+
+function cardHTML(t,i){
+  TMAP['t'+i]=t;
+  var sigs=(t.signals||[]).map(function(s){return tag('✦ '+safeStr(s),'ta');}).join(' ');
+  var L=caLink(t), ca=t.contractAddress||'';
+  var solLink=L.sol?('<a href="'+L.sol+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--mu);">SOLSCAN↗</a>'):'';
+  var caHtml=ca
+    ?('<div class="ca-row"><span class="ca-lbl">CA</span><span class="ca-val">'+ca.slice(0,8)+'...'+ca.slice(-5)+'</span><button class="ca-copy" onclick="event.stopPropagation();copyCA('+i+')">⧉</button>'+solLink+'</div>')
+    :'<div style="font-size:9px;color:var(--mu);margin-top:4px;">CA: verify on DEX</div>';
+  var xH=(t.xHandle||'').replace('@','').replace(/[^a-zA-Z0-9_]/g,'');
+  var xLink=xH?('<a class="cl a" href="https://twitter.com/'+xH+'" target="_blank" onclick="event.stopPropagation()">𝕏</a>'):'';
+  var delay=(i*0.05).toFixed(2);
+  return '<div class="tcard" id="c'+i+'" onclick="togCard('+i+')" style="animation:fadeUp .4s ease '+delay+'s both;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+    +'<div style="flex:1;min-width:0;margin-right:9px;">'
+    +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:3px;">'
+    +'<span class="ctick">'+safeStr(t.ticker)+'</span>'+tag(safeStr(t.category)||'meme','tg')+tag(String(t.launchYear||''),'tm')
+    +'</div>'
+    +'<div class="cmeta">PEAK <span class="chi">'+safeStr(t.peakMC)+'</span> · '+safeStr(t.peakDate)+'</div>'
+    +'<div class="cmeta">NOW <span class="clo">'+safeStr(t.currentMC)+'</span></div>'
+    +caHtml
+    +'</div>'+soul(t.score)+'</div>'
+    +'<div class="divr"><span>·</span></div>'
+    +'<div class="cdesc">'+safeStr(t.description)+'</div>'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">'+sigs+'</div>'
+    +'<div class="cfoot">'+rtag(t.risk)
+    +'<div class="clnks">'+xLink
+    +'<a class="cl g" href="'+L.dex+'" target="_blank" onclick="event.stopPropagation()">DEX ↗</a>'
+    +'<a class="cl g" href="'+L.be+'" target="_blank" onclick="event.stopPropagation()">BIRDEYE ↗</a>'
+    +'<a class="cl a" href="'+L.gmgn+'" target="_blank" onclick="event.stopPropagation()">GMGN ↗</a>'
+    +'<button class="cl m" onclick="event.stopPropagation();saveT('+i+')">+ SAVE</button>'
+    +'</div></div>'
+    +'<div class="sbox" id="sb'+i+'"><div class="stitle">👁 AI ANALYSIS</div><div id="sc'+i+'"></div></div>'
+    +'</div>';
+}
+
+function copyCA(i){
+  const t=TMAP['t'+i]; if(!t)return;
+  navigator.clipboard.writeText(t.contractAddress||'').then(()=>{
+    const b=document.querySelector(`#c${i} .ca-copy`);
+    if(b){const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1500);}
+  }).catch(()=>{});
+}
+function saveT(i){const t=TMAP['t'+i];if(t)addGrim(t);}
+
+async function togCard(i){
+  const card=document.getElementById('c'+i),box=document.getElementById('sb'+i);
+  const t=TMAP['t'+i]||{};
+  const tick=t.ticker||('t'+i),name=t.name||tick;
+  const isOpen=card.classList.contains('open');
+  document.querySelectorAll('.tcard').forEach(c=>c.classList.remove('open'));
+  document.querySelectorAll('.sbox').forEach(b=>b.style.display='none');
+  if(isOpen)return;
+  card.classList.add('open');box.style.display='block';
+  const el=document.getElementById('sc'+i);
+  if(scache[tick]){el.innerHTML=`<div class="stxt">${scache[tick]}</div>`;return;}
+  el.innerHTML='<div style="font-size:12px;color:var(--mu);animation:shine 1s infinite;">👻 Analysing...</div>';
+  const text=await callAI(`Analyse ${name} (${tick}) Solana pump.fun meme coin. Knowledge up to 2026:
+• What drove its peak and when?
+• Why did it crash?
+• Community: active/dormant/dead?
+• Green flags for revival?
+• Red flags?
+• Honest 1-sentence verdict.
+Under 150 words. Bullet points.`);
+  scache[tick]=text;
+  el.innerHTML=`<div class="stxt">${text}</div>`;
+}
+
+/* ══ RENDER TABLE ══ */
+function renderTable(data){
+  document.getElementById('sres').innerHTML=`<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">
+  <table class="ttable"><thead><tr>
+    <th>SCORE</th><th>TICKER</th><th>NAME</th><th>CAT</th><th>PEAK MC</th><th>NOW MC</th><th>DATE</th><th>RISK</th><th>CA</th><th>LINKS</th>
+  </tr></thead><tbody id="ttbody"></tbody></table></div>`;
+  document.getElementById('ttbody').innerHTML=data.map((t,i)=>{
+    TMAP['t'+i]=t;
+    const L=caLink(t),ca=t.contractAddress||'';
+    const caCell=ca?`<span style="font-size:10px;color:var(--ac);">${ca.slice(0,8)}...${ca.slice(-5)}</span> <button onclick="copyCAT(${i})" style="font-size:10px;border:1px solid var(--bd);color:var(--mu);padding:1px 5px;border-radius:3px;background:none;cursor:pointer;" id="cca${i}">⧉</button>`:'<span style="color:var(--mu);">—</span>';
+    const sc=t.score||0,sc_c=sc>=70?'var(--ac)':sc>=50?'var(--go)':'var(--wn)';
+    return `<tr class="trow" id="tr${i}" onclick="togRow(${i})">
+      <td><span style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:${sc_c};">${sc}</span></td>
+      <td><span class="tc-t">${safeStr(t.ticker)}</span></td>
+      <td style="white-space:nowrap;">${safeStr(t.name)}</td>
+      <td>${tag(safeStr(t.category)||'','tg')}</td>
+      <td><span class="tc-hi">${safeStr(t.peakMC)}</span></td>
+      <td><span class="tc-lo">${safeStr(t.currentMC)}</span></td>
+      <td style="white-space:nowrap;">${safeStr(t.peakDate)}</td>
+      <td>${rtag(t.risk)}</td>
+      <td onclick="event.stopPropagation()">${caCell}</td>
+      <td class="tc-l" onclick="event.stopPropagation()">
+        <a href="${L.dex}" target="_blank" class="g">DEX</a>
+        <a href="${L.be}" target="_blank" class="g">BIRD</a>
+        <a href="${L.gmgn}" target="_blank">GMGN</a>
+        ${L.sol ? '<a href="'+L.sol+'" target="_blank">SCAN</a>' : ''}
+        <button onclick="saveT(${i})">+SAVE</button>
+      </td>
+    </tr>
+    <tr class="texpand" id="tx${i}" style="display:none;"><td colspan="10"><div class="tei" id="tei${i}">Click row to load analysis...</div></td></tr>`;
+  }).join('');
+}
+
+function copyCAT(i){
+  const t=TMAP['t'+i];if(!t)return;
+  navigator.clipboard.writeText(t.contractAddress||'').then(()=>{
+    const b=document.getElementById('cca'+i);
+    if(b){const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1500);}
+  }).catch(()=>{});
+}
+
+async function togRow(i){
+  const row=document.getElementById('tx'+i),el=document.getElementById('tei'+i);
+  const t=TMAP['t'+i]||{};
+  const tick=t.ticker||('t'+i),name=t.name||tick;
+  const isOpen=row.style.display!=='none';
+  document.querySelectorAll('.texpand').forEach(r=>r.style.display='none');
+  document.querySelectorAll('.trow').forEach(r=>r.style.background='');
+  if(isOpen)return;
+  row.style.display='table-row';
+  document.getElementById('tr'+i).style.background='var(--a1)';
+  if(scache[tick]){el.textContent=scache[tick];return;}
+  el.textContent='👻 Analysing...';
+  const text=await callAI(`Analyse ${name} (${tick}) Solana meme coin up to 2026: peak, crash, community, green/red flags, verdict. 100 words max, bullets.`);
+  scache[tick]=text;el.textContent=text;
+}
+
+/* ══ SPIRIT CHECK ══ */
+async function chkSingle(){
+  const q=document.getElementById('siin').value.trim();if(!q)return;
+  document.getElementById('siload').style.display='block';
+  document.getElementById('sires').style.display='none';
+  const text=await callAI(`Research Solana/pump.fun token: "${q}". Knowledge up to 2026:
+IDENTITY: name, ticker, launch year · PEAK: ATH MC & when · STORY: why peaked/crashed
+STATUS: estimated MC, community alive? · SIGNALS: green/red flags · VERDICT: 1 honest sentence.
+Under 200 words, bullets.`);
+  document.getElementById('siload').style.display='none';
+  document.getElementById('silbl').textContent='ANALYSIS: '+q.toUpperCase();
+  document.getElementById('sitxt').textContent=text;
+  document.getElementById('silnks').innerHTML=
+    `<a class="cl a" href="https://dexscreener.com/solana?q=${encodeURIComponent(q)}" target="_blank">📊 DEX</a>
+     <a class="cl g" href="https://birdeye.so/search?keyword=${encodeURIComponent(q)}&chain=solana" target="_blank">🦅 BIRDEYE</a>
+     <a class="cl a" href="https://gmgn.ai/sol/search?q=${encodeURIComponent(q)}" target="_blank">🔍 GMGN</a>
+     <a class="cl a" href="https://twitter.com/search?q=${encodeURIComponent(q)}+solana&f=live" target="_blank">𝕏 LIVE</a>`;
+  document.getElementById('sires').style.display='block';
+}
+
+async function chkBatch(){
+  const raw=document.getElementById('bain').value;
+  const tokens=raw.split(/[\n,]+/).map(t=>t.trim()).filter(Boolean).slice(0,8);
+  if(!tokens.length)return;
+  document.getElementById('baload').style.display='block';
+  document.getElementById('bares').innerHTML='';
+  const data=await callAI(`Research Solana/pump.fun tokens (up to 2026): ${tokens.join(', ')}.
+Return JSON array ONLY: [{"ticker":"str","name":"str","currentMC":"~$XK","xStatus":"active|dormant|dead","verdict":"10 word max","score":0-100,"buySignal":true}]`,true);
+  document.getElementById('baload').style.display='none';
+  if(!Array.isArray(data)||!data.length){document.getElementById('bares').innerHTML='<div style="color:var(--mu);">No results. Try again.</div>';return;}
+  document.getElementById('bares').innerHTML=data.map((t,i)=>`
+    <div class="brow" style="animation-delay:${i*.07}s">
+      ${soul(t.score)}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:2px;">
+          <span style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--ac);">${safeStr(t.ticker)}</span>
+          ${xtag(t.xStatus)}${t.buySignal?tag('🟢 SIGNAL','tok'):''}
+        </div>
+        <div style="font-size:12px;color:var(--tx);">${safeStr(t.verdict)}</div>
+        <div style="font-size:11px;color:var(--mu);">${safeStr(t.currentMC)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <a class="cl g" style="font-size:11px;" href="https://dexscreener.com/solana?q=${encodeURIComponent((t.ticker||'').replace('$',''))}" target="_blank">DEX ↗</a>
+        <a class="cl a" style="font-size:11px;" href="https://twitter.com/search?q=${encodeURIComponent(t.ticker||'')}" target="_blank">𝕏 ↗</a>
+      </div>
+    </div>`).join('');
+}
+
+/* ══ DUEL ══ */
+async function duel(){
+  const a=document.getElementById('dua').value.trim(),b=document.getElementById('dub').value.trim();
+  if(!a||!b)return;
+  document.getElementById('duload').style.display='block';
+  document.getElementById('dures').style.display='none';
+  const text=await callAI(`Compare "${a}" VS "${b}" — fallen Solana pump.fun tokens. Knowledge up to 2026.
+Table: Peak MC · Crash reason · Community · Revival signals · Risk · Score/100
+Then 2 sentences: which has better revival potential and why.`);
+  document.getElementById('duload').style.display='none';
+  document.getElementById('dutxt').textContent=text;
+  document.getElementById('dulnks').innerHTML=[a,b].map(t=>`<a class="cl g" href="https://dexscreener.com/solana?q=${encodeURIComponent(t)}" target="_blank">📊 ${safeStr(t).toUpperCase()} ↗</a>`).join('');
+  document.getElementById('dures').style.display='block';
+}
+
+/* ══ ORACLE ══ */
+async function orc(btn,idx){document.querySelectorAll('.scrbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');await runOrc(ORACLES[idx]);}
+async function orcCustom(){const q=document.getElementById('orin').value.trim();if(!q)return;document.querySelectorAll('.scrbtn').forEach(b=>b.classList.remove('on'));await runOrc(q);}
+async function runOrc(q){
+  document.getElementById('oremp').style.display='none';
+  document.getElementById('orres').style.display='none';
+  document.getElementById('orload').style.display='block';
+  const text=await callAI(q);
+  document.getElementById('orload').style.display='none';
+  document.getElementById('orres').textContent=text;
+  document.getElementById('orres').style.display='block';
+}
+
+/* ══ GRIMOIRE ══ */
+function addGrim(t){if(!t||grim.find(x=>x.ticker===t.ticker))return;grim.push(t);renderGrim();}
+function remGrim(tick){grim=grim.filter(x=>x.ticker!==tick);renderGrim();}
+async function refGrim(tick){
+  const btn=document.getElementById('rb-'+tick),el=document.getElementById('gu-'+tick);
+  if(btn)btn.disabled=true;if(el)el.textContent='👻 Refreshing...';
+  const text=await callAI(`Brief 5-bullet status of ${tick} Solana meme coin (up to 2026): MC estimate, community, revival odds. 80 words max.`);
+  if(el){el.textContent=text;el.style.display='block';}if(btn)btn.disabled=false;
+}
+function renderGrim(){
+  const emp=document.getElementById('gemp'),list=document.getElementById('glist');
+  const badge=document.getElementById('gbadge'),title=document.getElementById('gtitle');
+  if(!grim.length){emp.style.display='block';list.innerHTML='';badge.style.display='none';title.textContent='📜 YOUR GRIMOIRE';return;}
+  emp.style.display='none';badge.textContent=grim.length;badge.style.display='inline';
+  title.textContent=`📜 GRIMOIRE — ${grim.length} TOKEN${grim.length>1?'S':''} SAVED`;
+  list.innerHTML=grim.map((t,i)=>`
+    <div class="gcard" style="animation-delay:${i*.05}s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:7px;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          ${soul(t.score)}
+          <div>
+            <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+              <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:900;color:var(--ac);">${safeStr(t.ticker)}</span>
+              ${t.category?tag(safeStr(t.category),'tg'):''}
+            </div>
+            <div style="font-size:11px;color:var(--mu);margin-top:2px;">
+              Peak <span style="color:var(--go);">${safeStr(t.peakMC)||'?'}</span> → Now <span style="color:var(--ac);">${safeStr(t.currentMC)||'?'}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+          <button id="rb-${safeStr(t.ticker)}" class="mbtn sm" onclick="refGrim('${safeStr(t.ticker)}')">🔄</button>
+          <a class="cl g" style="font-size:11px;" href="${caLink(t).dex}" target="_blank">DEX ↗</a>
+          <button class="mbtn sm red" onclick="remGrim('${safeStr(t.ticker)}')">✕</button>
+        </div>
+      </div>
+      <textarea class="mfld" rows="2" style="margin-top:9px;font-size:12px;" placeholder="Your notes..."></textarea>
+      <div id="gu-${safeStr(t.ticker)}" style="margin-top:7px;border-left:2px solid var(--ac);padding-left:9px;font-size:12px;color:var(--tx);white-space:pre-wrap;line-height:1.7;display:none;"></div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
