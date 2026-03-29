@@ -296,6 +296,7 @@ textarea.mfld{resize:vertical;}
     <button class="tab" onclick="sw(2)">⚔️ DUEL</button>
     <button class="tab" onclick="sw(3)">🔮 ORACLE</button>
     <button class="tab" onclick="sw(4)">📜 GRIMOIRE<span id="gbadge" class="tbadge" style="display:none;"></span></button>
+    <button class="tab" onclick="sw(5)" style="color:#00d474;">🟢 SNIPER</button>
   </div>
   <div class="tb-right">
     <div class="prov-pill">
@@ -517,6 +518,63 @@ textarea.mfld{resize:vertical;}
     <div id="glist"></div>
   </div>
 
+  <!-- TAB 5 — LIVE SNIPER -->
+  <div class="pnl" id="p5">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="pdot ok" id="sniper-dot"></div>
+        <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.15em;" id="sniper-status">READY</span>
+      </div>
+      <div style="font-size:11px;color:var(--mu);">DexScreener Free API · MC &lt; $20K · Age &lt; 2hrs · Liq &gt; $500</div>
+      <button class="mbtn sm" onclick="runSniper()" style="margin-left:auto;">🔄 REFRESH</button>
+      <div style="font-size:10px;color:var(--mu);" id="sniper-timer"></div>
+    </div>
+    <!-- Filters bar -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;">
+      <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--mu);letter-spacing:.12em;">FILTERS</span>
+      <select id="sn-mc" class="fld" style="width:120px;">
+        <option value="20000">MC &lt; $20K</option>
+        <option value="50000">MC &lt; $50K</option>
+        <option value="100000">MC &lt; $100K</option>
+      </select>
+      <select id="sn-age" class="fld" style="width:130px;">
+        <option value="2">Age &lt; 2 hrs</option>
+        <option value="6">Age &lt; 6 hrs</option>
+        <option value="24">Age &lt; 24 hrs</option>
+      </select>
+      <select id="sn-sort" class="fld" style="width:140px;">
+        <option value="vol">Sort: Volume</option>
+        <option value="age">Sort: Newest</option>
+        <option value="liq">Sort: Liquidity</option>
+      </select>
+      <button class="sbtn" style="width:auto;padding:8px 18px;margin-top:0;" onclick="runSniper()">🟢 SCAN NOW</button>
+    </div>
+    <!-- Results table -->
+    <div id="sniper-load" class="loading" style="display:none;">
+      <span class="lic">🟢</span>
+      <div class="ltxt">SCANNING LIVE TOKENS...</div>
+      <div class="lsub">Checking DexScreener for new Solana pairs</div>
+    </div>
+    <div id="sniper-res"></div>
+    <div id="sniper-emp" class="empty">
+      <span class="eico" style="font-size:36px;">🟢</span>
+      <div class="etxt">SNIPER READY</div>
+      <div class="esub">Click SCAN NOW to find live tokens matching your criteria</div>
+    </div>
+    <!-- Basket tracker -->
+    <div class="ibox gt" style="margin-top:16px;">
+      <div class="ibox-ttl gld">💼 $10 BASKET TRACKER</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:10px;">Add tokens you bought. Track P&amp;L in real time.</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;">
+        <input id="bsk-ca" class="mfld" placeholder="Contract Address or ticker..." style="flex:1;min-width:150px;"/>
+        <input id="bsk-entry" class="mfld" placeholder="Entry price (e.g. 0.000053)" style="flex:1;min-width:120px;"/>
+        <button class="mbtn gld" onclick="addBasket()">+ ADD $10</button>
+      </div>
+      <div id="basket-list"></div>
+      <div id="basket-pnl" style="margin-top:8px;font-family:'Cinzel',serif;font-size:11px;color:var(--ac);letter-spacing:.1em;"></div>
+    </div>
+  </div>
+
 </div><!-- /main -->
 </div><!-- /layout -->
 
@@ -575,9 +633,10 @@ function setTheme(t){
 
 /* ══ TABS ══ */
 function sw(i){
-  document.querySelectorAll('.tab').forEach((b,j)=>b.classList.toggle('on',i===j));
-  document.querySelectorAll('.pnl').forEach((p,j)=>p.classList.toggle('on',i===j));
+  document.querySelectorAll('.tab').forEach(function(b,j){b.classList.toggle('on',i===j);});
+  document.querySelectorAll('.pnl').forEach(function(p,j){p.classList.toggle('on',i===j);});
   document.getElementById('sb-crit').style.display=i===0?'block':'none';
+  if(i===5 && !window._sniperRan){ window._sniperRan=true; runSniper(); }
 }
 
 /* ══ PROVIDER ══ */
@@ -811,12 +870,17 @@ async function summon(){
   document.getElementById('semp').style.display='none';
   scache={}; lastData=[];
 
-  var prompt = 'List '+n+' real Solana pump.fun meme tokens from '+yf+'-'+yt
-    +(cat!=='any'?' in the '+cat+' category':'')
-    +(kw?' related to '+kw:'')
-    +'. These tokens once had significant market caps but are now very low or dormant.'
-    +' Return a JSON array only. Each item must have: name, ticker, launchYear, peakMC, currentMC, peakDate, category, description, signals (array of 3 strings), risk, score (0-100).'
-    +' Return ONLY the JSON array, no other text.';
+  var catLine = cat!=='any' ? ' Focus on '+cat+' category tokens.' : '';
+  var kwLine  = kw ? ' Theme/keyword: '+kw+'.' : '';
+
+  var prompt =
+    'You are a Solana meme coin expert. List '+n+' REAL pump.fun tokens launched '+yf+'-'+yt+'.'+catLine+kwLine+
+    ' These must be real tokens that actually existed on pump.fun with verifiable history.'+
+    ' Mix well-known tokens (WIF, POPCAT, BOME, SLERF, BONK, MICHI, PNUT, GIGA, GOAT, MOODENG, CHILLGUY, SMOLE, MYRO, FWOG, HARAMBE, ANALOS, SILLY, NUB) with lesser-known ones.'+
+    ' Each token must include its REAL Solana contract address if you know it (e.g. WIF is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm).'+
+    ' If you do not know the exact CA, leave contractAddress as empty string — do NOT invent addresses.'+
+    ' Return ONLY a JSON array, no other text:\n'+
+    '[{"name":"dogwifhat","ticker":"$WIF","contractAddress":"EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm","launchYear":2023,"peakMC":"$4.8B","currentMC":"~$50M","peakDate":"Mar 2024","category":"dog","description":"First meme coin to buy a Las Vegas Sphere ad — defined the 2024 Solana meme season.","signals":["Massive brand recognition","Binance listed","Still active community"],"risk":"Medium","score":72}]';
 
   var data = await callAI(prompt, true);
 
@@ -1045,7 +1109,205 @@ async function runOrc(q){
   document.getElementById('orres').style.display='block';
 }
 
-/* ══ GRIMOIRE ══ */
+/* ══ LIVE SNIPER ══ */
+var sniperInterval = null;
+var basket = [];
+
+async function runSniper(){
+  var maxMC  = parseInt(document.getElementById('sn-mc').value)||20000;
+  var maxAge = parseInt(document.getElementById('sn-age').value)||2;
+  var sortBy = document.getElementById('sn-sort').value||'vol';
+
+  document.getElementById('sniper-load').style.display='block';
+  document.getElementById('sniper-res').innerHTML='';
+  document.getElementById('sniper-emp').style.display='none';
+  document.getElementById('sniper-status').textContent='SCANNING...';
+
+  try {
+    // DexScreener free API — latest Solana pairs
+    var res = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
+    // fallback: search new solana pairs
+    if(!res.ok) throw new Error('DexScreener error '+res.status);
+    var json = await res.json();
+    var pairs = json.pairs || [];
+
+    // Filter: Solana only, has liquidity, within age
+    var nowMs = Date.now();
+    var filtered = pairs.filter(function(p){
+      if(p.chainId !== 'solana') return false;
+      var liq = p.liquidity && p.liquidity.usd ? p.liquidity.usd : 0;
+      var mc  = p.fdv || p.marketCap || 0;
+      var ageHrs = p.pairCreatedAt ? (nowMs - p.pairCreatedAt) / 3600000 : 999;
+      return liq >= 500 && mc > 0 && mc <= maxMC && ageHrs <= maxAge;
+    });
+
+    // Sort
+    if(sortBy==='vol') filtered.sort(function(a,b){ return (b.volume&&b.volume.h1||0)-(a.volume&&a.volume.h1||0); });
+    else if(sortBy==='age') filtered.sort(function(a,b){ return (b.pairCreatedAt||0)-(a.pairCreatedAt||0); });
+    else if(sortBy==='liq') filtered.sort(function(a,b){ return (b.liquidity&&b.liquidity.usd||0)-(a.liquidity&&a.liquidity.usd||0); });
+
+    filtered = filtered.slice(0, 20);
+
+    document.getElementById('sniper-load').style.display='none';
+
+    if(!filtered.length){
+      document.getElementById('sniper-emp').style.display='block';
+      document.getElementById('sniper-emp').querySelector('.etxt').textContent='NO TOKENS FOUND';
+      document.getElementById('sniper-emp').querySelector('.esub').textContent='No tokens match MC < $'+maxMC.toLocaleString()+' + Age < '+maxAge+'hr right now. Try wider filters.';
+      document.getElementById('sniper-status').textContent='READY';
+      return;
+    }
+
+    renderSniper(filtered);
+    document.getElementById('sniper-status').textContent='LIVE · '+filtered.length+' FOUND';
+
+    // Auto-refresh countdown
+    var secs = 30;
+    clearInterval(sniperInterval);
+    sniperInterval = setInterval(function(){
+      secs--;
+      document.getElementById('sniper-timer').textContent='Refresh in '+secs+'s';
+      if(secs<=0){ clearInterval(sniperInterval); runSniper(); }
+    }, 1000);
+
+  } catch(e){
+    document.getElementById('sniper-load').style.display='none';
+    document.getElementById('sniper-emp').style.display='block';
+    document.getElementById('sniper-emp').querySelector('.etxt').textContent='API ERROR';
+    document.getElementById('sniper-emp').querySelector('.esub').textContent=e.message+' — DexScreener may be rate-limiting. Try again in 30s.';
+    document.getElementById('sniper-status').textContent='ERROR';
+  }
+}
+
+function sniperScore(p){
+  var sc = 40;
+  var vol1h = p.volume&&p.volume.h1 ? p.volume.h1 : 0;
+  var liq   = p.liquidity&&p.liquidity.usd ? p.liquidity.usd : 0;
+  var mc    = p.fdv||p.marketCap||0;
+  var txns  = p.txns&&p.txns.h1 ? (p.txns.h1.buys||0)+(p.txns.h1.sells||0) : 0;
+  var ageHrs= p.pairCreatedAt ? (Date.now()-p.pairCreatedAt)/3600000 : 24;
+  if(vol1h>5000)  sc+=15; else if(vol1h>1000) sc+=8;
+  if(liq>2000)    sc+=10; else if(liq>500)    sc+=5;
+  if(mc<5000)     sc+=15; else if(mc<10000)   sc+=8;
+  if(txns>50)     sc+=10; else if(txns>20)    sc+=5;
+  if(ageHrs<0.5)  sc+=10; else if(ageHrs<1)   sc+=5;
+  return Math.min(sc, 99);
+}
+
+function renderSniper(pairs){
+  var nowMs = Date.now();
+  var html = '<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">'
+    +'<table class="ttable" style="min-width:700px;">'
+    +'<thead><tr>'
+    +'<th>SCORE</th><th>TOKEN</th><th>CA</th><th>MC</th><th>AGE</th>'
+    +'<th>VOL 1H</th><th>LIQ</th><th>TXNs</th><th>ACTIONS</th>'
+    +'</tr></thead><tbody>';
+
+  pairs.forEach(function(p, i){
+    var sc    = sniperScore(p);
+    var sc_c  = sc>=75?'var(--ac)':sc>=55?'var(--go)':'var(--wn)';
+    var name  = safeStr((p.baseToken&&p.baseToken.name)||'UNKNOWN');
+    var tick  = safeStr((p.baseToken&&p.baseToken.symbol)||'???');
+    var ca    = (p.baseToken&&p.baseToken.address)||'';
+    var mc    = p.fdv||p.marketCap||0;
+    var liq   = p.liquidity&&p.liquidity.usd ? p.liquidity.usd : 0;
+    var vol1h = p.volume&&p.volume.h1 ? p.volume.h1 : 0;
+    var txns  = p.txns&&p.txns.h1 ? (p.txns.h1.buys||0)+'B / '+(p.txns.h1.sells||0)+'S' : '—';
+    var ageMs = p.pairCreatedAt ? nowMs - p.pairCreatedAt : 0;
+    var ageStr= ageMs>3600000 ? Math.floor(ageMs/3600000)+'h '+Math.floor((ageMs%3600000)/60000)+'m' : Math.floor(ageMs/60000)+'m';
+    var caShort= ca ? ca.slice(0,8)+'...'+ca.slice(-5) : '—';
+    var dexUrl  = 'https://dexscreener.com/solana/'+ca;
+    var pumpUrl = 'https://pump.fun/'+ca;
+    var trojanUrl='https://t.me/Trojan?start='+ca;
+    var solUrl  = 'https://solscan.io/token/'+ca;
+    var bgRow   = i%2===0?'var(--s1)':'var(--s2)';
+
+    html += '<tr class="trow" style="background:'+bgRow+';">'
+      +'<td><span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:'+sc_c+';">'+sc+'</span></td>'
+      +'<td><div style="font-family:Cinzel,serif;font-size:12px;font-weight:900;color:var(--ac);">$'+tick+'</div>'
+        +'<div style="font-size:10px;color:var(--mu);">'+name+'</div></td>'
+      +'<td style="font-size:10px;"><span style="color:var(--ac);">'+caShort+'</span>'
+        +(ca?'<button onclick="navigator.clipboard.writeText(\''+ca+'\').then(function(){this.textContent=\'✓\';var me=this;setTimeout(function(){me.textContent=\'⧉\';},1500);}.bind(this))" style="margin-left:4px;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:1px 4px;border-radius:3px;cursor:pointer;">⧉</button>':'')
+        +'</td>'
+      +'<td style="color:var(--go);font-weight:600;">$'+formatNum(mc)+'</td>'
+      +'<td style="color:var(--tx);">'+ageStr+'</td>'
+      +'<td style="color:var(--ac);">$'+formatNum(vol1h)+'</td>'
+      +'<td style="color:var(--mu);">$'+formatNum(liq)+'</td>'
+      +'<td style="font-size:10px;color:var(--mu);">'+txns+'</td>'
+      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap;">'
+        +(ca?'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);font-weight:600;">PUMP↗</a>':'')
+        +(ca?'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);font-weight:600;">DEX↗</a>':'')
+        +(ca?'<a href="'+trojanUrl+'" target="_blank" style="font-size:10px;color:var(--mu);">TROJAN↗</a>':'')
+        +(ca?'<button onclick="addBasketCA(\''+ca+'\',\''+tick+'\')" style="font-size:10px;border:1px solid var(--go);background:none;color:var(--go);padding:1px 5px;border-radius:3px;cursor:pointer;">+$10</button>':'')
+      +'</div></td>'
+      +'</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('sniper-res').innerHTML = html;
+}
+
+function formatNum(n){
+  if(!n) return '0';
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000)    return (n/1000).toFixed(1)+'K';
+  return n.toFixed(0);
+}
+
+/* ══ BASKET TRACKER ══ */
+function addBasket(){
+  var ca    = document.getElementById('bsk-ca').value.trim();
+  var entry = parseFloat(document.getElementById('bsk-entry').value)||0;
+  if(!ca) return;
+  addBasketCA(ca, ca.length>20?ca.slice(0,6)+'...':ca, entry);
+  document.getElementById('bsk-ca').value='';
+  document.getElementById('bsk-entry').value='';
+}
+
+function addBasketCA(ca, tick, entryPrice){
+  if(basket.find(function(b){return b.ca===ca;})) return;
+  basket.push({ ca:ca, tick:tick||'???', entry:entryPrice||0, current:entryPrice||0, amount:10 });
+  renderBasket();
+}
+
+function removeBasket(ca){
+  basket = basket.filter(function(b){return b.ca!==ca;});
+  renderBasket();
+}
+
+function renderBasket(){
+  var el = document.getElementById('basket-list');
+  var pnlEl = document.getElementById('basket-pnl');
+  if(!basket.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--mu);padding:8px 0;">No tokens in basket yet. Click +$10 on any live token above.</div>';
+    pnlEl.textContent='';
+    return;
+  }
+  var totalPnl = 0;
+  el.innerHTML = basket.map(function(b){
+    var pct = b.entry>0 ? ((b.current-b.entry)/b.entry*100) : 0;
+    var pnl = b.amount*(b.current-b.entry)/(b.entry||1);
+    totalPnl += pnl;
+    var pColor = pnl>=0?'var(--ac)':'var(--dn)';
+    var dexUrl = 'https://dexscreener.com/solana/'+b.ca;
+    return '<div class="brow" style="justify-content:space-between;">'
+      +'<div style="flex:1;">'
+        +'<span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
+        +'<span style="font-size:9px;color:var(--mu);margin-left:8px;">'+b.ca.slice(0,10)+'...</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:12px;align-items:center;">'
+        +'<span style="font-size:11px;color:var(--mu);">Entry: $'+b.entry.toFixed(8)+'</span>'
+        +'<span style="font-size:12px;font-weight:700;color:'+pColor+';">'+pct.toFixed(1)+'%</span>'
+        +'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);">DEX↗</a>'
+        +'<button onclick="removeBasket(\''+b.ca+'\')" style="font-size:10px;border:none;background:none;color:var(--mu);cursor:pointer;">✕</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  var pnlColor = totalPnl>=0?'var(--ac)':'var(--dn)';
+  pnlEl.innerHTML = 'BASKET: $'+basket.length*10+' deployed across '+basket.length+' tokens'
+    +' &nbsp;·&nbsp; Total P&L: <span style="color:'+pnlColor+';">'+
+    (totalPnl>=0?'+':'')+totalPnl.toFixed(2)+'</span>';
+}
 function addGrim(t){if(!t||grim.find(x=>x.ticker===t.ticker))return;grim.push(t);renderGrim();}
 function remGrim(tick){grim=grim.filter(x=>x.ticker!==tick);renderGrim();}
 async function refGrim(tick){
@@ -1087,4 +1349,4 @@ function renderGrim(){
 }
 </script>
 </body>
-</html
+</html>
