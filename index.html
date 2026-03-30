@@ -912,10 +912,12 @@ function cardHTML(t,i){
   TMAP['t'+i]=t;
   var sigs=(t.signals||[]).map(function(s){return tag('✦ '+safeStr(s),'ta');}).join(' ');
   var L=caLink(t), ca=t.contractAddress||'';
-  var solLink=L.sol?('<a href="'+L.sol+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--mu);">SOLSCAN↗</a>'):'';
-  var caHtml=ca
+  // CA: only show if it looks like a real Solana address (32-44 chars, base58)
+  var caReal = ca && ca.length >= 32 && ca.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(ca);
+  var solLink = caReal ? ('<a href="https://solscan.io/token/'+ca+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--mu);">SOLSCAN↗</a>') : '';
+  var caHtml = caReal
     ?('<div class="ca-row"><span class="ca-lbl">CA</span><span class="ca-val">'+ca.slice(0,8)+'...'+ca.slice(-5)+'</span><button class="ca-copy" onclick="event.stopPropagation();copyCA('+i+')">⧉</button>'+solLink+'</div>')
-    :'<div style="font-size:9px;color:var(--mu);margin-top:4px;">CA: verify on DEX</div>';
+    :'<div style="font-size:9px;color:var(--mu);margin-top:4px;">CA: <a href="'+L.dex+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--go);">Search on DEX ↗</a> to find exact CA</div>';
   var xH=(t.xHandle||'').replace('@','').replace(/[^a-zA-Z0-9_]/g,'');
   var xLink=xH?('<a class="cl a" href="https://twitter.com/'+xH+'" target="_blank" onclick="event.stopPropagation()">𝕏</a>'):'';
   var delay=(i*0.05).toFixed(2);
@@ -1122,60 +1124,96 @@ async function runSniper(){
   document.getElementById('sniper-res').innerHTML='';
   document.getElementById('sniper-emp').style.display='none';
   document.getElementById('sniper-status').textContent='SCANNING...';
+  clearInterval(sniperInterval);
 
   try {
-    // DexScreener free API — latest Solana pairs
-    var res = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
-    // fallback: search new solana pairs
-    if(!res.ok) throw new Error('DexScreener error '+res.status);
-    var json = await res.json();
-    var pairs = json.pairs || [];
+    // DexScreener API — try multiple endpoints to find new pairs
+    var pairs = [];
+    var totalFound = 0;
 
-    // Filter: Solana only, has liquidity, within age
+    // Primary: token profiles latest (newest tokens)
+    try {
+      var r1 = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
+      if(r1.ok){
+        var j1 = await r1.json();
+        var profiles = Array.isArray(j1) ? j1 : [];
+        // Get Solana token addresses from profiles
+        var solAddrs = profiles
+          .filter(function(p){ return p.chainId==='solana' && p.tokenAddress; })
+          .slice(0,30)
+          .map(function(p){ return p.tokenAddress; });
+
+        if(solAddrs.length){
+          var r2 = await fetch('https://api.dexscreener.com/latest/dex/tokens/'+solAddrs.join(','));
+          if(r2.ok){
+            var j2 = await r2.json();
+            pairs = (j2.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+          }
+        }
+      }
+    } catch(e1){ console.log('Profile endpoint failed:', e1.message); }
+
+    // Fallback: search for pump.fun pairs
+    if(!pairs.length){
+      var r3 = await fetch('https://api.dexscreener.com/latest/dex/search?q=pump');
+      if(!r3.ok) throw new Error('DexScreener '+r3.status);
+      var j3 = await r3.json();
+      pairs = (j3.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+    }
+
+    totalFound = pairs.length;
+    if(!pairs.length) throw new Error('No Solana pairs returned from DexScreener');
+
     var nowMs = Date.now();
     var filtered = pairs.filter(function(p){
-      if(p.chainId !== 'solana') return false;
-      var liq = p.liquidity && p.liquidity.usd ? p.liquidity.usd : 0;
-      var mc  = p.fdv || p.marketCap || 0;
-      var ageHrs = p.pairCreatedAt ? (nowMs - p.pairCreatedAt) / 3600000 : 999;
-      return liq >= 500 && mc > 0 && mc <= maxMC && ageHrs <= maxAge;
+      var liq   = (p.liquidity&&p.liquidity.usd)||0;
+      var mc    = p.fdv||p.marketCap||0;
+      var created = p.pairCreatedAt||0;
+      var ageHrs  = created ? (nowMs-created)/3600000 : 999;
+      return liq>=500 && mc>0 && mc<=maxMC && ageHrs<=maxAge;
     });
 
     // Sort
-    if(sortBy==='vol') filtered.sort(function(a,b){ return (b.volume&&b.volume.h1||0)-(a.volume&&a.volume.h1||0); });
-    else if(sortBy==='age') filtered.sort(function(a,b){ return (b.pairCreatedAt||0)-(a.pairCreatedAt||0); });
-    else if(sortBy==='liq') filtered.sort(function(a,b){ return (b.liquidity&&b.liquidity.usd||0)-(a.liquidity&&a.liquidity.usd||0); });
-
-    filtered = filtered.slice(0, 20);
+    if(sortBy==='vol') {
+      filtered.sort(function(a,b){ return ((b.volume&&b.volume.h1)||0)-((a.volume&&a.volume.h1)||0); });
+    } else if(sortBy==='age') {
+      filtered.sort(function(a,b){ return (b.pairCreatedAt||0)-(a.pairCreatedAt||0); });
+    } else {
+      filtered.sort(function(a,b){ return ((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0); });
+    }
+    filtered = filtered.slice(0,25);
 
     document.getElementById('sniper-load').style.display='none';
 
     if(!filtered.length){
       document.getElementById('sniper-emp').style.display='block';
-      document.getElementById('sniper-emp').querySelector('.etxt').textContent='NO TOKENS FOUND';
-      document.getElementById('sniper-emp').querySelector('.esub').textContent='No tokens match MC < $'+maxMC.toLocaleString()+' + Age < '+maxAge+'hr right now. Try wider filters.';
-      document.getElementById('sniper-status').textContent='READY';
+      document.getElementById('sniper-emp').querySelector('.etxt').textContent='NO TOKENS MATCHED';
+      document.getElementById('sniper-emp').querySelector('.esub').textContent=
+        'Got '+totalFound+' pairs but none match MC<$'+maxMC.toLocaleString()+' + Age<'+maxAge+'hr. Try wider filters or wait for new launches.';
+      document.getElementById('sniper-status').textContent='0 MATCHED / '+totalFound+' SCANNED';
       return;
     }
 
-    renderSniper(filtered);
+    renderSniper(filtered, totalFound);
     document.getElementById('sniper-status').textContent='LIVE · '+filtered.length+' FOUND';
 
-    // Auto-refresh countdown
-    var secs = 30;
-    clearInterval(sniperInterval);
-    sniperInterval = setInterval(function(){
+    // Auto-refresh 30s
+    var secs=30;
+    sniperInterval=setInterval(function(){
       secs--;
-      document.getElementById('sniper-timer').textContent='Refresh in '+secs+'s';
+      var timerEl=document.getElementById('sniper-timer');
+      if(timerEl) timerEl.textContent='Refresh in '+secs+'s';
       if(secs<=0){ clearInterval(sniperInterval); runSniper(); }
-    }, 1000);
+    },1000);
 
-  } catch(e){
+  } catch(e) {
     document.getElementById('sniper-load').style.display='none';
     document.getElementById('sniper-emp').style.display='block';
-    document.getElementById('sniper-emp').querySelector('.etxt').textContent='API ERROR';
-    document.getElementById('sniper-emp').querySelector('.esub').textContent=e.message+' — DexScreener may be rate-limiting. Try again in 30s.';
+    document.getElementById('sniper-emp').querySelector('.etxt').textContent='⚠ API ERROR';
+    document.getElementById('sniper-emp').querySelector('.esub').textContent=
+      e.message+'. DexScreener may be rate-limiting (60 req/min). Wait 30s and try again.';
     document.getElementById('sniper-status').textContent='ERROR';
+    console.error('Sniper error:', e.message);
   }
 }
 
@@ -1194,9 +1232,11 @@ function sniperScore(p){
   return Math.min(sc, 99);
 }
 
-function renderSniper(pairs){
+function renderSniper(pairs, totalScanned){
   var nowMs = Date.now();
-  var html = '<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">'
+  var info = totalScanned ? '<div style="font-size:10px;color:var(--mu);margin-bottom:8px;">Scanned '+totalScanned+' pairs · Showing '+pairs.length+' matching your filters</div>' : '';
+  var html = info
+    +'<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">'
     +'<table class="ttable" style="min-width:700px;">'
     +'<thead><tr>'
     +'<th>SCORE</th><th>TOKEN</th><th>CA</th><th>MC</th><th>AGE</th>'
