@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>👻 GhostCap v3.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://js.puter.com/v2/"></script>
 <style>
 /* ══ THEMES — LIGHT IS DEFAULT ══ */
 :root{
@@ -346,6 +347,17 @@ textarea.mfld{resize:vertical;}
 
   <div class="sb-sec">
     <div class="sb-ttl">⚡ AI PROVIDER</div>
+
+    <!-- PUTER — NO API KEY NEEDED -->
+    <div id="pc-puter" class="prov-card" onclick="pickProv('puter')" style="border-color:#7c3aed;background:rgba(124,58,237,.06);">
+      <div class="pc-row">
+        <span class="pc-ico">🆓</span>
+        <span class="pc-name" style="color:#7c3aed;">PUTER.JS</span>
+        <span class="pc-badge" style="background:rgba(124,58,237,.15);color:#7c3aed;border:1px solid rgba(124,58,237,.3);">NO KEY NEEDED</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>GPT-4o · Free · Just login with Puter</span><a class="pc-link" href="https://puter.com" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;">→ puter.com</a></div>
+    </div>
     <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
       <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
       <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
@@ -520,15 +532,16 @@ textarea.mfld{resize:vertical;}
 
   <!-- TAB 5 — LIVE SNIPER -->
   <div class="pnl" id="p5">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="pdot ok" id="sniper-dot"></div>
         <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.15em;" id="sniper-status">READY</span>
       </div>
-      <div style="font-size:11px;color:var(--mu);">DexScreener Free API · MC &lt; $20K · Age &lt; 2hrs · Liq &gt; $500</div>
-      <button class="mbtn sm" onclick="runSniper()" style="margin-left:auto;">🔄 REFRESH</button>
-      <div style="font-size:10px;color:var(--mu);" id="sniper-timer"></div>
+      <span style="font-size:11px;" id="pp-status" style="color:var(--mu);">PumpPortal WebSocket · pump.fun real-time feed</span>
+      <button class="mbtn sm" onclick="runSniper()" style="margin-left:auto;">🔌 CONNECT</button>
+      <span style="font-size:10px;color:var(--go);font-weight:700;opacity:0;transition:opacity .3s;" id="sniper-flash"></span>
     </div>
+    <div style="font-size:10px;color:var(--mu);margin-bottom:10px;" id="sniper-count">No tokens yet — click CONNECT to start live feed</div>
     <!-- Filters bar -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;">
       <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--mu);letter-spacing:.12em;">FILTERS</span>
@@ -584,6 +597,7 @@ let KEY='', PROV='groq', VIEW='card', grim=[], scache={}, lastData=[];
 const TMAP={};
 
 const PROVS={
+  puter:    {name:'PUTER',    fmt:'puter',    url:'',                                                                                               model:'gpt-4o',                    prefix:'',       hint:'puter.com',                    hurl:'https://puter.com'},
   groq:     {name:'GROQ',     fmt:'openai',   url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
   gemini:   {name:'GEMINI',   fmt:'gemini',   url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
   openai:   {name:'OPENAI',   fmt:'openai',   url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
@@ -642,15 +656,28 @@ function sw(i){
 /* ══ PROVIDER ══ */
 function pickProv(id){
   PROV=id; KEY='';
-  const p=PROVS[id];
-  document.querySelectorAll('.prov-card').forEach(c=>c.classList.remove('on'));
+  var p=PROVS[id];
+  document.querySelectorAll('.prov-card').forEach(function(c){c.classList.remove('on');});
   document.getElementById('pc-'+id).classList.add('on');
-  document.getElementById('key-ttl').textContent='🔑 '+p.name+' API KEY';
-  const inp=document.getElementById('kinp');
-  inp.value=''; inp.placeholder=(p.prefix||'')+'...'; inp.disabled=false;
-  document.getElementById('kinfo').innerHTML='Get free key → <a href="'+p.hurl+'" target="_blank">'+p.hint+'</a><br/>🔒 Browser only. Never stored.';
+  var inp=document.getElementById('kinp');
+  var kbtn=document.getElementById('kbtn');
+  if(id==='puter'){
+    document.getElementById('key-ttl').textContent='🆓 PUTER.JS — NO KEY NEEDED';
+    inp.value=''; inp.placeholder='No API key required'; inp.disabled=true;
+    kbtn.textContent='🆓 CONNECT WITH PUTER';
+    kbtn.style.background='rgba(124,58,237,.15)';
+    kbtn.style.borderColor='#7c3aed'; kbtn.style.color='#7c3aed';
+    document.getElementById('kinfo').innerHTML='Free AI via <a href="https://puter.com" target="_blank" style="color:#7c3aed;">Puter.com</a> · No API key needed · Just login once<br/>🔒 No data stored. Uses GPT-4o.';
+    document.getElementById('kstat').textContent='Click button below — no key needed';
+  } else {
+    document.getElementById('key-ttl').textContent='🔑 '+p.name+' API KEY';
+    inp.value=''; inp.placeholder=(p.prefix||'')+'...'; inp.disabled=false;
+    kbtn.textContent='✓ CONNECT KEY';
+    kbtn.style.background=''; kbtn.style.borderColor=''; kbtn.style.color='';
+    document.getElementById('kinfo').innerHTML='Get free key → <a href="'+p.hurl+'" target="_blank">'+p.hint+'</a><br/>🔒 Browser only. Never stored.';
+    document.getElementById('kstat').textContent='Paste your key below';
+  }
   document.getElementById('kdot').className='kdot';
-  document.getElementById('kstat').textContent='Paste your key below';
   document.getElementById('kstat').className='kstat';
   document.getElementById('pdot').className='pdot';
   document.getElementById('plbl').textContent='NO KEY';
@@ -660,14 +687,25 @@ function pickProv(id){
 
 /* ══ CONNECT KEY ══ */
 function connectKey(){
-  const v=document.getElementById('kinp').value.trim();
+  // PUTER — no key needed, auto-connect directly
+  if(PROV==='puter'){
+    if(typeof puter==='undefined'){
+      document.getElementById('kstat').textContent='⚠ Puter.js not loaded — check internet connection';
+      document.getElementById('kstat').className='kstat err';
+      return;
+    }
+    KEY='puter';
+    doConnect('puter');
+    return;
+  }
+  var v=document.getElementById('kinp').value.trim();
   if(!v||v.length<10){
     document.getElementById('kstat').textContent='⚠ Paste your API key first';
     document.getElementById('kstat').className='kstat err';
     return;
   }
-  const prefix=PROVS[PROV].prefix||'';
-  const ok=!prefix||v.startsWith(prefix);
+  var prefix=PROVS[PROV].prefix||'';
+  var ok=!prefix||v.startsWith(prefix);
   if(!ok){
     document.getElementById('kstat').textContent='⚠ Expected: '+prefix+'... — or tap USE ANYWAY';
     document.getElementById('kstat').className='kstat err';
@@ -730,7 +768,25 @@ async function callAI(prompt, json){
     var raw = '';
     var errMsg = '';
 
-    if(p.fmt === 'openai'){
+    // ══ PUTER.JS — no API key, uses user's Puter account ══
+    if(p.fmt === 'puter'){
+      if(typeof puter === 'undefined'){
+        showErr('Puter.js not loaded. Check your internet connection.');
+        return json ? [] : '⚠ Puter.js not loaded.';
+      }
+      var fullPrompt = sys + '\n\n' + prompt;
+      var puterResp = await puter.ai.chat(fullPrompt, { model:'gpt-4o' });
+      // Puter returns string directly for GPT models
+      if(typeof puterResp === 'string') raw = puterResp;
+      else if(puterResp && puterResp.message) {
+        // Handle structured response
+        var content = puterResp.message.content;
+        if(typeof content === 'string') raw = content;
+        else if(Array.isArray(content)) raw = content.map(function(c){return c.text||'';}).join('');
+        else raw = String(puterResp);
+      } else raw = String(puterResp||'');
+
+    } else if(p.fmt === 'openai'){
       var r = await fetch(p.url, {
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
@@ -1111,180 +1167,282 @@ async function runOrc(q){
   document.getElementById('orres').style.display='block';
 }
 
-/* ══ LIVE SNIPER ══ */
+/* ══ LIVE SNIPER — PumpPortal WebSocket + DexScreener enrichment ══ */
 var sniperInterval = null;
 var basket = [];
+var ppWS = null;           // PumpPortal WebSocket instance
+var liveTokens = {};       // CA → token data map
+var liveTokenOrder = [];   // insertion order
+var ppConnected = false;
 
-async function runSniper(){
-  var maxMC  = parseInt(document.getElementById('sn-mc').value)||20000;
-  var maxAge = parseInt(document.getElementById('sn-age').value)||2;
-  var sortBy = document.getElementById('sn-sort').value||'vol';
+// ── Connect to PumpPortal WebSocket (free, no auth, browser-safe) ──
+function connectPumpPortal(){
+  if(ppWS && (ppWS.readyState === 0 || ppWS.readyState === 1)) return; // already open/connecting
 
-  document.getElementById('sniper-load').style.display='block';
-  document.getElementById('sniper-res').innerHTML='';
-  document.getElementById('sniper-emp').style.display='none';
-  document.getElementById('sniper-status').textContent='SCANNING...';
-  clearInterval(sniperInterval);
-
+  setStatus('Connecting to PumpPortal...','var(--go)');
   try {
-    // DexScreener API — try multiple endpoints to find new pairs
-    var pairs = [];
-    var totalFound = 0;
+    ppWS = new WebSocket('wss://pumpportal.fun/api/data');
+  } catch(e){
+    setStatus('WebSocket not supported','var(--dn)');
+    return;
+  }
 
-    // Primary: token profiles latest (newest tokens)
+  ppWS.onopen = function(){
+    ppConnected = true;
+    ppWS.send(JSON.stringify({ method:'subscribeNewToken' }));
+    setStatus('🟢 LIVE — Receiving new tokens from pump.fun','var(--ac)');
+    document.getElementById('sniper-status').textContent='🟢 CONNECTED';
+    document.getElementById('sniper-load').style.display='none';
+    document.getElementById('sniper-emp').style.display='none';
+  };
+
+  ppWS.onmessage = function(evt){
     try {
-      var r1 = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
-      if(r1.ok){
-        var j1 = await r1.json();
-        var profiles = Array.isArray(j1) ? j1 : [];
-        // Get Solana token addresses from profiles
-        var solAddrs = profiles
-          .filter(function(p){ return p.chainId==='solana' && p.tokenAddress; })
-          .slice(0,30)
-          .map(function(p){ return p.tokenAddress; });
-
-        if(solAddrs.length){
-          var r2 = await fetch('https://api.dexscreener.com/latest/dex/tokens/'+solAddrs.join(','));
-          if(r2.ok){
-            var j2 = await r2.json();
-            pairs = (j2.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
-          }
+      var d = JSON.parse(evt.data);
+      // New token creation event
+      if(d.txType === 'create' && d.mint){
+        var ca = d.mint;
+        if(liveTokens[ca]) return; // dedupe
+        var mcUSD = (d.marketCapSol||0) * getSolPrice();
+        var token = {
+          ca:       ca,
+          name:     safeStr(d.name||'UNKNOWN'),
+          tick:     safeStr(d.symbol||'???'),
+          mcSol:    d.marketCapSol || 0,
+          mcUSD:    mcUSD,
+          initBuy:  d.initialBuy || 0,
+          vSol:     d.vSolInBondingCurve || 0,
+          dev:      d.traderPublicKey || '',
+          ts:       Date.now(),
+          buys:     0,
+          sells:    0,
+          vol:      0,
+          liq:      0,
+          dexData:  false,
+          img:      d.image || ''
+        };
+        liveTokens[ca] = token;
+        liveTokenOrder.unshift(ca);
+        if(liveTokenOrder.length > 200) {
+          var old = liveTokenOrder.pop();
+          delete liveTokens[old];
         }
+        // Enrich with DexScreener after 15s (pair needs time to appear)
+        setTimeout(function(){ enrichFromDex(ca); }, 15000);
+        updateSniperTable();
+        showFlash(token.tick + ' launched!');
       }
-    } catch(e1){ console.log('Profile endpoint failed:', e1.message); }
+      // Trade events — accumulate buys/sells
+      if((d.txType === 'buy' || d.txType === 'sell') && d.mint && liveTokens[d.mint]){
+        var t = liveTokens[d.mint];
+        if(d.txType === 'buy')  t.buys++;
+        else                    t.sells++;
+        t.mcSol = d.marketCapSol || t.mcSol;
+        t.mcUSD = t.mcSol * getSolPrice();
+        t.vol  += (d.solAmount || 0);
+        updateSniperTable();
+      }
+    } catch(e){ /* ignore parse errors */ }
+  };
 
-    // Fallback: search for pump.fun pairs
-    if(!pairs.length){
-      var r3 = await fetch('https://api.dexscreener.com/latest/dex/search?q=pump');
-      if(!r3.ok) throw new Error('DexScreener '+r3.status);
-      var j3 = await r3.json();
-      pairs = (j3.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
-    }
+  ppWS.onerror = function(){
+    ppConnected = false;
+    setStatus('⚠ WebSocket error — retrying...','var(--dn)');
+    document.getElementById('sniper-status').textContent='⚠ ERROR';
+  };
 
-    totalFound = pairs.length;
-    if(!pairs.length) throw new Error('No Solana pairs returned from DexScreener');
+  ppWS.onclose = function(){
+    ppConnected = false;
+    setStatus('Disconnected — reconnecting in 5s...','var(--mu)');
+    document.getElementById('sniper-status').textContent='RECONNECTING...';
+    setTimeout(connectPumpPortal, 5000);
+  };
+}
 
-    var nowMs = Date.now();
-    var filtered = pairs.filter(function(p){
-      var liq   = (p.liquidity&&p.liquidity.usd)||0;
-      var mc    = p.fdv||p.marketCap||0;
-      var created = p.pairCreatedAt||0;
-      var ageHrs  = created ? (nowMs-created)/3600000 : 999;
-      return liq>=500 && mc>0 && mc<=maxMC && ageHrs<=maxAge;
+function setStatus(msg, color){
+  var el = document.getElementById('pp-status');
+  if(el){ el.textContent = msg; el.style.color = color||'var(--mu)'; }
+}
+
+var _solPrice = 150; // fallback
+function getSolPrice(){ return _solPrice; }
+// Fetch SOL price from CoinGecko (free, CORS allowed)
+(function fetchSolPrice(){
+  fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d.solana&&d.solana.usd) _solPrice=d.solana.usd; })
+    .catch(function(){});
+  setInterval(function(){
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d.solana&&d.solana.usd) _solPrice=d.solana.usd; })
+      .catch(function(){});
+  }, 60000);
+})();
+
+// Enrich token with DexScreener data
+function enrichFromDex(ca){
+  fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+      if(!pairs.length || !liveTokens[ca]) return;
+      var p = pairs[0];
+      var t = liveTokens[ca];
+      t.mcUSD  = p.fdv || p.marketCap || t.mcUSD;
+      t.liq    = (p.liquidity&&p.liquidity.usd)||0;
+      t.vol    = (p.volume&&p.volume.h1)||t.vol;
+      t.buys   = (p.txns&&p.txns.h1&&p.txns.h1.buys)||t.buys;
+      t.sells  = (p.txns&&p.txns.h1&&p.txns.h1.sells)||t.sells;
+      t.dexData = true;
+      updateSniperTable();
+    })
+    .catch(function(){});
+}
+
+// Notify flash
+function showFlash(msg){
+  var el = document.getElementById('sniper-flash');
+  if(!el) return;
+  el.textContent = '⚡ '+msg;
+  el.style.opacity='1';
+  setTimeout(function(){ el.style.opacity='0'; }, 2000);
+}
+
+// Render the live table
+function updateSniperTable(){
+  var maxMC   = parseInt((document.getElementById('sn-mc')||{}).value)||20000;
+  var maxAge  = parseInt((document.getElementById('sn-age')||{}).value)||2;
+  var sortBy  = ((document.getElementById('sn-sort')||{}).value)||'age';
+
+  var nowMs = Date.now();
+  var visible = liveTokenOrder
+    .map(function(ca){ return liveTokens[ca]; })
+    .filter(function(t){
+      if(!t) return false;
+      var ageHrs = (nowMs - t.ts)/3600000;
+      return ageHrs <= maxAge && t.mcUSD <= maxMC;
     });
 
-    // Sort
-    if(sortBy==='vol') {
-      filtered.sort(function(a,b){ return ((b.volume&&b.volume.h1)||0)-((a.volume&&a.volume.h1)||0); });
-    } else if(sortBy==='age') {
-      filtered.sort(function(a,b){ return (b.pairCreatedAt||0)-(a.pairCreatedAt||0); });
-    } else {
-      filtered.sort(function(a,b){ return ((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0); });
-    }
-    filtered = filtered.slice(0,25);
-
-    document.getElementById('sniper-load').style.display='none';
-
-    if(!filtered.length){
-      document.getElementById('sniper-emp').style.display='block';
-      document.getElementById('sniper-emp').querySelector('.etxt').textContent='NO TOKENS MATCHED';
-      document.getElementById('sniper-emp').querySelector('.esub').textContent=
-        'Got '+totalFound+' pairs but none match MC<$'+maxMC.toLocaleString()+' + Age<'+maxAge+'hr. Try wider filters or wait for new launches.';
-      document.getElementById('sniper-status').textContent='0 MATCHED / '+totalFound+' SCANNED';
-      return;
-    }
-
-    renderSniper(filtered, totalFound);
-    document.getElementById('sniper-status').textContent='LIVE · '+filtered.length+' FOUND';
-
-    // Auto-refresh 30s
-    var secs=30;
-    sniperInterval=setInterval(function(){
-      secs--;
-      var timerEl=document.getElementById('sniper-timer');
-      if(timerEl) timerEl.textContent='Refresh in '+secs+'s';
-      if(secs<=0){ clearInterval(sniperInterval); runSniper(); }
-    },1000);
-
-  } catch(e) {
-    document.getElementById('sniper-load').style.display='none';
-    document.getElementById('sniper-emp').style.display='block';
-    document.getElementById('sniper-emp').querySelector('.etxt').textContent='⚠ API ERROR';
-    document.getElementById('sniper-emp').querySelector('.esub').textContent=
-      e.message+'. DexScreener may be rate-limiting (60 req/min). Wait 30s and try again.';
-    document.getElementById('sniper-status').textContent='ERROR';
-    console.error('Sniper error:', e.message);
+  if(sortBy==='vol') {
+    visible.sort(function(a,b){ return b.vol-a.vol; });
+  } else if(sortBy==='liq') {
+    visible.sort(function(a,b){ return b.liq-a.liq; });
+  } else {
+    // newest first (default)
+    visible.sort(function(a,b){ return b.ts-a.ts; });
   }
-}
+  visible = visible.slice(0,50);
 
-function sniperScore(p){
-  var sc = 40;
-  var vol1h = p.volume&&p.volume.h1 ? p.volume.h1 : 0;
-  var liq   = p.liquidity&&p.liquidity.usd ? p.liquidity.usd : 0;
-  var mc    = p.fdv||p.marketCap||0;
-  var txns  = p.txns&&p.txns.h1 ? (p.txns.h1.buys||0)+(p.txns.h1.sells||0) : 0;
-  var ageHrs= p.pairCreatedAt ? (Date.now()-p.pairCreatedAt)/3600000 : 24;
-  if(vol1h>5000)  sc+=15; else if(vol1h>1000) sc+=8;
-  if(liq>2000)    sc+=10; else if(liq>500)    sc+=5;
-  if(mc<5000)     sc+=15; else if(mc<10000)   sc+=8;
-  if(txns>50)     sc+=10; else if(txns>20)    sc+=5;
-  if(ageHrs<0.5)  sc+=10; else if(ageHrs<1)   sc+=5;
-  return Math.min(sc, 99);
-}
+  var total = liveTokenOrder.length;
+  var countEl = document.getElementById('sniper-count');
+  if(countEl) countEl.textContent = total+' received · '+visible.length+' match filters';
 
-function renderSniper(pairs, totalScanned){
-  var nowMs = Date.now();
-  var info = totalScanned ? '<div style="font-size:10px;color:var(--mu);margin-bottom:8px;">Scanned '+totalScanned+' pairs · Showing '+pairs.length+' matching your filters</div>' : '';
-  var html = info
-    +'<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">'
-    +'<table class="ttable" style="min-width:700px;">'
+  if(!visible.length){
+    document.getElementById('sniper-res').innerHTML='';
+    if(ppConnected){
+      document.getElementById('sniper-emp').style.display='block';
+      document.getElementById('sniper-emp').querySelector('.etxt').textContent='WAITING FOR LAUNCHES';
+      document.getElementById('sniper-emp').querySelector('.esub').textContent=
+        'Connected · '+total+' tokens seen · None match MC<$'+maxMC.toLocaleString()+' + Age<'+maxAge+'hr. Tokens arrive in real time.';
+    }
+    return;
+  }
+  document.getElementById('sniper-emp').style.display='none';
+
+  var html = '<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bd);">'
+    +'<table class="ttable" style="min-width:720px;">'
     +'<thead><tr>'
-    +'<th>SCORE</th><th>TOKEN</th><th>CA</th><th>MC</th><th>AGE</th>'
-    +'<th>VOL 1H</th><th>LIQ</th><th>TXNs</th><th>ACTIONS</th>'
+    +'<th>SCORE</th><th>TOKEN</th><th>CA</th><th>MC (USD)</th>'
+    +'<th>AGE</th><th>BUYS</th><th>VOL SOL</th><th>LIQ</th><th>ACTIONS</th>'
     +'</tr></thead><tbody>';
 
-  pairs.forEach(function(p, i){
-    var sc    = sniperScore(p);
+  visible.forEach(function(t, i){
+    var sc    = tokenScore(t);
     var sc_c  = sc>=75?'var(--ac)':sc>=55?'var(--go)':'var(--wn)';
-    var name  = safeStr((p.baseToken&&p.baseToken.name)||'UNKNOWN');
-    var tick  = safeStr((p.baseToken&&p.baseToken.symbol)||'???');
-    var ca    = (p.baseToken&&p.baseToken.address)||'';
-    var mc    = p.fdv||p.marketCap||0;
-    var liq   = p.liquidity&&p.liquidity.usd ? p.liquidity.usd : 0;
-    var vol1h = p.volume&&p.volume.h1 ? p.volume.h1 : 0;
-    var txns  = p.txns&&p.txns.h1 ? (p.txns.h1.buys||0)+'B / '+(p.txns.h1.sells||0)+'S' : '—';
-    var ageMs = p.pairCreatedAt ? nowMs - p.pairCreatedAt : 0;
-    var ageStr= ageMs>3600000 ? Math.floor(ageMs/3600000)+'h '+Math.floor((ageMs%3600000)/60000)+'m' : Math.floor(ageMs/60000)+'m';
-    var caShort= ca ? ca.slice(0,8)+'...'+ca.slice(-5) : '—';
-    var dexUrl  = 'https://dexscreener.com/solana/'+ca;
-    var pumpUrl = 'https://pump.fun/'+ca;
-    var trojanUrl='https://t.me/Trojan?start='+ca;
-    var solUrl  = 'https://solscan.io/token/'+ca;
-    var bgRow   = i%2===0?'var(--s1)':'var(--s2)';
+    var ageMs = nowMs - t.ts;
+    var ageStr= ageMs>3600000 ? Math.floor(ageMs/3600000)+'h '+Math.floor((ageMs%3600000)/60000)+'m'
+                              : Math.floor(ageMs/60000)+'m '+Math.floor((ageMs%60000)/1000)+'s';
+    var caShort = t.ca ? t.ca.slice(0,6)+'..'+t.ca.slice(-4) : '—';
+    var pumpUrl  = 'https://pump.fun/'+t.ca;
+    var dexUrl   = 'https://dexscreener.com/solana/'+t.ca;
+    var trojanUrl= 'https://t.me/Trojan?start='+t.ca;
+    var photonUrl= 'https://photon-sol.tinyastro.io/en/lp/'+t.ca;
+    var bg = i%2===0?'var(--s1)':'var(--s2)';
+    var enrichBadge = t.dexData ? '' : '<span style="font-size:8px;color:var(--mu);margin-left:3px;">(live)</span>';
 
-    html += '<tr class="trow" style="background:'+bgRow+';">'
-      +'<td><span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:'+sc_c+';">'+sc+'</span></td>'
-      +'<td><div style="font-family:Cinzel,serif;font-size:12px;font-weight:900;color:var(--ac);">$'+tick+'</div>'
-        +'<div style="font-size:10px;color:var(--mu);">'+name+'</div></td>'
-      +'<td style="font-size:10px;"><span style="color:var(--ac);">'+caShort+'</span>'
-        +(ca?'<button onclick="navigator.clipboard.writeText(\''+ca+'\').then(function(){this.textContent=\'✓\';var me=this;setTimeout(function(){me.textContent=\'⧉\';},1500);}.bind(this))" style="margin-left:4px;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:1px 4px;border-radius:3px;cursor:pointer;">⧉</button>':'')
+    html += '<tr class="trow" style="background:'+bg+';">'
+      // Score
+      +'<td><span style="font-family:Cinzel,serif;font-size:13px;font-weight:900;color:'+sc_c+';">'+sc+'</span></td>'
+      // Token
+      +'<td><div style="font-family:Cinzel,serif;font-size:12px;font-weight:900;color:var(--ac);">$'+safeStr(t.tick)+'</div>'
+         +'<div style="font-size:9px;color:var(--mu);">'+safeStr(t.name)+'</div></td>'
+      // CA with copy
+      +'<td style="font-size:10px;white-space:nowrap;"><span style="color:var(--ac);font-family:monospace;">'+caShort+'</span>'
+        +'<button onclick="copySnipCA(\''+t.ca+'\')" id="scpy-'+i+'" style="margin-left:3px;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:1px 4px;border-radius:3px;cursor:pointer;">⧉</button>'
         +'</td>'
-      +'<td style="color:var(--go);font-weight:600;">$'+formatNum(mc)+'</td>'
-      +'<td style="color:var(--tx);">'+ageStr+'</td>'
-      +'<td style="color:var(--ac);">$'+formatNum(vol1h)+'</td>'
-      +'<td style="color:var(--mu);">$'+formatNum(liq)+'</td>'
-      +'<td style="font-size:10px;color:var(--mu);">'+txns+'</td>'
-      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap;">'
-        +(ca?'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);font-weight:600;">PUMP↗</a>':'')
-        +(ca?'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);font-weight:600;">DEX↗</a>':'')
-        +(ca?'<a href="'+trojanUrl+'" target="_blank" style="font-size:10px;color:var(--mu);">TROJAN↗</a>':'')
-        +(ca?'<button onclick="addBasketCA(\''+ca+'\',\''+tick+'\')" style="font-size:10px;border:1px solid var(--go);background:none;color:var(--go);padding:1px 5px;border-radius:3px;cursor:pointer;">+$10</button>':'')
+      // MC
+      +'<td style="color:var(--go);font-weight:700;">$'+formatNum(t.mcUSD)+enrichBadge+'</td>'
+      // Age
+      +'<td style="color:var(--tx);font-size:11px;">'+ageStr+'</td>'
+      // Buys
+      +'<td style="color:var(--ac);font-size:11px;">'+t.buys+'B/'+t.sells+'S</td>'
+      // Volume
+      +'<td style="color:var(--mu);font-size:11px;">'+t.vol.toFixed(2)+' SOL</td>'
+      // Liq
+      +'<td style="color:var(--mu);font-size:11px;">'+(t.liq?'$'+formatNum(t.liq):'—')+'</td>'
+      // Actions
+      +'<td><div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center;">'
+        +'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);font-weight:700;white-space:nowrap;">PUMP↗</a>'
+        +'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);font-weight:600;white-space:nowrap;">DEX↗</a>'
+        +'<a href="'+trojanUrl+'" target="_blank" style="font-size:10px;color:var(--mu);white-space:nowrap;">TROJAN↗</a>'
+        +'<a href="'+photonUrl+'" target="_blank" style="font-size:10px;color:var(--mu);white-space:nowrap;">PHOTON↗</a>'
+        +'<button onclick="addBasketCA(\''+t.ca+'\',\''+safeStr(t.tick)+'\')" style="font-size:10px;border:1px solid var(--go);background:none;color:var(--go);padding:1px 5px;border-radius:3px;cursor:pointer;white-space:nowrap;">+$10</button>'
       +'</div></td>'
       +'</tr>';
   });
 
   html += '</tbody></table></div>';
   document.getElementById('sniper-res').innerHTML = html;
+}
+
+function copySnipCA(ca){
+  navigator.clipboard.writeText(ca).catch(function(){});
+}
+
+// Score based on your 4 criteria
+function tokenScore(t){
+  var sc = 30;
+  // MC < $20K → best signal
+  if(t.mcUSD < 5000)       sc += 20;
+  else if(t.mcUSD < 10000) sc += 15;
+  else if(t.mcUSD < 20000) sc += 10;
+  // Buy activity as proxy for views/attention
+  if(t.buys >= 50)  sc += 20;
+  else if(t.buys >= 20) sc += 12;
+  else if(t.buys >= 5)  sc += 6;
+  // Volume proxy
+  if(t.vol >= 5)   sc += 15;
+  else if(t.vol >= 1) sc += 8;
+  // Age < 1hr bonus
+  var ageMin = (Date.now()-t.ts)/60000;
+  if(ageMin < 5)   sc += 15;
+  else if(ageMin < 30) sc += 8;
+  else if(ageMin < 60) sc += 4;
+  // DexScreener liquidity confirmed
+  if(t.dexData && t.liq > 500) sc += 10;
+  return Math.min(sc, 99);
+}
+
+function runSniper(){
+  document.getElementById('sniper-load').style.display='block';
+  document.getElementById('sniper-res').innerHTML='';
+  document.getElementById('sniper-emp').style.display='none';
+  document.getElementById('sniper-status').textContent='CONNECTING...';
+  liveTokens = {};
+  liveTokenOrder = [];
+  if(ppWS){ try{ ppWS.close(); }catch(e){} ppWS=null; }
+  connectPumpPortal();
 }
 
 function formatNum(n){
