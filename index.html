@@ -418,8 +418,8 @@ textarea.mfld{resize:vertical;}
       <div class="pc-sub"><span>GPT-4o · Free · Just login with Puter</span><a class="pc-link" href="https://puter.com" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;">→ puter.com</a></div>
     </div>
 
-    <!-- POLLINATIONS — NO KEY, NO LOGIN -->
-    <div id="pc-pollinations" class="prov-card" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.05);">
+    <!-- POLLINATIONS — NO KEY, NO LOGIN — DEFAULT -->
+    <div id="pc-pollinations" class="prov-card on" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.08);">
       <div class="pc-row">
         <span class="pc-ico">🌸</span>
         <span class="pc-name" style="color:#16a34a;">POLLINATIONS</span>
@@ -428,7 +428,7 @@ textarea.mfld{resize:vertical;}
       </div>
       <div class="pc-sub"><span>GPT-4o · No key · No login · Instant</span><a class="pc-link" href="https://pollinations.ai" target="_blank" onclick="event.stopPropagation()" style="color:#16a34a;">→ pollinations.ai</a></div>
     </div>
-    <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
+    <div id="pc-groq" class="prov-card" onclick="pickProv('groq')">
       <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
       <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
     </div>
@@ -816,7 +816,7 @@ textarea.mfld{resize:vertical;}
 
 <script>
 /* ══ STATE ══ */
-let KEY='', PROV='groq', VIEW='card', grim=[], scache={}, lastData=[];
+let KEY='pollinations', PROV='pollinations', VIEW='card', grim=[], scache={}, lastData=[];
 const TMAP={};
 
 const PROVS={
@@ -885,6 +885,27 @@ function pickProv(id){
   document.getElementById('pc-'+id).classList.add('on');
   var inp=document.getElementById('kinp');
   var kbtn=document.getElementById('kbtn');
+
+  // ── POLLINATIONS — auto-connect instantly, no button needed ──
+  if(id==='pollinations'){
+    KEY='pollinations';
+    document.getElementById('key-ttl').textContent='🌸 POLLINATIONS — CONNECTED';
+    inp.value=''; inp.placeholder='No key required — connected!'; inp.disabled=true;
+    kbtn.textContent='✅ CONNECTED — READY';
+    kbtn.style.background='rgba(22,163,74,.2)';
+    kbtn.style.borderColor='#16a34a'; kbtn.style.color='#16a34a';
+    document.getElementById('kinfo').innerHTML='✅ Connected to <a href="https://pollinations.ai" target="_blank" style="color:#16a34a;">pollinations.ai</a> — No key, no login, completely anonymous.<br/>All AI tabs ready to use now.';
+    document.getElementById('kstat').textContent='✓ Connected — all AI tabs ready';
+    document.getElementById('kstat').className='kstat ok';
+    document.getElementById('kdot').className='kdot ok';
+    document.getElementById('pdot').className='pdot ok';
+    document.getElementById('plbl').textContent='POLLINATIONS';
+    const d=document.getElementById('disc-btn'); if(d)d.remove();
+    const f=document.getElementById('force-btn'); if(f)f.remove();
+    return;
+  }
+
+  // ── PUTER — show connect button ──
   if(id==='puter'){
     document.getElementById('key-ttl').textContent='🆓 PUTER.JS — NO KEY NEEDED';
     inp.value=''; inp.placeholder='No API key required'; inp.disabled=true;
@@ -893,14 +914,6 @@ function pickProv(id){
     kbtn.style.borderColor='#7c3aed'; kbtn.style.color='#7c3aed';
     document.getElementById('kinfo').innerHTML='Free AI via <a href="https://puter.com" target="_blank" style="color:#7c3aed;">Puter.com</a> · No API key needed · Just login once<br/>🔒 No data stored. Uses GPT-4o.';
     document.getElementById('kstat').textContent='Click button below — no key needed';
-  } else if(id==='pollinations'){
-    document.getElementById('key-ttl').textContent='🌸 POLLINATIONS — 100% FREE';
-    inp.value=''; inp.placeholder='No key required — truly anonymous'; inp.disabled=true;
-    kbtn.textContent='🌸 CONNECT — NO KEY NEEDED';
-    kbtn.style.background='rgba(22,163,74,.12)';
-    kbtn.style.borderColor='#16a34a'; kbtn.style.color='#16a34a';
-    document.getElementById('kinfo').innerHTML='Open-source AI via <a href="https://pollinations.ai" target="_blank" style="color:#16a34a;">pollinations.ai</a> · No key · No login · Zero data storage<br/>🔒 Completely anonymous. GPT-4o quality.';
-    document.getElementById('kstat').textContent='Click button — instant connection, no setup';
   } else {
     document.getElementById('key-ttl').textContent='🔑 '+p.name+' API KEY';
     inp.value=''; inp.placeholder=(p.prefix||'')+'...'; inp.disabled=false;
@@ -997,7 +1010,11 @@ function setView(v){
 /* ══ AI CALL ══ */
 async function callAI(prompt, json){
   json = json || false;
-  if(!KEY) return json ? [] : '⚠ Please connect your API key first.';
+  // Pollinations and Puter don't need a real API key — allow through
+  var noKeyProviders = { pollinations:true, puter:true };
+  if(!KEY && !noKeyProviders[PROV]){
+    return json ? [] : '⚠ Please connect your API key first.';
+  }
   var p = PROVS[PROV];
   var sys = json
     ? 'You are a Solana meme coin research expert with knowledge up to 2026. You MUST return ONLY a valid JSON array. Start your response with [ and end with ]. No explanation, no markdown, no backticks, no text before or after the JSON array.'
@@ -1171,7 +1188,8 @@ function resetC(){
 
 /* ══ SUMMON ══ */
 async function summon(){
-  if(!KEY){ showStatus('⚠ Connect your API key first','err'); return; }
+  var noKeyProviders = { pollinations:true, puter:true };
+  if(!KEY && !noKeyProviders[PROV]){ showStatus('⚠ Connect your API key first','err'); return; }
   var yf=document.getElementById('cyf').value;
   var yt=document.getElementById('cyt').value;
   var n=document.getElementById('cn').value;
