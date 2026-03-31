@@ -716,6 +716,7 @@ textarea.mfld{resize:vertical;}
       </div>
       <div id="basket-list"></div>
       <div id="basket-pnl" style="margin-top:8px;font-family:'Cinzel',serif;font-size:11px;color:var(--ac);letter-spacing:.1em;"></div>
+      <div id="basket-msg" style="font-size:10px;color:var(--go);margin-top:4px;opacity:0;transition:opacity .5s;"></div>
     </div>
   </div>
 
@@ -1755,14 +1756,91 @@ function addBasket(){
   document.getElementById('bsk-entry').value='';
 }
 
+// Fetch real price from DexScreener for a CA
+function fetchTokenPrice(ca, cb){
+  fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+      if(!pairs.length){ cb(0); return; }
+      // Sort by liquidity, take best pair
+      pairs.sort(function(a,b){
+        return ((b.liquidity&&b.liquidity.usd)||0) - ((a.liquidity&&a.liquidity.usd)||0);
+      });
+      var price = parseFloat((pairs[0].priceUsd)||0);
+      cb(price);
+    })
+    .catch(function(){ cb(0); });
+}
+
 function addBasketCA(ca, tick, entryPrice){
-  if(basket.find(function(b){return b.ca===ca;})) return;
-  basket.push({ ca:ca, tick:tick||'???', entry:entryPrice||0, current:entryPrice||0, amount:10 });
+  if(basket.find(function(b){ return b.ca===ca; })){
+    showBasketMsg('Already in basket: $'+tick);
+    return;
+  }
+
+  // Show "fetching price..." immediately
+  var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0, amount:10, loading:true };
+  basket.push(entry);
   renderBasket();
+
+  // If entry price was manually passed (from manual add), use it
+  if(entryPrice && entryPrice > 0){
+    entry.entry   = entryPrice;
+    entry.current = entryPrice;
+    entry.loading = false;
+    renderBasket();
+    return;
+  }
+
+  // Fetch real live price from DexScreener
+  fetchTokenPrice(ca, function(price){
+    entry.entry   = price;
+    entry.current = price;
+    entry.loading = false;
+    if(price === 0){
+      entry.priceError = true;
+    }
+    renderBasket();
+    if(price > 0){
+      showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
+    } else {
+      showBasketMsg('⚠ $'+safeStr(tick)+' added — price not found yet (pair forming)');
+    }
+  });
+}
+
+// Refresh all current prices in basket
+function refreshBasketPrices(){
+  var pending = basket.filter(function(b){ return b.ca; });
+  pending.forEach(function(b){
+    fetchTokenPrice(b.ca, function(price){
+      if(price > 0) b.current = price;
+      renderBasket();
+    });
+  });
+}
+
+// Auto-refresh prices every 30s
+var basketRefreshTimer = null;
+function startBasketRefresh(){
+  if(basketRefreshTimer) clearInterval(basketRefreshTimer);
+  basketRefreshTimer = setInterval(function(){
+    if(basket.length > 0) refreshBasketPrices();
+  }, 30000);
+}
+startBasketRefresh();
+
+function showBasketMsg(msg){
+  var el = document.getElementById('basket-msg');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.opacity = '1';
+  setTimeout(function(){ el.style.opacity = '0'; }, 3000);
 }
 
 function removeBasket(ca){
-  basket = basket.filter(function(b){return b.ca!==ca;});
+  basket = basket.filter(function(b){ return b.ca!==ca; });
   renderBasket();
 }
 
@@ -1770,34 +1848,81 @@ function renderBasket(){
   var el = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
   if(!basket.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--mu);padding:8px 0;">No tokens in basket yet. Click +$10 on any live token above.</div>';
+    el.innerHTML='<div style="font-size:12px;color:var(--mu);padding:8px 0;">No tokens yet — click +$10 on any live token above.</div>';
     pnlEl.textContent='';
     return;
   }
+
   var totalPnl = 0;
+  var totalInvested = basket.length * 10;
+
   el.innerHTML = basket.map(function(b){
-    var pct = b.entry>0 ? ((b.current-b.entry)/b.entry*100) : 0;
-    var pnl = b.amount*(b.current-b.entry)/(b.entry||1);
+    var dexUrl  = 'https://dexscreener.com/solana/'+b.ca;
+    var pumpUrl = 'https://pump.fun/'+b.ca;
+
+    if(b.loading){
+      return '<div class="brow" style="justify-content:space-between;align-items:center;">'
+        +'<div><span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
+        +'<span style="font-size:9px;color:var(--mu);margin-left:8px;">'+b.ca.slice(0,10)+'...</span></div>'
+        +'<span style="font-size:10px;color:var(--mu);animation:pulse 1s infinite;">⏳ fetching price...</span>'
+        +'</div>';
+    }
+
+    var hasPrice = b.entry > 0;
+    var pct  = hasPrice ? ((b.current - b.entry) / b.entry * 100) : 0;
+    var pnl  = hasPrice ? (b.amount * (b.current - b.entry) / b.entry) : 0;
     totalPnl += pnl;
-    var pColor = pnl>=0?'var(--ac)':'var(--dn)';
-    var dexUrl = 'https://dexscreener.com/solana/'+b.ca;
-    return '<div class="brow" style="justify-content:space-between;">'
-      +'<div style="flex:1;">'
-        +'<span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
-        +'<span style="font-size:9px;color:var(--mu);margin-left:8px;">'+b.ca.slice(0,10)+'...</span>'
+    var pColor  = pnl >= 0 ? 'var(--ac)' : 'var(--dn)';
+    var pctStr  = hasPrice ? (pct>=0?'+':'')+pct.toFixed(1)+'%' : '—';
+    var pnlStr  = hasPrice ? (pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2) : '—';
+    var mxStr   = hasPrice ? '$'+(b.amount/b.entry*b.current).toFixed(2) : '$10.00';
+
+    return '<div class="brow" style="flex-direction:column;gap:4px;padding:8px 10px;background:var(--s2);border-radius:6px;margin-bottom:6px;">'
+      // Row 1: name + PnL
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+        +'<div>'
+          +'<span style="font-family:Cinzel,serif;font-size:13px;font-weight:900;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
+          +(b.priceError?'<span style="font-size:9px;color:var(--dn);margin-left:6px;">⚠ price pending</span>':'')
+        +'</div>'
+        +'<div style="display:flex;gap:10px;align-items:center;">'
+          +'<span style="font-size:14px;font-weight:900;color:'+pColor+';">'+pctStr+'</span>'
+          +'<span style="font-size:11px;color:'+pColor+';">'+pnlStr+'</span>'
+          +'<button onclick="removeBasket(\''+b.ca+'\')" style="font-size:11px;border:none;background:none;color:var(--mu);cursor:pointer;padding:2px 4px;">✕</button>'
+        +'</div>'
       +'</div>'
-      +'<div style="display:flex;gap:12px;align-items:center;">'
-        +'<span style="font-size:11px;color:var(--mu);">Entry: $'+b.entry.toFixed(8)+'</span>'
-        +'<span style="font-size:12px;font-weight:700;color:'+pColor+';">'+pct.toFixed(1)+'%</span>'
+      // Row 2: price details
+      +'<div style="display:flex;gap:16px;font-size:10px;color:var(--mu);flex-wrap:wrap;">'
+        +'<span>Entry: <span style="color:var(--tx);">'+(hasPrice?'$'+b.entry.toFixed(10):'not set')+'</span></span>'
+        +'<span>Now: <span style="color:var(--tx);">'+(b.current>0?'$'+b.current.toFixed(10):'—')+'</span></span>'
+        +'<span>Value: <span style="color:var(--go);">'+mxStr+'</span></span>'
+        +'<span>Invested: <span style="color:var(--mu);">$'+b.amount+'</span></span>'
+      +'</div>'
+      // Row 3: links
+      +'<div style="display:flex;gap:10px;">'
+        +'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);">PUMP↗</a>'
         +'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);">DEX↗</a>'
-        +'<button onclick="removeBasket(\''+b.ca+'\')" style="font-size:10px;border:none;background:none;color:var(--mu);cursor:pointer;">✕</button>'
+        +'<button onclick="refreshSinglePrice(\''+b.ca+'\')" style="font-size:10px;border:none;background:none;color:var(--mu);cursor:pointer;padding:0;">🔄 refresh price</button>'
       +'</div>'
-      +'</div>';
+    +'</div>';
   }).join('');
-  var pnlColor = totalPnl>=0?'var(--ac)':'var(--dn)';
-  pnlEl.innerHTML = 'BASKET: $'+basket.length*10+' deployed across '+basket.length+' tokens'
-    +' &nbsp;·&nbsp; Total P&L: <span style="color:'+pnlColor+';">'+
-    (totalPnl>=0?'+':'')+totalPnl.toFixed(2)+'</span>';
+
+  var pnlColor = totalPnl >= 0 ? 'var(--ac)' : 'var(--dn)';
+  var pnlSign  = totalPnl >= 0 ? '+' : '';
+  pnlEl.innerHTML =
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">'
+    +'<span>Invested: <strong style="color:var(--tx);">$'+totalInvested+'</strong></span>'
+    +'<span>P&amp;L: <strong style="color:'+pnlColor+';">'+pnlSign+'$'+Math.abs(totalPnl).toFixed(2)+'</strong></span>'
+    +'<span style="color:var(--mu);font-size:9px;">Auto-refreshes every 30s</span>'
+    +'<button onclick="refreshBasketPrices()" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;margin-left:auto;">🔄 Refresh All</button>'
+    +'</div>';
+}
+
+function refreshSinglePrice(ca){
+  var b = basket.find(function(x){ return x.ca===ca; });
+  if(!b) return;
+  fetchTokenPrice(ca, function(price){
+    if(price > 0){ b.current = price; renderBasket(); }
+  });
 }
 function addGrim(t){if(!t||grim.find(x=>x.ticker===t.ticker))return;grim.push(t);renderGrim();}
 function remGrim(tick){grim=grim.filter(x=>x.ticker!==tick);renderGrim();}
