@@ -2,8 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>👻 GhostCap v3.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>👻 GhostCap</title>
+
+<!-- ══ PWA MANIFEST (inline) ══ -->
+<link rel="manifest" href="data:application/manifest+json,{
+  %22name%22:%22GhostCap%22,
+  %22short_name%22:%22GhostCap%22,
+  %22description%22:%22pump.fun Solana token sniper and intelligence platform%22,
+  %22start_url%22:%22./%22,
+  %22display%22:%22standalone%22,
+  %22orientation%22:%22portrait%22,
+  %22background_color%22:%22%231c1e2e%22,
+  %22theme_color%22:%22%234f46e5%22,
+  %22icons%22:[
+    {%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231c1e2e'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle'%3E👻%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any maskable%22}
+  ]
+}"/>
+
+<!-- ══ iOS PWA META TAGS ══ -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GhostCap"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#1c1e2e"/>
+<meta name="description" content="pump.fun Solana token sniper — live feed, filters, AI analysis, P&L tracker"/>
+
+<!-- ══ iOS TOUCH ICON (home screen icon) ══ -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231c1e2e'/><text x='256' y='340' font-size='280' text-anchor='middle'>👻</text></svg>"/>
+
+<!-- ══ iOS SPLASH SCREENS ══ -->
+<style>
+  /* Splash screen shown while app loads on iPhone */
+  #pwa-splash {
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:#1c1e2e;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:99999;
+    transition:opacity .5s;
+  }
+  #pwa-splash.hidden { opacity:0; pointer-events:none; }
+</style>
+
+<!-- ══ OPEN GRAPH (share preview) ══ -->
+<meta property="og:title" content="GhostCap — pump.fun Sniper"/>
+<meta property="og:description" content="Live Solana token sniper with AI analysis and P&L tracking"/>
+<meta property="og:type" content="website"/>
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://js.puter.com/v2/"></script>
 <style>
@@ -372,6 +417,17 @@ textarea.mfld{resize:vertical;}
       </div>
       <div class="pc-sub"><span>GPT-4o · Free · Just login with Puter</span><a class="pc-link" href="https://puter.com" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;">→ puter.com</a></div>
     </div>
+
+    <!-- POLLINATIONS — NO KEY, NO LOGIN -->
+    <div id="pc-pollinations" class="prov-card" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.05);">
+      <div class="pc-row">
+        <span class="pc-ico">🌸</span>
+        <span class="pc-name" style="color:#16a34a;">POLLINATIONS</span>
+        <span class="pc-badge" style="background:rgba(22,163,74,.15);color:#16a34a;border:1px solid rgba(22,163,74,.3);">100% FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>GPT-4o · No key · No login · Instant</span><a class="pc-link" href="https://pollinations.ai" target="_blank" onclick="event.stopPropagation()" style="color:#16a34a;">→ pollinations.ai</a></div>
+    </div>
     <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
       <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
       <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
@@ -705,17 +761,52 @@ textarea.mfld{resize:vertical;}
       <div class="etxt">SNIPER READY</div>
       <div class="esub">Click SCAN NOW to find live tokens matching your criteria</div>
     </div>
-    <!-- Basket tracker -->
+    <!-- ══ DAY TRADING DASHBOARD ══ -->
     <div class="ibox gt" style="margin-top:16px;">
-      <div class="ibox-ttl gld">💼 $10 BASKET TRACKER</div>
-      <div style="font-size:11px;color:var(--mu);margin-bottom:10px;">Add tokens you bought. Track P&amp;L in real time.</div>
-      <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;">
-        <input id="bsk-ca" class="mfld" placeholder="Contract Address or ticker..." style="flex:1;min-width:150px;"/>
-        <input id="bsk-entry" class="mfld" placeholder="Entry price (e.g. 0.000053)" style="flex:1;min-width:120px;"/>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div class="ibox-ttl gld" style="margin:0;">📊 DAY TRADING DASHBOARD</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="refreshBasketPrices()" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:3px 10px;border-radius:4px;cursor:pointer;">🔄 Refresh All</button>
+          <button onclick="resetDayTrade()" style="font-size:10px;border:1px solid var(--dn);background:none;color:var(--dn);padding:3px 10px;border-radius:4px;cursor:pointer;">🗑 Reset Day</button>
+        </div>
+      </div>
+
+      <!-- Top summary bar -->
+      <div id="day-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px;"></div>
+
+      <!-- Fee calculator strip -->
+      <div style="background:rgba(245,184,0,.07);border:1px solid rgba(245,184,0,.2);border-radius:6px;padding:10px 12px;margin-bottom:14px;">
+        <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--go);letter-spacing:.12em;margin-bottom:8px;">⚙ PUMP.FUN FEE CALCULATOR</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <div style="font-size:10px;color:var(--mu);">Buying <strong style="color:var(--tx);" id="fee-tokens">0</strong> tokens × <strong style="color:var(--go);">$10</strong> each</div>
+          <div style="font-size:10px;color:var(--mu);">Swap fee (1%): <strong style="color:var(--go);" id="fee-buy">$0.00</strong></div>
+          <div style="font-size:10px;color:var(--mu);">Sell fee (1%): <strong style="color:var(--go);" id="fee-sell">$0.00</strong></div>
+          <div style="font-size:10px;color:var(--mu);">Total fees: <strong style="color:var(--dn);" id="fee-total">$0.00</strong></div>
+          <div style="font-size:10px;color:var(--mu);">Break-even needs: <strong style="color:var(--wn);" id="fee-breakeven">+2%</strong> gain</div>
+        </div>
+        <div style="font-size:9px;color:var(--mu);margin-top:6px;">pump.fun charges 1% on every buy AND sell. Solana network fee ~$0.0002 per tx (negligible). Your <strong style="color:var(--tx);">actual invested capital</strong> = $10 + 1% fee = <strong style="color:var(--go);" id="fee-actual">$10.10</strong> per token.</div>
+      </div>
+
+      <!-- Add token row -->
+      <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;">
+        <input id="bsk-ca" class="mfld" placeholder="Contract Address (CA)..." style="flex:2;min-width:150px;"/>
+        <input id="bsk-entry" class="mfld" placeholder="Entry price (auto-fetched if blank)" style="flex:2;min-width:130px;"/>
+        <select id="bsk-status" class="fld" style="width:110px;">
+          <option value="open">🟢 Holding</option>
+          <option value="sold">🔴 Sold (2x)</option>
+          <option value="stopped">🟡 Stopped</option>
+        </select>
         <button class="mbtn gld" onclick="addBasket()">+ ADD $10</button>
       </div>
+
+      <!-- Token rows -->
       <div id="basket-list"></div>
-      <div id="basket-pnl" style="margin-top:8px;font-family:'Cinzel',serif;font-size:11px;color:var(--ac);letter-spacing:.1em;"></div>
+
+      <!-- Trade history log -->
+      <div id="trade-history" style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px;"></div>
+
+      <!-- Bottom totals -->
+      <div id="basket-pnl" style="margin-top:4px;"></div>
       <div id="basket-msg" style="font-size:10px;color:var(--go);margin-top:4px;opacity:0;transition:opacity .5s;"></div>
     </div>
   </div>
@@ -729,13 +820,14 @@ let KEY='', PROV='groq', VIEW='card', grim=[], scache={}, lastData=[];
 const TMAP={};
 
 const PROVS={
-  puter:    {name:'PUTER',    fmt:'puter',    url:'',                                                                                               model:'gpt-4o',                    prefix:'',       hint:'puter.com',                    hurl:'https://puter.com'},
-  groq:     {name:'GROQ',     fmt:'openai',   url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
-  gemini:   {name:'GEMINI',   fmt:'gemini',   url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
-  openai:   {name:'OPENAI',   fmt:'openai',   url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
-  deepseek: {name:'DEEPSEEK', fmt:'openai',   url:'https://api.deepseek.com/v1/chat/completions',                                               model:'deepseek-chat',             prefix:'sk-',    hint:'platform.deepseek.com',        hurl:'https://platform.deepseek.com/api_keys'},
-  qwen:     {name:'QWEN',     fmt:'openai',   url:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',                         model:'qwen-plus',                 prefix:'sk-',    hint:'dashscope.console.aliyun.com', hurl:'https://dashscope.console.aliyun.com/apiKey'},
-  anthropic:{name:'ANTHROPIC',fmt:'anthropic',url:'https://api.anthropic.com/v1/messages',                                                      model:'claude-haiku-4-5-20251001', prefix:'sk-ant', hint:'console.anthropic.com',        hurl:'https://console.anthropic.com'}
+  puter:        {name:'PUTER',        fmt:'puter',        url:'',                                                                                               model:'gpt-4o',                    prefix:'',       hint:'puter.com',                    hurl:'https://puter.com'},
+  pollinations: {name:'POLLINATIONS', fmt:'pollinations', url:'https://text.pollinations.ai/openai',                                                           model:'openai',                    prefix:'',       hint:'pollinations.ai',              hurl:'https://pollinations.ai'},
+  groq:         {name:'GROQ',         fmt:'openai',       url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
+  gemini:       {name:'GEMINI',       fmt:'gemini',       url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
+  openai:       {name:'OPENAI',       fmt:'openai',       url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
+  deepseek:     {name:'DEEPSEEK',     fmt:'openai',       url:'https://api.deepseek.com/v1/chat/completions',                                               model:'deepseek-chat',             prefix:'sk-',    hint:'platform.deepseek.com',        hurl:'https://platform.deepseek.com/api_keys'},
+  qwen:         {name:'QWEN',         fmt:'openai',       url:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',                         model:'qwen-plus',                 prefix:'sk-',    hint:'dashscope.console.aliyun.com', hurl:'https://dashscope.console.aliyun.com/apiKey'},
+  anthropic:    {name:'ANTHROPIC',    fmt:'anthropic',    url:'https://api.anthropic.com/v1/messages',                                                      model:'claude-haiku-4-5-20251001', prefix:'sk-ant', hint:'console.anthropic.com',        hurl:'https://console.anthropic.com'}
 };
 
 const ORACLES=[
@@ -801,6 +893,14 @@ function pickProv(id){
     kbtn.style.borderColor='#7c3aed'; kbtn.style.color='#7c3aed';
     document.getElementById('kinfo').innerHTML='Free AI via <a href="https://puter.com" target="_blank" style="color:#7c3aed;">Puter.com</a> · No API key needed · Just login once<br/>🔒 No data stored. Uses GPT-4o.';
     document.getElementById('kstat').textContent='Click button below — no key needed';
+  } else if(id==='pollinations'){
+    document.getElementById('key-ttl').textContent='🌸 POLLINATIONS — 100% FREE';
+    inp.value=''; inp.placeholder='No key required — truly anonymous'; inp.disabled=true;
+    kbtn.textContent='🌸 CONNECT — NO KEY NEEDED';
+    kbtn.style.background='rgba(22,163,74,.12)';
+    kbtn.style.borderColor='#16a34a'; kbtn.style.color='#16a34a';
+    document.getElementById('kinfo').innerHTML='Open-source AI via <a href="https://pollinations.ai" target="_blank" style="color:#16a34a;">pollinations.ai</a> · No key · No login · Zero data storage<br/>🔒 Completely anonymous. GPT-4o quality.';
+    document.getElementById('kstat').textContent='Click button — instant connection, no setup';
   } else {
     document.getElementById('key-ttl').textContent='🔑 '+p.name+' API KEY';
     inp.value=''; inp.placeholder=(p.prefix||'')+'...'; inp.disabled=false;
@@ -828,6 +928,12 @@ function connectKey(){
     }
     KEY='puter';
     doConnect('puter');
+    return;
+  }
+  // POLLINATIONS — no key, no login, just connect instantly
+  if(PROV==='pollinations'){
+    KEY='pollinations';
+    doConnect('pollinations');
     return;
   }
   var v=document.getElementById('kinp').value.trim();
@@ -917,6 +1023,28 @@ async function callAI(prompt, json){
         else if(Array.isArray(content)) raw = content.map(function(c){return c.text||'';}).join('');
         else raw = String(puterResp);
       } else raw = String(puterResp||'');
+
+    // ══ POLLINATIONS — no API key, no login, truly anonymous ══
+    } else if(p.fmt === 'pollinations'){
+      var pollResp = await fetch('https://text.pollinations.ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'openai',
+          messages: [
+            { role: 'system', content: sys },
+            { role: 'user',   content: prompt }
+          ],
+          seed: Math.floor(Math.random()*9999)
+        })
+      });
+      if(!pollResp.ok){ errMsg = 'Pollinations error ' + pollResp.status; }
+      else {
+        var pollData = await pollResp.json();
+        raw = (((pollData.choices||[])[0])||{}).message
+          ? (pollData.choices[0].message.content || '')
+          : '';
+      }
 
     } else if(p.fmt === 'openai'){
       var r = await fetch(p.url, {
@@ -1746,82 +1874,117 @@ function formatNum(n){
   return n.toFixed(0);
 }
 
-/* ══ BASKET TRACKER ══ */
+/* ══ DAY TRADING DASHBOARD ══ */
+// pump.fun fee constants
+var PUMP_FEE      = 0.01;  // 1% buy fee
+var PUMP_SELL_FEE = 0.01;  // 1% sell fee
+var PER_TRADE     = 10;    // $10 per trade
+// Each basket entry: { ca, tick, entry, current, amount, status, addedAt, loading, priceError }
+
 function addBasket(){
-  var ca    = document.getElementById('bsk-ca').value.trim();
-  var entry = parseFloat(document.getElementById('bsk-entry').value)||0;
+  var ca     = document.getElementById('bsk-ca').value.trim();
+  var entry  = parseFloat(document.getElementById('bsk-entry').value)||0;
+  var status = (document.getElementById('bsk-status')||{value:'open'}).value||'open';
   if(!ca) return;
-  addBasketCA(ca, ca.length>20?ca.slice(0,6)+'...':ca, entry);
+  var tick = ca.length > 20 ? ca.slice(0,6)+'...' : ca;
+  addBasketCA(ca, tick, entry, status);
   document.getElementById('bsk-ca').value='';
   document.getElementById('bsk-entry').value='';
 }
 
-// Fetch real price from DexScreener for a CA
+// Fetch real price from DexScreener
 function fetchTokenPrice(ca, cb){
   fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
     .then(function(r){ return r.json(); })
     .then(function(d){
       var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
       if(!pairs.length){ cb(0); return; }
-      // Sort by liquidity, take best pair
       pairs.sort(function(a,b){
-        return ((b.liquidity&&b.liquidity.usd)||0) - ((a.liquidity&&a.liquidity.usd)||0);
+        return ((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0);
       });
-      var price = parseFloat((pairs[0].priceUsd)||0);
-      cb(price);
+      cb(parseFloat(pairs[0].priceUsd||0));
     })
     .catch(function(){ cb(0); });
 }
 
-function addBasketCA(ca, tick, entryPrice){
+function addBasketCA(ca, tick, entryPrice, status){
   if(basket.find(function(b){ return b.ca===ca; })){
-    showBasketMsg('Already in basket: $'+tick);
-    return;
+    showBasketMsg('Already in basket: $'+tick); return;
   }
-
-  // Show "fetching price..." immediately
-  var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0, amount:10, loading:true };
+  status = status || 'open';
+  var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0,
+    amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false };
   basket.push(entry);
   renderBasket();
 
-  // If entry price was manually passed (from manual add), use it
   if(entryPrice && entryPrice > 0){
-    entry.entry   = entryPrice;
-    entry.current = entryPrice;
-    entry.loading = false;
-    renderBasket();
-    return;
+    entry.entry = entryPrice; entry.current = entryPrice; entry.loading = false;
+    renderBasket(); return;
   }
-
-  // Fetch real live price from DexScreener
   fetchTokenPrice(ca, function(price){
-    entry.entry   = price;
-    entry.current = price;
-    entry.loading = false;
-    if(price === 0){
-      entry.priceError = true;
-    }
+    entry.entry = price; entry.current = price; entry.loading = false;
+    if(price === 0) entry.priceError = true;
     renderBasket();
-    if(price > 0){
-      showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
-    } else {
-      showBasketMsg('⚠ $'+safeStr(tick)+' added — price not found yet (pair forming)');
-    }
+    if(price > 0) showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
+    else          showBasketMsg('⚠ $'+safeStr(tick)+' — price fetching, try refresh');
   });
 }
 
-// Refresh all current prices in basket
+// Mark a trade as sold or stopped — ask for actual sell price
+function closePosition(ca, closeStatus){
+  var b = basket.find(function(x){ return x.ca===ca; });
+  if(!b) return;
+  var label = closeStatus === 'sold' ? 'SELL price (leave blank to use live price)' : 'EXIT price (stop-loss price, blank = live)';
+  var input = window.prompt('$'+b.tick+' — Enter your actual ' + label + ':', b.current > 0 ? b.current.toFixed(10) : '');
+  if(input === null) return; // cancelled
+  var exitPrice = parseFloat(input);
+  if(exitPrice > 0){
+    b.exitPrice = exitPrice;
+    b.current   = exitPrice;
+    b.status    = closeStatus;
+    b.exitAt    = Date.now();
+    renderBasket();
+    renderDaySummary();
+  } else {
+    // use live price
+    fetchTokenPrice(ca, function(price){
+      if(price > 0){ b.exitPrice = price; b.current = price; }
+      b.status = closeStatus;
+      b.exitAt = Date.now();
+      renderBasket();
+      renderDaySummary();
+    });
+  }
+}
+
+function removeBasket(ca){
+  basket = basket.filter(function(b){ return b.ca!==ca; });
+  renderBasket(); renderDaySummary();
+}
+
+function resetDayTrade(){
+  if(!confirm('Reset all positions and start fresh day?')) return;
+  basket = [];
+  renderBasket(); renderDaySummary();
+}
+
 function refreshBasketPrices(){
-  var pending = basket.filter(function(b){ return b.ca; });
-  pending.forEach(function(b){
+  basket.filter(function(b){ return b.status==='open'; }).forEach(function(b){
     fetchTokenPrice(b.ca, function(price){
       if(price > 0) b.current = price;
-      renderBasket();
+      renderBasket(); renderDaySummary();
     });
   });
 }
 
-// Auto-refresh prices every 30s
+function refreshSinglePrice(ca){
+  var b = basket.find(function(x){ return x.ca===ca; });
+  if(!b) return;
+  fetchTokenPrice(ca, function(price){
+    if(price > 0){ b.current = price; renderBasket(); renderDaySummary(); }
+  });
+}
+
 var basketRefreshTimer = null;
 function startBasketRefresh(){
   if(basketRefreshTimer) clearInterval(basketRefreshTimer);
@@ -1834,96 +1997,241 @@ startBasketRefresh();
 function showBasketMsg(msg){
   var el = document.getElementById('basket-msg');
   if(!el) return;
-  el.textContent = msg;
-  el.style.opacity = '1';
-  setTimeout(function(){ el.style.opacity = '0'; }, 3000);
+  el.textContent = msg; el.style.opacity = '1';
+  setTimeout(function(){ el.style.opacity='0'; }, 3000);
 }
 
-function removeBasket(ca){
-  basket = basket.filter(function(b){ return b.ca!==ca; });
-  renderBasket();
+// ── Calculate fees for N trades ────────────────────────────────
+function calcFees(n, avgExitMultiplier){
+  avgExitMultiplier = avgExitMultiplier || 1;
+  var buyFees  = n * PER_TRADE * PUMP_FEE;                          // 1% on entry
+  var sellFees = n * PER_TRADE * avgExitMultiplier * PUMP_SELL_FEE; // 1% on exit value
+  return { buy: buyFees, sell: sellFees, total: buyFees + sellFees };
 }
 
+// ── Render day summary stat boxes ──────────────────────────────
+function renderDaySummary(){
+  var el = document.getElementById('day-summary');
+  if(!el || !basket.length){ if(el) el.innerHTML=''; updateFeeCalc(0,1); return; }
+
+  var now      = Date.now();
+  var open     = basket.filter(function(b){ return b.status==='open'; });
+  var closed   = basket.filter(function(b){ return b.status!=='open'; });
+  var wins     = 0, losses = 0;
+  var realizedPnl = 0, unrealizedPnl = 0;
+  var totalFees = 0;
+  var SOL_NETWORK_FEE = 0.0002; // ~$0.0002 per tx, negligible but shown
+  var bestTrade = null, worstTrade = null;
+
+  // ── Calc each position ──────────────────────────────────────
+  basket.forEach(function(b){
+    if(b.loading || b.entry === 0) return;
+    var rawPnl  = b.amount * (b.current - b.entry) / b.entry;
+    var buyFee  = b.amount * PUMP_FEE;
+    var exitVal = b.amount * b.current / b.entry;
+    var sellFee = exitVal * PUMP_SELL_FEE;
+    var fees    = buyFee + sellFee;
+    totalFees  += fees;
+    var netPnl  = rawPnl - fees;
+    b._netPnl   = netPnl; // cache for history table
+
+    if(b.status === 'open'){
+      unrealizedPnl += netPnl;
+    } else {
+      realizedPnl += netPnl;
+      if(netPnl >= 0) wins++; else losses++;
+      if(!bestTrade || netPnl > bestTrade._netPnl) bestTrade = b;
+      if(!worstTrade || netPnl < worstTrade._netPnl) worstTrade = b;
+    }
+  });
+
+  var totalNetPnl   = realizedPnl + unrealizedPnl;
+  var totalTrades   = basket.length;
+  var closedTrades  = closed.length;
+  var winRate       = closedTrades > 0 ? Math.round(wins/closedTrades*100) : 0;
+  var totalInvested = totalTrades * PER_TRADE;
+  var netColor      = totalNetPnl >= 0 ? 'var(--ac)' : 'var(--dn)';
+  var winColor      = winRate >= 60 ? 'var(--ac)' : winRate >= 40 ? 'var(--go)' : 'var(--dn)';
+  var sign          = totalNetPnl >= 0 ? '+' : '';
+
+  function statBox(label, value, color, sub){
+    return '<div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;">'
+      +'<div style="font-size:9px;color:var(--mu);letter-spacing:.1em;margin-bottom:3px;">'+label+'</div>'
+      +'<div style="font-family:Cinzel,serif;font-size:15px;font-weight:900;color:'+(color||'var(--tx)')+';">'+value+'</div>'
+      +(sub?'<div style="font-size:9px;color:var(--mu);margin-top:2px;">'+sub+'</div>':'')
+    +'</div>';
+  }
+
+  // ── Stat grid ───────────────────────────────────────────────
+  el.innerHTML =
+    statBox('NET P&L (after fees)', sign+'$'+Math.abs(totalNetPnl).toFixed(2), netColor, 'Realized + Unrealized') +
+    statBox('REALIZED P&L', (realizedPnl>=0?'+':'')+'$'+Math.abs(realizedPnl).toFixed(2), realizedPnl>=0?'var(--ac)':'var(--dn)', closedTrades+' closed trades') +
+    statBox('UNREALIZED P&L', (unrealizedPnl>=0?'+':'')+'$'+Math.abs(unrealizedPnl).toFixed(2), unrealizedPnl>=0?'var(--ac)':'var(--dn)', open.length+' open positions') +
+    statBox('TOTAL FEES PAID', '-$'+totalFees.toFixed(2), 'var(--dn)', '1% buy + 1% sell per trade') +
+    statBox('WIN RATE', winRate+'%', winColor, wins+' wins / '+losses+' losses') +
+    statBox('TOTAL DEPLOYED', '$'+totalInvested.toFixed(2), 'var(--tx)', totalTrades+' × $'+PER_TRADE) +
+    (bestTrade  ? statBox('BEST TRADE',  '+'+'$'+Math.abs(bestTrade._netPnl||0).toFixed(2), 'var(--ac)', '$'+safeStr(bestTrade.tick)) : '') +
+    (worstTrade ? statBox('WORST TRADE', (worstTrade._netPnl>=0?'+':'-')+'$'+Math.abs(worstTrade._netPnl||0).toFixed(2), worstTrade._netPnl>=0?'var(--ac)':'var(--dn)', '$'+safeStr(worstTrade.tick)) : '');
+
+  updateFeeCalc(totalTrades, 1 + totalNetPnl/Math.max(totalInvested,1));
+
+  // ── Trade history log (closed positions) ────────────────────
+  var histEl = document.getElementById('trade-history');
+  if(!histEl) return;
+  if(!closed.length){ histEl.innerHTML='<div style="font-size:11px;color:var(--mu);padding:6px 0;">No closed trades yet. Click "Mark Sold" or "Stop Loss" to close a position.</div>'; return; }
+
+  var rows = closed.map(function(b){
+    if(!b.entry || b.entry === 0) return '';
+    var rawPnl  = b.amount * (b.current - b.entry) / b.entry;
+    var buyFee  = b.amount * PUMP_FEE;
+    var sellFee = (b.amount * b.current / b.entry) * PUMP_SELL_FEE;
+    var netPnl  = rawPnl - buyFee - sellFee;
+    var pct     = (b.current - b.entry) / b.entry * 100;
+    var netCol  = netPnl >= 0 ? 'var(--ac)' : 'var(--dn)';
+    var held    = b.exitAt && b.addedAt ? Math.round((b.exitAt - b.addedAt)/60000) : '?';
+    var heldStr = held >= 60 ? Math.floor(held/60)+'h '+held%60+'m' : held+'m';
+    var badge   = b.status === 'sold'
+      ? '<span style="color:#4ade80;font-size:9px;">✅ SOLD</span>'
+      : '<span style="color:var(--go);font-size:9px;">🛑 STOPPED</span>';
+    return '<tr style="border-bottom:1px solid var(--bd);">'
+      +'<td style="padding:6px 8px;font-family:Cinzel,serif;font-weight:700;color:var(--ac);">$'+safeStr(b.tick)+'</td>'
+      +'<td style="padding:6px 8px;">'+badge+'</td>'
+      +'<td style="padding:6px 8px;font-size:10px;color:var(--mu);">$'+b.entry.toFixed(8)+'</td>'
+      +'<td style="padding:6px 8px;font-size:10px;color:var(--mu);">$'+b.current.toFixed(8)+'</td>'
+      +'<td style="padding:6px 8px;font-size:10px;color:var(--go);">$'+(buyFee+sellFee).toFixed(3)+'</td>'
+      +'<td style="padding:6px 8px;font-family:Cinzel,serif;font-weight:700;color:'+netCol+';">'+(netPnl>=0?'+':'')+'$'+Math.abs(netPnl).toFixed(2)+' ('+(pct>=0?'+':'')+pct.toFixed(0)+'%)</td>'
+      +'<td style="padding:6px 8px;font-size:10px;color:var(--mu);">'+heldStr+'</td>'
+    +'</tr>';
+  }).join('');
+
+  histEl.innerHTML = '<div style="font-family:Cinzel,serif;font-size:9px;color:var(--mu);letter-spacing:.12em;margin-bottom:8px;">📋 CLOSED TRADE LOG</div>'
+    +'<div style="overflow-x:auto;">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:11px;">'
+    +'<thead><tr style="border-bottom:2px solid var(--bd);">'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">TOKEN</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">STATUS</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">ENTRY</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">EXIT</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">FEES</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">NET P&L</th>'
+    +'<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--mu);">HELD</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table></div>';
+}
+
+// ── Update fee calculator strip ────────────────────────────────
+function updateFeeCalc(n, exitMult){
+  n = n || 0; exitMult = exitMult || 1;
+  var buyFee     = n * PER_TRADE * PUMP_FEE;
+  var sellFee    = n * PER_TRADE * exitMult * PUMP_SELL_FEE;
+  var total      = buyFee + sellFee;
+  var actual     = PER_TRADE + PER_TRADE * PUMP_FEE;
+  var breakeven  = (PUMP_FEE + PUMP_SELL_FEE) * 100;
+  var ftEl = document.getElementById('fee-tokens');
+  var fbEl = document.getElementById('fee-buy');
+  var fsEl = document.getElementById('fee-sell');
+  var fttEl= document.getElementById('fee-total');
+  var fbeEl= document.getElementById('fee-breakeven');
+  var faEl = document.getElementById('fee-actual');
+  if(ftEl) ftEl.textContent = n;
+  if(fbEl) fbEl.textContent = '$'+buyFee.toFixed(2);
+  if(fsEl) fsEl.textContent = '$'+sellFee.toFixed(2);
+  if(fttEl) fttEl.textContent = '$'+total.toFixed(2);
+  if(fbeEl) fbeEl.textContent = '+'+breakeven.toFixed(0)+'% min';
+  if(faEl)  faEl.textContent  = '$'+actual.toFixed(2);
+}
+
+// ── Render individual position rows ────────────────────────────
 function renderBasket(){
-  var el = document.getElementById('basket-list');
+  var el    = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
+  renderDaySummary();
+
   if(!basket.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--mu);padding:8px 0;">No tokens yet — click +$10 on any live token above.</div>';
-    pnlEl.textContent='';
+    el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No trades yet — click +$10 on any live token.</div>';
+    if(pnlEl) pnlEl.innerHTML = '';
     return;
   }
 
-  var totalPnl = 0;
-  var totalInvested = basket.length * 10;
-
-  el.innerHTML = basket.map(function(b){
+  var now = Date.now();
+  el.innerHTML = basket.map(function(b, i){
     var dexUrl  = 'https://dexscreener.com/solana/'+b.ca;
     var pumpUrl = 'https://pump.fun/'+b.ca;
+    var isOpen  = b.status === 'open';
+    var statusBadge = isOpen
+      ? '<span style="font-size:9px;background:rgba(0,212,184,.1);color:var(--ac);border:1px solid rgba(0,212,184,.3);border-radius:3px;padding:1px 5px;">🟢 OPEN</span>'
+      : b.status==='sold'
+        ? '<span style="font-size:9px;background:rgba(0,180,0,.1);color:#4ade80;border:1px solid rgba(0,180,0,.3);border-radius:3px;padding:1px 5px;">✅ SOLD</span>'
+        : '<span style="font-size:9px;background:rgba(245,184,0,.1);color:var(--go);border:1px solid rgba(245,184,0,.3);border-radius:3px;padding:1px 5px;">🛑 STOPPED</span>';
 
     if(b.loading){
-      return '<div class="brow" style="justify-content:space-between;align-items:center;">'
-        +'<div><span style="font-family:Cinzel,serif;font-size:12px;font-weight:700;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
-        +'<span style="font-size:9px;color:var(--mu);margin-left:8px;">'+b.ca.slice(0,10)+'...</span></div>'
-        +'<span style="font-size:10px;color:var(--mu);animation:pulse 1s infinite;">⏳ fetching price...</span>'
-        +'</div>';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s2);border-radius:6px;margin-bottom:6px;">'
+        +'<span style="font-family:Cinzel,serif;font-size:12px;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
+        +'<span style="font-size:10px;color:var(--mu);">⏳ fetching price...</span></div>';
     }
 
-    var hasPrice = b.entry > 0;
-    var pct  = hasPrice ? ((b.current - b.entry) / b.entry * 100) : 0;
-    var pnl  = hasPrice ? (b.amount * (b.current - b.entry) / b.entry) : 0;
-    totalPnl += pnl;
-    var pColor  = pnl >= 0 ? 'var(--ac)' : 'var(--dn)';
-    var pctStr  = hasPrice ? (pct>=0?'+':'')+pct.toFixed(1)+'%' : '—';
-    var pnlStr  = hasPrice ? (pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2) : '—';
-    var mxStr   = hasPrice ? '$'+(b.amount/b.entry*b.current).toFixed(2) : '$10.00';
+    var hasPrice   = b.entry > 0;
+    var rawPnl     = hasPrice ? b.amount*(b.current-b.entry)/b.entry : 0;
+    var buyFee     = b.amount * PUMP_FEE;
+    var sellFee    = hasPrice ? (b.amount*b.current/b.entry)*PUMP_SELL_FEE : b.amount*PUMP_SELL_FEE;
+    var fees       = buyFee + sellFee;
+    var netPnl     = rawPnl - fees;
+    var pct        = hasPrice ? (b.current-b.entry)/b.entry*100 : 0;
+    var netColor   = netPnl >= 0 ? 'var(--ac)' : 'var(--dn)';
+    var rawColor   = rawPnl >= 0 ? 'var(--go)' : 'var(--dn)';
+    var currentVal = hasPrice ? b.amount*b.current/b.entry : b.amount;
+    var ageMin     = Math.floor((now - b.addedAt)/60000);
+    var ageStr     = ageMin >= 60 ? Math.floor(ageMin/60)+'h '+ageMin%60+'m' : ageMin+'m';
 
-    return '<div class="brow" style="flex-direction:column;gap:4px;padding:8px 10px;background:var(--s2);border-radius:6px;margin-bottom:6px;">'
-      // Row 1: name + PnL
-      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
-        +'<div>'
+    return '<div style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;margin-bottom:8px;padding:10px 12px;">'
+      // Row 1: name + status + net P&L
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
           +'<span style="font-family:Cinzel,serif;font-size:13px;font-weight:900;color:var(--ac);">$'+safeStr(b.tick)+'</span>'
-          +(b.priceError?'<span style="font-size:9px;color:var(--dn);margin-left:6px;">⚠ price pending</span>':'')
+          +statusBadge
+          +'<span style="font-size:9px;color:var(--mu);">'+ageStr+' ago</span>'
         +'</div>'
-        +'<div style="display:flex;gap:10px;align-items:center;">'
-          +'<span style="font-size:14px;font-weight:900;color:'+pColor+';">'+pctStr+'</span>'
-          +'<span style="font-size:11px;color:'+pColor+';">'+pnlStr+'</span>'
-          +'<button onclick="removeBasket(\''+b.ca+'\')" style="font-size:11px;border:none;background:none;color:var(--mu);cursor:pointer;padding:2px 4px;">✕</button>'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+          +'<div style="text-align:right;">'
+            +'<div style="font-family:Cinzel,serif;font-size:14px;font-weight:900;color:'+netColor+';">'+(netPnl>=0?'+':'')+'$'+Math.abs(netPnl).toFixed(2)+' <span style="font-size:10px;">net</span></div>'
+            +'<div style="font-size:9px;color:var(--mu);">after fees</div>'
+          +'</div>'
+          +'<button onclick="removeBasket(\''+b.ca+'\')" style="font-size:12px;border:none;background:none;color:var(--mu);cursor:pointer;padding:2px 4px;">✕</button>'
         +'</div>'
       +'</div>'
-      // Row 2: price details
-      +'<div style="display:flex;gap:16px;font-size:10px;color:var(--mu);flex-wrap:wrap;">'
-        +'<span>Entry: <span style="color:var(--tx);">'+(hasPrice?'$'+b.entry.toFixed(10):'not set')+'</span></span>'
-        +'<span>Now: <span style="color:var(--tx);">'+(b.current>0?'$'+b.current.toFixed(10):'—')+'</span></span>'
-        +'<span>Value: <span style="color:var(--go);">'+mxStr+'</span></span>'
-        +'<span>Invested: <span style="color:var(--mu);">$'+b.amount+'</span></span>'
+      // Row 2: price breakdown
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-top:8px;font-size:10px;">'
+        +'<div><span style="color:var(--mu);">Invested</span><br/><strong style="color:var(--tx);">$'+b.amount.toFixed(2)+'</strong></div>'
+        +'<div><span style="color:var(--mu);">Entry</span><br/><strong style="color:var(--tx);">'+(hasPrice?'$'+b.entry.toFixed(8):'—')+'</strong></div>'
+        +'<div><span style="color:var(--mu);">Now</span><br/><strong style="color:var(--tx);">'+(b.current>0?'$'+b.current.toFixed(8):'—')+'</strong></div>'
+        +'<div><span style="color:var(--mu);">Value now</span><br/><strong style="color:var(--go);">$'+currentVal.toFixed(2)+'</strong></div>'
+        +'<div><span style="color:var(--mu);">Raw P&L</span><br/><strong style="color:'+rawColor+';">'+(rawPnl>=0?'+':'')+'$'+Math.abs(rawPnl).toFixed(2)+' ('+(pct>=0?'+':'')+pct.toFixed(1)+'%)</strong></div>'
+        +'<div><span style="color:var(--mu);">Fees (buy+sell)</span><br/><strong style="color:var(--dn);">-$'+fees.toFixed(2)+'</strong></div>'
       +'</div>'
-      // Row 3: links
-      +'<div style="display:flex;gap:10px;">'
+      // Row 3: actions
+      +'<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">'
+        +(isOpen
+          ? '<button onclick="closePosition(\''+b.ca+'\',\'sold\')" style="font-size:10px;border:1px solid #4ade80;background:none;color:#4ade80;padding:2px 8px;border-radius:3px;cursor:pointer;">✅ Mark Sold</button>'
+           +'<button onclick="closePosition(\''+b.ca+'\',\'stopped\')" style="font-size:10px;border:1px solid var(--go);background:none;color:var(--go);padding:2px 8px;border-radius:3px;cursor:pointer;">🛑 Stop Loss</button>'
+           +'<button onclick="refreshSinglePrice(\''+b.ca+'\')" style="font-size:10px;border:none;background:none;color:var(--mu);cursor:pointer;padding:0;">🔄 refresh</button>'
+          : '<button onclick="reopenPosition(\''+b.ca+'\')" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;">↩ Reopen</button>'
+        )
         +'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);">PUMP↗</a>'
         +'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);">DEX↗</a>'
-        +'<button onclick="refreshSinglePrice(\''+b.ca+'\')" style="font-size:10px;border:none;background:none;color:var(--mu);cursor:pointer;padding:0;">🔄 refresh price</button>'
+        +(b.priceError?'<span style="font-size:9px;color:var(--dn);">⚠ price not found</span>':'')
       +'</div>'
     +'</div>';
   }).join('');
 
-  var pnlColor = totalPnl >= 0 ? 'var(--ac)' : 'var(--dn)';
-  var pnlSign  = totalPnl >= 0 ? '+' : '';
-  pnlEl.innerHTML =
-    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">'
-    +'<span>Invested: <strong style="color:var(--tx);">$'+totalInvested+'</strong></span>'
-    +'<span>P&amp;L: <strong style="color:'+pnlColor+';">'+pnlSign+'$'+Math.abs(totalPnl).toFixed(2)+'</strong></span>'
-    +'<span style="color:var(--mu);font-size:9px;">Auto-refreshes every 30s</span>'
-    +'<button onclick="refreshBasketPrices()" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;margin-left:auto;">🔄 Refresh All</button>'
-    +'</div>';
+  if(pnlEl) pnlEl.innerHTML = '';
 }
 
-function refreshSinglePrice(ca){
+function reopenPosition(ca){
   var b = basket.find(function(x){ return x.ca===ca; });
-  if(!b) return;
-  fetchTokenPrice(ca, function(price){
-    if(price > 0){ b.current = price; renderBasket(); }
-  });
+  if(b){ b.status='open'; b.exitAt=null; renderBasket(); renderDaySummary(); }
 }
+
 function addGrim(t){if(!t||grim.find(x=>x.ticker===t.ticker))return;grim.push(t);renderGrim();}
 function remGrim(tick){grim=grim.filter(x=>x.ticker!==tick);renderGrim();}
 async function refGrim(tick){
@@ -1962,6 +2270,80 @@ function renderGrim(){
       <textarea class="mfld" rows="2" style="margin-top:9px;font-size:12px;" placeholder="Your notes..."></textarea>
       <div id="gu-${safeStr(t.ticker)}" style="margin-top:7px;border-left:2px solid var(--ac);padding-left:9px;font-size:12px;color:var(--tx);white-space:pre-wrap;line-height:1.7;display:none;"></div>
     </div>`).join('');
+}
+</script>
+
+<!-- ══ PWA SPLASH SCREEN ══ -->
+<div id="pwa-splash">
+  <div style="font-size:80px;margin-bottom:16px;">👻</div>
+  <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:900;color:#818cf8;letter-spacing:.2em;">GHOSTCAP</div>
+  <div style="font-size:11px;color:#6870a0;margin-top:8px;letter-spacing:.15em;">SOLANA TOKEN SNIPER</div>
+  <div style="margin-top:32px;width:48px;height:3px;background:#34375a;border-radius:2px;overflow:hidden;">
+    <div style="height:3px;background:#818cf8;border-radius:2px;animation:splash-load 1.2s ease-in-out forwards;"></div>
+  </div>
+</div>
+<style>
+@keyframes splash-load {
+  0%   { width:0%; }
+  60%  { width:70%; }
+  100% { width:100%; }
+}
+</style>
+
+<!-- ══ iOS INSTALL BANNER (shows only in browser, not when installed) ══ -->
+<div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#242638;border-top:1px solid #34375a;padding:12px 16px;z-index:9999;align-items:center;gap:12px;">
+  <div style="font-size:28px;">👻</div>
+  <div style="flex:1;">
+    <div style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#818cf8;">Install GhostCap</div>
+    <div style="font-size:11px;color:#6870a0;margin-top:2px;">Tap <strong style="color:#c8d0f0;">Share</strong> then <strong style="color:#c8d0f0;">"Add to Home Screen"</strong></div>
+  </div>
+  <button onclick="document.getElementById('ios-install-banner').style.display='none';" style="font-size:18px;border:none;background:none;color:#6870a0;cursor:pointer;padding:4px;">✕</button>
+</div>
+
+<script>
+// ── Hide splash screen once page is loaded ──
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var splash = document.getElementById('pwa-splash');
+    if(splash){ splash.classList.add('hidden'); setTimeout(function(){ splash.remove(); }, 600); }
+  }, 800);
+});
+
+// ── Show iOS install banner if on iPhone Safari (not already installed) ──
+(function(){
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isInstalled = window.navigator.standalone === true;
+  var dismissed = false;
+  try { dismissed = localStorage.getItem('gc-install-dismissed') === '1'; } catch(e){}
+  if(isIOS && !isInstalled && !dismissed){
+    setTimeout(function(){
+      var banner = document.getElementById('ios-install-banner');
+      if(banner) banner.style.display = 'flex';
+    }, 3000);
+  }
+  var closeBtn = document.getElementById('ios-install-banner');
+  if(closeBtn){
+    closeBtn.addEventListener('click', function(){
+      try { localStorage.setItem('gc-install-dismissed','1'); } catch(e){}
+    });
+  }
+})();
+
+// ── Register Service Worker for offline cache ──
+if('serviceWorker' in navigator){
+  var swCode = [
+    "const CACHE='ghostcap-v1';",
+    "const ASSETS=['/'];",
+    "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));",
+    "self.addEventListener('fetch',e=>{",
+    "  if(e.request.mode==='navigate'){",
+    "    e.respondWith(fetch(e.request).catch(()=>caches.match('/')));",
+    "  }",
+    "});"
+  ].join('\n');
+  var blob = new Blob([swCode], {type:'application/javascript'});
+  var swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(function(){});
 }
 </script>
 </body>
