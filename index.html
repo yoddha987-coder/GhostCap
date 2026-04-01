@@ -870,6 +870,12 @@ function setTheme(t){
 }
 (function(){
   try{var _t=localStorage.getItem('gsx-t')||'dark';setTheme(_t);}catch(e){setTheme('dark');}
+  // Show ready state on search tab — no auto-summon
+  setTimeout(function(){
+    try {
+      showStatus('🌸 Pollinations AI ready — set your filters and click SUMMON SPIRITS', 'ok');
+    } catch(e){}
+  }, 100);
 })();
 
 /* ══ TABS ══ */
@@ -977,7 +983,7 @@ function connectKey(){
 
 function doConnect(v){
   KEY=v;
-  var masked=v.substring(0,8)+'••••'+v.slice(-4);
+  var masked = (v==='pollinations') ? 'POLLINATIONS FREE' : (v==='puter') ? 'PUTER FREE' : v.substring(0,8)+'••••'+v.slice(-4);
   document.getElementById('kdot').className='kdot ok';
   document.getElementById('kstat').textContent='✓ Connected — '+masked;
   document.getElementById('kstat').className='kstat ok';
@@ -994,11 +1000,11 @@ function doConnect(v){
   var kbtn=document.getElementById('kbtn');
   if(kbtn) kbtn.after(db);
   else document.getElementById('key-box-inner').appendChild(db);
-  // Switch to search tab and ensure criteria visible
+  // Show search tab criteria - but do NOT auto-summon
   sw(0);
   document.getElementById('sb-crit').style.display='block';
-  // Auto-summon with delay to let DOM settle
-  setTimeout(function(){ summon(); }, 500);
+  // Show ready message instead of auto-searching
+  showStatus('✓ '+PROVS[PROV].name+' connected — click SUMMON SPIRITS to search', 'ok');
 }
 
 /* ══ VIEW ══ */
@@ -1046,24 +1052,43 @@ async function callAI(prompt, json){
 
     // ══ POLLINATIONS — no API key, no login, truly anonymous ══
     } else if(p.fmt === 'pollinations'){
-      var pollResp = await fetch('https://text.pollinations.ai/openai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'openai',
-          messages: [
-            { role: 'system', content: sys },
-            { role: 'user',   content: prompt }
-          ],
-          seed: Math.floor(Math.random()*9999)
-        })
-      });
-      if(!pollResp.ok){ errMsg = 'Pollinations error ' + pollResp.status; }
-      else {
-        var pollData = await pollResp.json();
-        raw = (((pollData.choices||[])[0])||{}).message
-          ? (pollData.choices[0].message.content || '')
-          : '';
+      // Try POST endpoint first (OpenAI-compatible)
+      var pollOk = false;
+      try {
+        var pollResp = await fetch('https://text.pollinations.ai/openai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'openai',
+            messages: [
+              { role: 'system', content: sys },
+              { role: 'user',   content: prompt }
+            ],
+            seed: Math.floor(Math.random()*9999)
+          })
+        });
+        if(pollResp.ok){
+          var pollData = await pollResp.json();
+          raw = (((pollData.choices||[])[0])||{}).message
+            ? (pollData.choices[0].message.content || '')
+            : '';
+          if(raw) pollOk = true;
+        }
+      } catch(e1){ /* fallback below */ }
+
+      // Fallback: simple GET endpoint (no CORS issues)
+      if(!pollOk){
+        try {
+          var combined = sys + '\n\n' + prompt;
+          var encoded  = encodeURIComponent(combined.slice(0, 1500));
+          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=openai&seed=' + Math.floor(Math.random()*9999), {
+            method: 'GET'
+          });
+          if(gr.ok) raw = await gr.text();
+          else errMsg = 'Pollinations unavailable (status ' + gr.status + '). Try GROQ or GEMINI instead.';
+        } catch(e2){
+          errMsg = 'Pollinations network error. Check internet connection or switch to GROQ (free key at console.groq.com).';
+        }
       }
 
     } else if(p.fmt === 'openai'){
@@ -1235,8 +1260,10 @@ async function summon(){
 
 function showStatus(msg, type){
   var el=document.getElementById('semp');
+  if(!el) return;
   el.style.display='block';
-  el.querySelector('.etxt').textContent = type==='err' ? '⚠ ERROR' : 'INFO';
+  var titles = { err:'⚠ ERROR', ok:'✓ READY', info:'ℹ INFO' };
+  el.querySelector('.etxt').textContent = titles[type] || '⚠ ERROR';
   el.querySelector('.esub').textContent = msg;
 }
 
