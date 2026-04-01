@@ -1,56 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>👻 GhostCap</title>
+<title>🎯 GhostSniperX</title>
 
 <!-- ══ PWA MANIFEST (inline) ══ -->
-<link rel="manifest" href="data:application/manifest+json,{
-  %22name%22:%22GhostCap%22,
-  %22short_name%22:%22GhostCap%22,
-  %22description%22:%22pump.fun Solana token sniper and intelligence platform%22,
-  %22start_url%22:%22./%22,
-  %22display%22:%22standalone%22,
-  %22orientation%22:%22portrait%22,
-  %22background_color%22:%22%231c1e2e%22,
-  %22theme_color%22:%22%234f46e5%22,
-  %22icons%22:[
-    {%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231c1e2e'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle'%3E👻%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any maskable%22}
-  ]
-}"/>
 
 <!-- ══ iOS PWA META TAGS ══ -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="GhostCap"/>
+<meta name="apple-mobile-web-app-title" content="GhostSniperX"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#1c1e2e"/>
 <meta name="description" content="pump.fun Solana token sniper — live feed, filters, AI analysis, P&L tracker"/>
 
 <!-- ══ iOS TOUCH ICON (home screen icon) ══ -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231c1e2e'/><text x='256' y='340' font-size='280' text-anchor='middle'>👻</text></svg>"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231c1e2e'/><text x='256' y='340' font-size='280' text-anchor='middle'>🎯</text></svg>"/>
 
 <!-- ══ iOS SPLASH SCREENS ══ -->
-<style>
-  /* Splash screen shown while app loads on iPhone */
-  #pwa-splash {
-    position:fixed;top:0;left:0;right:0;bottom:0;
-    background:#1c1e2e;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    z-index:99999;
-    transition:opacity .5s;
-  }
-  #pwa-splash.hidden { opacity:0; pointer-events:none; }
-</style>
+
 
 <!-- ══ OPEN GRAPH (share preview) ══ -->
-<meta property="og:title" content="GhostCap — pump.fun Sniper"/>
+<meta property="og:title" content="GhostSniperX — Solana Token Sniper"/>
 <meta property="og:description" content="Live Solana token sniper with AI analysis and P&L tracking"/>
 <meta property="og:type" content="website"/>
 
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<script src="https://js.puter.com/v2/"></script>
+<!-- fonts loaded async -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* ══ THEMES — LIGHT IS DEFAULT ══ */
 :root{
@@ -75,7 +52,7 @@
 /* ══ RESET ══ */
 *{box-sizing:border-box;margin:0;padding:0;}
 html{height:100%;}
-body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;transition:background .25s,color .25s;-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;min-height:100vh;transition:background .25s,color .25s;-webkit-text-size-adjust:100%;}
 *{transition:background-color .25s,border-color .25s,color .2s;}
 img,svg{display:block;}
 a{text-decoration:none;color:inherit;}
@@ -97,7 +74,7 @@ select option{background:var(--s1);color:var(--tx);}
 .tl{display:flex;align-items:center;gap:9px;padding:0 14px;flex-shrink:0;}
 .tl-ghost{font-size:20px;}
 .tl-brand{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--ac);letter-spacing:.05em;white-space:nowrap;}
-.tl-sub{font-family:'Cinzel',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:1px;display:none;}
+.tl-sub{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:1px;display:none;}
 @media(min-width:480px){.tl-sub{display:block;}}
 
 /* Topbar divider */
@@ -106,7 +83,7 @@ select option{background:var(--s1);color:var(--tx);}
 /* Tabs - scrollable */
 #tabs{display:flex;align-items:stretch;flex:1;overflow-x:auto;scrollbar-width:none;height:100%;}
 #tabs::-webkit-scrollbar{display:none;}
-.tab{padding:0 12px;height:100%;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--mu);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;white-space:nowrap;flex-shrink:0;transition:color .2s,border-color .2s;}
+.tab{padding:0 12px;height:100%;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--mu);font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.1em;white-space:nowrap;flex-shrink:0;transition:color .2s,border-color .2s;}
 .tab.on{color:var(--ac);border-bottom-color:var(--ac);}
 .tab:hover:not(.on){color:var(--tx);}
 .tbadge{background:var(--ac);color:#fff;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:3px;font-weight:700;}
@@ -117,16 +94,16 @@ select option{background:var(--s1);color:var(--tx);}
 .pdot{width:6px;height:6px;border-radius:50%;background:var(--mu);flex-shrink:0;}
 .pdot.ok{background:#16a34a;box-shadow:0 0 5px #16a34a60;}
 [data-theme=dark] .pdot.ok,[data-theme=green] .pdot.ok{background:var(--ac);box-shadow:0 0 5px var(--a2);}
-.prov-pill span{font-family:'Cinzel',serif;font-size:8px;color:var(--mu);letter-spacing:.08em;}
+.prov-pill span{font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--mu);letter-spacing:.08em;}
 
 /* Settings dropdown */
 .dd-wrap{position:relative;}
-.dd-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);color:var(--tx);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;white-space:nowrap;}
+.dd-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);color:var(--tx);font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.08em;white-space:nowrap;}
 .dd-btn:hover{border-color:var(--ac);color:var(--ac);}
 .dd-panel{position:absolute;top:calc(100% + 7px);right:0;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:6px;min-width:190px;z-index:500;box-shadow:0 10px 30px rgba(0,0,0,.14);display:none;}
 .dd-panel.open{display:block;animation:popIn .18s ease;}
 @keyframes popIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none;}}
-.dd-hdr{font-family:'Cinzel',serif;font-size:8px;color:var(--mu);letter-spacing:.16em;padding:5px 9px 3px;}
+.dd-hdr{font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--mu);letter-spacing:.16em;padding:5px 9px 3px;}
 .dd-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--tx);}
 .dd-row:hover{background:var(--a1);color:var(--ac);}
 .dd-row.on{background:var(--a1);color:var(--ac);font-weight:600;}
@@ -157,7 +134,7 @@ select option{background:var(--s1);color:var(--tx);}
 
 /* ══ SIDEBAR ══ */
 .sb-sec{margin-bottom:16px;}
-.sb-ttl{font-family:'Cinzel',serif;font-size:9px;color:var(--ac);letter-spacing:.2em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--bd);}
+.sb-ttl{font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--ac);letter-spacing:.2em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--bd);}
 
 /* Provider cards */
 .prov-card{border:1px solid var(--bd);border-radius:8px;padding:9px 11px;cursor:pointer;margin-bottom:6px;transition:border-color .2s,background .2s;}
@@ -165,13 +142,13 @@ select option{background:var(--s1);color:var(--tx);}
 .prov-card.on{border-color:var(--ac);background:var(--a1);}
 .pc-row{display:flex;align-items:center;gap:7px;}
 .pc-ico{font-size:15px;flex-shrink:0;}
-.pc-name{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--tx);letter-spacing:.04em;flex:1;}
-.pc-badge{font-family:'Cinzel',serif;font-size:7px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.pc-name{font-family:'Cinzel','Georgia',serif;font-size:10px;font-weight:700;color:var(--tx);letter-spacing:.04em;flex:1;}
+.pc-badge{font-family:'Cinzel','Georgia',serif;font-size:7px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
 .pb-free{background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25);}
 .pb-paid{background:rgba(185,64,16,.1);color:var(--wn);border:1px solid rgba(185,64,16,.22);}
 [data-theme=dark] .pb-free,[data-theme=green] .pb-free{background:var(--a1);color:var(--ac);border-color:var(--a2);}
 .pc-sub{font-size:10px;color:var(--mu);margin-top:4px;display:flex;align-items:center;justify-content:space-between;}
-.pc-link{font-size:9px;color:var(--go);font-family:'Cinzel',serif;}
+.pc-link{font-size:9px;color:var(--go);font-family:'Cinzel','Georgia',serif;}
 .pc-check{font-size:11px;display:none;}
 .prov-card.on .pc-check{display:block;}
 
@@ -181,25 +158,25 @@ select option{background:var(--s1);color:var(--tx);}
 .kdot{width:7px;height:7px;border-radius:50%;background:var(--mu);flex-shrink:0;}
 .kdot.ok{background:#16a34a;box-shadow:0 0 5px #16a34a60;}
 [data-theme=dark] .kdot.ok,[data-theme=green] .kdot.ok{background:var(--ac);}
-.kstat{font-size:11px;font-family:'Cinzel',serif;letter-spacing:.07em;color:var(--mu);}
+.kstat{font-size:11px;font-family:'Cinzel','Georgia',serif;letter-spacing:.07em;color:var(--mu);}
 .kstat.ok{color:#16a34a;}
 [data-theme=dark] .kstat.ok,[data-theme=green] .kstat.ok{color:var(--ac);}
 .kstat.err{color:var(--dn);}
 .kinp{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);padding:9px 11px;font-size:13px;outline:none;border-radius:6px;margin-bottom:8px;}
 .kinp:focus{border-color:var(--ac);}
-.kbtn{width:100%;padding:9px;background:var(--a1);border:1px solid var(--ac);color:var(--ac);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;border-radius:6px;}
+.kbtn{width:100%;padding:9px;background:var(--a1);border:1px solid var(--ac);color:var(--ac);font-family:'Cinzel','Georgia',serif;font-size:10px;letter-spacing:.12em;border-radius:6px;}
 .kbtn:hover{background:var(--a2);}
 .kinfo{font-size:10px;color:var(--mu);margin-top:8px;line-height:1.8;}
 .kinfo a{color:var(--go);}
 
 /* Criteria */
-.flbl{font-size:9px;color:var(--mu);letter-spacing:.14em;display:block;margin-bottom:3px;margin-top:10px;font-family:'Cinzel',serif;}
+.flbl{font-size:9px;color:var(--mu);letter-spacing:.14em;display:block;margin-bottom:3px;margin-top:10px;font-family:'Cinzel','Georgia',serif;}
 .fld{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);padding:8px 10px;font-size:12px;outline:none;border-radius:6px;}
 .fld:focus{border-color:var(--ac);}
 select.fld{cursor:pointer;}
-.sbtn{width:100%;margin-top:13px;padding:11px;background:var(--ac);border:none;color:#fff;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.18em;border-radius:8px;font-weight:700;box-shadow:0 2px 10px var(--a2);}
+.sbtn{width:100%;margin-top:13px;padding:11px;background:var(--ac);border:none;color:#fff;font-family:'Cinzel','Georgia',serif;font-size:11px;letter-spacing:.18em;border-radius:8px;font-weight:700;box-shadow:0 2px 10px var(--a2);}
 .sbtn:hover{opacity:.9;}
-.rbtn{width:100%;margin-top:6px;padding:7px;background:transparent;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;border-radius:6px;}
+.rbtn{width:100%;margin-top:6px;padding:7px;background:transparent;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.1em;border-radius:6px;}
 .rbtn:hover{border-color:var(--ac);color:var(--ac);}
 
 /* ══ MAIN PANELS ══ */
@@ -212,7 +189,7 @@ select.fld{cursor:pointer;}
 
 /* View toggle */
 .vtog{display:flex;gap:5px;}
-.vbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;padding:5px 11px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--mu);}
+.vbtn{font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.08em;padding:5px 11px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--mu);}
 .vbtn.on{background:var(--a1);border-color:var(--ac);color:var(--ac);}
 .vbtn:hover:not(.on){border-color:var(--ac);color:var(--ac);}
 
@@ -223,7 +200,7 @@ select.fld{cursor:pointer;}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px;}
 .tcard{background:var(--s1);border:1px solid var(--bd);border-top:2px solid var(--bd);border-radius:8px;padding:14px;cursor:pointer;box-shadow:var(--sh);}
 .tcard:hover,.tcard.open{border-color:var(--ac);border-top-color:var(--ac);box-shadow:0 4px 16px var(--a1);}
-.ctick{font-family:'Cinzel',serif;font-size:14px;font-weight:900;color:var(--ac);letter-spacing:.05em;}
+.ctick{font-family:'Cinzel','Georgia',serif;font-size:14px;font-weight:900;color:var(--ac);letter-spacing:.05em;}
 .cmeta{font-size:11px;color:var(--mu);margin-top:2px;}
 .chi{color:var(--go);font-weight:600;}
 .clo{color:var(--ac);}
@@ -236,10 +213,10 @@ select.fld{cursor:pointer;}
 .cl.m{color:var(--mu);}
 .cl.m:hover{color:var(--tx);}
 .sbox{margin-top:11px;border-top:1px solid var(--bd);padding-top:11px;display:none;}
-.stitle{font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.18em;margin-bottom:7px;}
+.stitle{font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--ac);letter-spacing:.18em;margin-bottom:7px;}
 .stxt{font-size:12px;color:var(--tx);line-height:1.75;white-space:pre-wrap;background:var(--a1);padding:10px;border-radius:6px;border-left:2px solid var(--ac);}
 .ca-row{margin-top:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.ca-lbl{font-size:9px;color:var(--mu);font-family:'Cinzel',serif;letter-spacing:.08em;}
+.ca-lbl{font-size:9px;color:var(--mu);font-family:'Cinzel','Georgia',serif;letter-spacing:.08em;}
 .ca-val{font-size:10px;color:var(--ac);background:var(--a1);padding:2px 7px;border-radius:4px;font-family:'Inter',sans-serif;letter-spacing:.02em;}
 .ca-copy{font-size:10px;border:1px solid var(--bd);color:var(--mu);padding:2px 7px;border-radius:4px;background:transparent;}
 .ca-copy:hover{border-color:var(--ac);color:var(--ac);}
@@ -263,7 +240,7 @@ select.fld{cursor:pointer;}
 
 /* Table */
 .ttable{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
-.ttable th{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.12em;color:var(--mu);padding:8px 10px;border-bottom:2px solid var(--bd);text-align:left;white-space:nowrap;background:var(--s1);}
+.ttable th{font-family:'Cinzel','Georgia',serif;font-size:8px;letter-spacing:.12em;color:var(--mu);padding:8px 10px;border-bottom:2px solid var(--bd);text-align:left;white-space:nowrap;background:var(--s1);}
 .ttable td{padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:middle;}
 .ttable tr.trow:hover td{background:var(--a1);cursor:pointer;}
 /* Signal badges */
@@ -280,7 +257,7 @@ select.fld{cursor:pointer;}
 .sn-btn-ac{color:var(--ac);}
 .sn-btn-go{color:var(--go);}
 .sn-btn-mu{color:var(--mu);}
-.tc-t{font-family:'Cinzel',serif;font-size:12px;font-weight:900;color:var(--ac);}
+.tc-t{font-family:'Cinzel','Georgia',serif;font-size:12px;font-weight:900;color:var(--ac);}
 .tc-hi{color:var(--go);font-weight:600;}
 .tc-lo{color:var(--ac);}
 .tc-l{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
@@ -295,10 +272,10 @@ select.fld{cursor:pointer;}
 .ibox.at{border-top:2px solid var(--ac);}
 .ibox.gt{border-top:2px solid var(--go);}
 .ibox.rt{border-top:2px solid var(--dn);}
-.ibox-ttl{font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.16em;margin-bottom:10px;}
+.ibox-ttl{font-family:'Cinzel','Georgia',serif;font-size:10px;color:var(--ac);letter-spacing:.16em;margin-bottom:10px;}
 .ibox-ttl.gld{color:var(--go);}
 .ibox-ttl.red{color:var(--dn);}
-.mbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;padding:7px 15px;border-radius:6px;border:1px solid var(--ac);background:var(--a1);color:var(--ac);}
+.mbtn{font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.1em;padding:7px 15px;border-radius:6px;border:1px solid var(--ac);background:var(--a1);color:var(--ac);}
 .mbtn:hover{background:var(--a2);}
 .mbtn.red{border-color:var(--dn);background:rgba(192,32,64,.07);color:var(--dn);}
 .mbtn.gld{border-color:var(--go);background:var(--g1);color:var(--go);}
@@ -311,7 +288,7 @@ textarea.mfld{resize:vertical;}
 /* Oracle */
 .olay{display:grid;grid-template-columns:1fr;gap:12px;}
 @media(min-width:640px){.olay{grid-template-columns:210px 1fr;}}
-.scrbtn{width:100%;text-align:left;padding:8px 10px;border-radius:6px;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel',serif;font-size:9px;line-height:1.4;margin-bottom:5px;letter-spacing:.04em;background:transparent;}
+.scrbtn{width:100%;text-align:left;padding:8px 10px;border-radius:6px;border:1px solid var(--bd);color:var(--mu);font-family:'Cinzel','Georgia',serif;font-size:9px;line-height:1.4;margin-bottom:5px;letter-spacing:.04em;background:transparent;}
 .scrbtn:hover,.scrbtn.on{background:var(--a1);border-color:var(--a2);color:var(--ac);}
 .obox{background:var(--s1);border:1px solid var(--bd);border-top:2px solid var(--ac);border-radius:8px;padding:16px;min-height:280px;box-shadow:var(--sh);}
 .oemp{display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:10px;opacity:.3;}
@@ -327,25 +304,25 @@ textarea.mfld{resize:vertical;}
 /* Loading */
 .loading{text-align:center;padding:50px 0;}
 .lic{font-size:40px;display:block;animation:bob 1.5s ease-in-out infinite;}
-.ltxt{font-family:'Cinzel',serif;font-size:11px;color:var(--ac);letter-spacing:.2em;margin-top:11px;animation:shine 1.5s infinite;}
+.ltxt{font-family:'Cinzel','Georgia',serif;font-size:11px;color:var(--ac);letter-spacing:.2em;margin-top:11px;animation:shine 1.5s infinite;}
 .lsub{font-size:12px;color:var(--mu);margin-top:5px;}
 .empty{text-align:center;padding:50px 20px;color:var(--mu);}
 .eico{font-size:38px;display:block;margin-bottom:12px;opacity:.4;}
-.etxt{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;}
+.etxt{font-family:'Cinzel','Georgia',serif;font-size:11px;letter-spacing:.16em;}
 .esub{font-size:12px;margin-top:5px;}
 .brow{display:flex;align-items:center;gap:9px;background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:9px 11px;margin-bottom:6px;}
 .gcard{background:var(--s1);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:6px;padding:14px 16px;margin-bottom:9px;box-shadow:var(--sh);}
 .gemp{text-align:center;padding:60px 0;opacity:.3;}
 </style>
 </head>
-<body>
+<body style="background:#1c1e2e;color:#c8d0f0;">
 
 <!-- ══ TOPBAR ══ -->
 <div id="topbar">
   <div class="tl">
-    <span class="tl-ghost">👻</span>
+    <span class="tl-ghost">🎯</span>
     <div>
-      <div class="tl-brand">GHOSTCAP</div>
+      <div class="tl-brand">GHOSTSNIPERX</div>
       <div class="tl-sub">DEAD COINS · SECOND CHANCES · v3.0</div>
     </div>
   </div>
@@ -487,7 +464,7 @@ textarea.mfld{resize:vertical;}
     <select id="crisk" class="fld"><option>any</option><option>medium</option><option>high</option><option>very high</option></select>
     <label class="flbl">KEYWORD / THEME</label>
     <input id="ckw" class="fld" placeholder="e.g. squirrel, anime..."/>
-    <button class="sbtn" onclick="summon()">👻 SUMMON SPIRITS</button>
+    <button class="sbtn" onclick="summon()">🎯 SUMMON SPIRITS</button>
     <button class="rbtn" onclick="resetC()">↺ RESET</button>
   </div>
 
@@ -505,7 +482,7 @@ textarea.mfld{resize:vertical;}
       </div>
     </div>
     <div id="sload" class="loading" style="display:none;">
-      <span class="lic">👻</span>
+      <span class="lic">🎯</span>
       <div class="ltxt">CONSULTING THE SPIRITS...</div>
       <div class="lsub" id="sload-sub">Analysing via AI</div>
     </div>
@@ -525,9 +502,9 @@ textarea.mfld{resize:vertical;}
           <input id="siin" class="mfld" placeholder="Token name or ticker..." onkeydown="if(event.key==='Enter')chkSingle()" style="flex:1;"/>
           <button class="mbtn" onclick="chkSingle()">GO</button>
         </div>
-        <div id="siload" style="display:none;font-size:12px;color:var(--mu);animation:shine 1s infinite;">👻 Analysing...</div>
+        <div id="siload" style="display:none;font-size:12px;color:var(--mu);animation:shine 1s infinite;">🎯 Analysing...</div>
         <div id="sires" style="display:none;">
-          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--go);letter-spacing:.16em;margin-bottom:7px;" id="silbl"></div>
+          <div style="font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--go);letter-spacing:.16em;margin-bottom:7px;" id="silbl"></div>
           <div class="stxt" id="sitxt"></div>
           <div style="display:flex;gap:10px;margin-top:9px;flex-wrap:wrap;" id="silnks"></div>
         </div>
@@ -535,7 +512,7 @@ textarea.mfld{resize:vertical;}
       <div class="ibox gt">
         <div class="ibox-ttl gld">💀 BATCH SCAN (UP TO 8)</div>
         <textarea id="bain" class="mfld" rows="4" style="margin-bottom:9px;" placeholder="One per line or comma:&#10;BOME, SLERF&#10;POPCAT, MICHI"></textarea>
-        <button class="mbtn full" onclick="chkBatch()">👻 BATCH SCAN</button>
+        <button class="mbtn full" onclick="chkBatch()">🎯 BATCH SCAN</button>
         <div id="baload" style="display:none;font-size:12px;color:var(--mu);margin-top:8px;animation:shine 1s infinite;">Scanning...</div>
         <div id="bares" style="margin-top:9px;"></div>
       </div>
@@ -554,10 +531,10 @@ textarea.mfld{resize:vertical;}
     </div>
     <div id="duload" class="loading" style="display:none;">
       <span style="font-size:34px;display:block;">⚔️</span>
-      <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--dn);letter-spacing:.2em;margin-top:9px;animation:shine 1s infinite;">CLASHING...</div>
+      <div style="font-family:'Cinzel','Georgia',serif;font-size:11px;color:var(--dn);letter-spacing:.2em;margin-top:9px;animation:shine 1s infinite;">CLASHING...</div>
     </div>
     <div id="dures" class="ibox" style="display:none;">
-      <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--go);letter-spacing:.18em;margin-bottom:9px;">◈ VERDICT</div>
+      <div style="font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--go);letter-spacing:.18em;margin-bottom:9px;">◈ VERDICT</div>
       <div id="dutxt" class="otxt"></div>
       <div id="dulnks" style="display:flex;gap:11px;margin-top:11px;flex-wrap:wrap;"></div>
     </div>
@@ -574,27 +551,27 @@ textarea.mfld{resize:vertical;}
         <button class="scrbtn" onclick="orc(this,4)">💎 Pump.fun coins that hit 100x?</button>
         <button class="scrbtn" onclick="orc(this,5)">🪦 Legendary pump.fun disasters?</button>
         <div class="divr"><span>or</span></div>
-        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.15em;margin-bottom:6px;">CUSTOM</div>
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--ac);letter-spacing:.15em;margin-bottom:6px;">CUSTOM</div>
         <textarea id="orin" class="mfld" rows="3" placeholder="Ask anything..."></textarea>
         <button class="mbtn full" style="margin-top:7px;" onclick="orcCustom()">🔮 ASK</button>
       </div>
       <div class="obox">
-        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ac);letter-spacing:.2em;margin-bottom:9px;">👁 RESPONSE</div>
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:8px;color:var(--ac);letter-spacing:.2em;margin-bottom:9px;">👁 RESPONSE</div>
         <div id="orload" style="display:none;text-align:center;padding:40px 0;">
           <span style="font-size:38px;display:block;animation:bob 2s ease-in-out infinite;">🔮</span>
-          <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-top:9px;animation:shine 1.2s infinite;">CONSULTING...</div>
+          <div style="font-family:'Cinzel','Georgia',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-top:9px;animation:shine 1.2s infinite;">CONSULTING...</div>
         </div>
-        <div id="oremp" class="oemp"><span style="font-size:38px;">🔮</span><div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.12em;text-align:center;margin-top:8px;">SELECT A QUESTION</div></div>
+        <div id="oremp" class="oemp"><span style="font-size:38px;">🔮</span><div style="font-family:'Cinzel','Georgia',serif;font-size:9px;letter-spacing:.12em;text-align:center;margin-top:8px;">SELECT A QUESTION</div></div>
         <div id="orres" class="otxt" style="display:none;"></div>
       </div>
     </div>
   </div>
 
   <div class="pnl" id="p4">
-    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-bottom:13px;" id="gtitle">📜 YOUR GRIMOIRE</div>
+    <div style="font-family:'Cinzel','Georgia',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-bottom:13px;" id="gtitle">📜 YOUR GRIMOIRE</div>
     <div id="gemp" class="gemp">
       <span style="font-size:42px;display:block;animation:bob 3s ease infinite;">📜</span>
-      <div style="font-family:'Cinzel',serif;font-size:11px;margin-top:12px;letter-spacing:.16em;">GRIMOIRE IS EMPTY</div>
+      <div style="font-family:'Cinzel','Georgia',serif;font-size:11px;margin-top:12px;letter-spacing:.16em;">GRIMOIRE IS EMPTY</div>
       <div style="font-size:12px;color:var(--mu);margin-top:5px;">Save tokens from search results</div>
     </div>
     <div id="glist"></div>
@@ -605,7 +582,7 @@ textarea.mfld{resize:vertical;}
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="pdot ok" id="sniper-dot"></div>
-        <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--ac);letter-spacing:.15em;" id="sniper-status">READY</span>
+        <span style="font-family:'Cinzel','Georgia',serif;font-size:10px;color:var(--ac);letter-spacing:.15em;" id="sniper-status">READY</span>
       </div>
       <span style="font-size:11px;" id="pp-status" style="color:var(--mu);">PumpPortal WebSocket · pump.fun real-time feed</span>
       <button class="mbtn sm" onclick="runSniper()" style="margin-left:auto;">🔌 CONNECT</button>
@@ -615,7 +592,7 @@ textarea.mfld{resize:vertical;}
     <!-- Filters bar -->
     <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-        <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--mu);letter-spacing:.15em;">🎯 FILTER CRITERIA</span>
+        <span style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--mu);letter-spacing:.15em;">🎯 FILTER CRITERIA</span>
         <button onclick="resetFilters()" style="margin-left:auto;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;">RESET</button>
         <button onclick="updateSniperTable()" style="font-size:9px;border:1px solid var(--ac);background:none;color:var(--ac);padding:2px 8px;border-radius:3px;cursor:pointer;font-weight:700;">APPLY ▸</button>
       </div>
@@ -765,7 +742,7 @@ textarea.mfld{resize:vertical;}
     <div class="ibox gt" style="margin-top:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <div class="ibox-ttl gld" style="margin:0;">📊 DAY TRADING DASHBOARD</div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button onclick="refreshBasketPrices()" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:3px 10px;border-radius:4px;cursor:pointer;">🔄 Refresh All</button>
           <button onclick="resetDayTrade()" style="font-size:10px;border:1px solid var(--dn);background:none;color:var(--dn);padding:3px 10px;border-radius:4px;cursor:pointer;">🗑 Reset Day</button>
         </div>
@@ -776,27 +753,53 @@ textarea.mfld{resize:vertical;}
 
       <!-- Fee calculator strip -->
       <div style="background:rgba(245,184,0,.07);border:1px solid rgba(245,184,0,.2);border-radius:6px;padding:10px 12px;margin-bottom:14px;">
-        <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--go);letter-spacing:.12em;margin-bottom:8px;">⚙ PUMP.FUN FEE CALCULATOR</div>
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--go);letter-spacing:.12em;margin-bottom:8px;">⚙ PUMP.FUN FEE CALCULATOR</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <div style="font-size:10px;color:var(--mu);">Buying <strong style="color:var(--tx);" id="fee-tokens">0</strong> tokens × <strong style="color:var(--go);">$10</strong> each</div>
           <div style="font-size:10px;color:var(--mu);">Swap fee (1%): <strong style="color:var(--go);" id="fee-buy">$0.00</strong></div>
           <div style="font-size:10px;color:var(--mu);">Sell fee (1%): <strong style="color:var(--go);" id="fee-sell">$0.00</strong></div>
           <div style="font-size:10px;color:var(--mu);">Total fees: <strong style="color:var(--dn);" id="fee-total">$0.00</strong></div>
-          <div style="font-size:10px;color:var(--mu);">Break-even needs: <strong style="color:var(--wn);" id="fee-breakeven">+2%</strong> gain</div>
+          <div style="font-size:10px;color:var(--mu);">Break-even: <strong style="color:var(--wn);" id="fee-breakeven">+2%</strong></div>
         </div>
-        <div style="font-size:9px;color:var(--mu);margin-top:6px;">pump.fun charges 1% on every buy AND sell. Solana network fee ~$0.0002 per tx (negligible). Your <strong style="color:var(--tx);">actual invested capital</strong> = $10 + 1% fee = <strong style="color:var(--go);" id="fee-actual">$10.10</strong> per token.</div>
+        <div style="font-size:9px;color:var(--mu);margin-top:6px;">pump.fun charges 1% on every buy AND sell. Actual cost = $10 + 1% = <strong style="color:var(--go);" id="fee-actual">$10.10</strong> per token.</div>
       </div>
 
-      <!-- Add token row -->
-      <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;">
-        <input id="bsk-ca" class="mfld" placeholder="Contract Address (CA)..." style="flex:2;min-width:150px;"/>
-        <input id="bsk-entry" class="mfld" placeholder="Entry price (auto-fetched if blank)" style="flex:2;min-width:130px;"/>
-        <select id="bsk-status" class="fld" style="width:110px;">
-          <option value="open">🟢 Holding</option>
-          <option value="sold">🔴 Sold (2x)</option>
-          <option value="stopped">🟡 Stopped</option>
-        </select>
-        <button class="mbtn gld" onclick="addBasket()">+ ADD $10</button>
+      <!-- ── SINGLE ADD ── -->
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--mu);letter-spacing:.12em;margin-bottom:8px;">➕ ADD SINGLE TOKEN</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <input id="bsk-ca" class="mfld" placeholder="Contract Address (CA)..." style="flex:2;min-width:150px;"/>
+          <input id="bsk-entry" class="mfld" placeholder="Entry price (auto-fetched if blank)" style="flex:2;min-width:130px;"/>
+          <select id="bsk-status" class="fld" style="width:110px;">
+            <option value="open">🟢 Holding</option>
+            <option value="sold">🔴 Sold</option>
+            <option value="stopped">🟡 Stopped</option>
+          </select>
+          <button class="mbtn gld" onclick="addBasket()" style="white-space:nowrap;">+ ADD $10</button>
+        </div>
+      </div>
+
+      <!-- ── MASS ADD ── -->
+      <div style="background:var(--s2);border:1px solid var(--ac);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--ac);letter-spacing:.12em;margin-bottom:6px;">🚀 MASS ADD — MULTIPLE TOKENS AT ONCE</div>
+        <div style="font-size:10px;color:var(--mu);margin-bottom:8px;">Paste multiple CAs — one per line OR comma-separated. Each gets $10 entry at live price.</div>
+        <textarea id="bsk-mass" class="mfld" rows="3" placeholder="Paste CAs here, one per line:&#10;7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU&#10;9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump&#10;..." style="width:100%;font-size:11px;font-family:monospace;resize:vertical;margin-bottom:8px;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button onclick="massAddBasket()" style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:700;letter-spacing:.08em;background:rgba(79,70,229,.15);border:1px solid var(--ac);color:var(--ac);padding:7px 18px;border-radius:5px;cursor:pointer;">🚀 ADD ALL $10 EACH</button>
+          <button onclick="massAddFromSniper()" style="font-size:11px;background:rgba(0,212,184,.1);border:1px solid var(--ac);color:var(--ac);padding:7px 14px;border-radius:5px;cursor:pointer;">📋 Import from Sniper</button>
+          <span id="mass-status" style="font-size:10px;color:var(--go);opacity:0;transition:opacity .4s;"></span>
+        </div>
+      </div>
+
+      <!-- ── MASS CLOSE ── -->
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+        <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--mu);letter-spacing:.12em;margin-bottom:8px;">⚡ MASS CLOSE OPEN POSITIONS</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button onclick="massCloseAll('sold')" style="font-size:11px;font-weight:700;background:rgba(74,222,128,.12);border:1px solid #4ade80;color:#4ade80;padding:7px 16px;border-radius:5px;cursor:pointer;">✅ SELL ALL — Use Live Price</button>
+          <button onclick="massCloseAll('stopped')" style="font-size:11px;font-weight:700;background:rgba(245,184,0,.12);border:1px solid var(--go);color:var(--go);padding:7px 16px;border-radius:5px;cursor:pointer;">🛑 STOP LOSS ALL</button>
+          <button onclick="massCloseAll('sold', true)" style="font-size:11px;background:rgba(79,70,229,.1);border:1px solid var(--ac);color:var(--ac);padding:7px 14px;border-radius:5px;cursor:pointer;">💰 SELL ALL — Enter Price</button>
+          <span style="font-size:10px;color:var(--mu);" id="open-count"></span>
+        </div>
       </div>
 
       <!-- Token rows -->
@@ -860,13 +863,13 @@ function setTheme(t){
     const el=document.getElementById('dd-'+n);
     if(el)el.classList.toggle('on',n===t);
   });
-  try{localStorage.setItem('gc-t',t);}catch(e){}
+  try{localStorage.setItem('gsx-t',t);}catch(e){}
   // close dropdown
   document.getElementById('dd-panel').classList.remove('open');
   document.getElementById('dd-arr').textContent='▾';
 }
 (function(){
-  try{const s=localStorage.getItem('gc-t')||'light';setTheme(s);}catch(e){setTheme('light');}
+  try{var _t=localStorage.getItem('gsx-t')||'dark';setTheme(_t);}catch(e){setTheme('dark');}
 })();
 
 /* ══ TABS ══ */
@@ -1299,7 +1302,7 @@ async function togCard(i){
   card.classList.add('open');box.style.display='block';
   const el=document.getElementById('sc'+i);
   if(scache[tick]){el.innerHTML=`<div class="stxt">${scache[tick]}</div>`;return;}
-  el.innerHTML='<div style="font-size:12px;color:var(--mu);animation:shine 1s infinite;">👻 Analysing...</div>';
+  el.innerHTML='<div style="font-size:12px;color:var(--mu);animation:shine 1s infinite;">🎯 Analysing...</div>';
   const text=await callAI(`Analyse ${name} (${tick}) Solana pump.fun meme coin. Knowledge up to 2026:
 • What drove its peak and when?
 • Why did it crash?
@@ -1324,7 +1327,7 @@ function renderTable(data){
     const caCell=ca?`<span style="font-size:10px;color:var(--ac);">${ca.slice(0,8)}...${ca.slice(-5)}</span> <button onclick="copyCAT(${i})" style="font-size:10px;border:1px solid var(--bd);color:var(--mu);padding:1px 5px;border-radius:3px;background:none;cursor:pointer;" id="cca${i}">⧉</button>`:'<span style="color:var(--mu);">—</span>';
     const sc=t.score||0,sc_c=sc>=70?'var(--ac)':sc>=50?'var(--go)':'var(--wn)';
     return `<tr class="trow" id="tr${i}" onclick="togRow(${i})">
-      <td><span style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:${sc_c};">${sc}</span></td>
+      <td><span style="font-family:'Cinzel','Georgia',serif;font-size:12px;font-weight:700;color:${sc_c};">${sc}</span></td>
       <td><span class="tc-t">${safeStr(t.ticker)}</span></td>
       <td style="white-space:nowrap;">${safeStr(t.name)}</td>
       <td>${tag(safeStr(t.category)||'','tg')}</td>
@@ -1364,7 +1367,7 @@ async function togRow(i){
   row.style.display='table-row';
   document.getElementById('tr'+i).style.background='var(--a1)';
   if(scache[tick]){el.textContent=scache[tick];return;}
-  el.textContent='👻 Analysing...';
+  el.textContent='🎯 Analysing...';
   const text=await callAI(`Analyse ${name} (${tick}) Solana meme coin up to 2026: peak, crash, community, green/red flags, verdict. 100 words max, bullets.`);
   scache[tick]=text;el.textContent=text;
 }
@@ -1404,7 +1407,7 @@ Return JSON array ONLY: [{"ticker":"str","name":"str","currentMC":"~$XK","xStatu
       ${soul(t.score)}
       <div style="flex:1;min-width:0;">
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:2px;">
-          <span style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--ac);">${safeStr(t.ticker)}</span>
+          <span style="font-family:'Cinzel','Georgia',serif;font-size:12px;font-weight:700;color:var(--ac);">${safeStr(t.ticker)}</span>
           ${xtag(t.xStatus)}${t.buySignal?tag('🟢 SIGNAL','tok'):''}
         </div>
         <div style="font-size:12px;color:var(--tx);">${safeStr(t.verdict)}</div>
@@ -1986,6 +1989,163 @@ function resetDayTrade(){
   renderBasket(); renderDaySummary();
 }
 
+// ── Show mass-action status message ──────────────────────────
+function showMassStatus(msg){
+  var el = document.getElementById('mass-status');
+  if(!el) return;
+  el.textContent = msg; el.style.opacity = '1';
+  setTimeout(function(){ el.style.opacity = '0'; }, 3000);
+}
+
+// ── Update open count badge ───────────────────────────────────
+function updateOpenCount(){
+  var el = document.getElementById('open-count');
+  if(!el) return;
+  var open = basket.filter(function(b){ return b.status === 'open'; }).length;
+  el.textContent = open > 0 ? open + ' open position' + (open > 1 ? 's' : '') : 'No open positions';
+}
+
+// ── MASS ADD — paste multiple CAs ────────────────────────────
+function massAddBasket(){
+  var raw = (document.getElementById('bsk-mass') || {value:''}).value.trim();
+  if(!raw){ showMassStatus('⚠ Paste some CAs first'); return; }
+
+  // Split by newline OR comma OR space
+  var caList = raw.split(/[\n,\s]+/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){
+      // Basic Base58 CA validation (32-44 chars)
+      return s.length >= 32 && s.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(s);
+    });
+
+  // Dedupe
+  var seen = {};
+  caList = caList.filter(function(ca){
+    if(seen[ca]) return false;
+    seen[ca] = true;
+    return true;
+  });
+
+  if(!caList.length){ showMassStatus('⚠ No valid CAs found — check format'); return; }
+
+  // Skip already in basket
+  var newCAs = caList.filter(function(ca){
+    return !basket.find(function(b){ return b.ca === ca; });
+  });
+
+  if(!newCAs.length){ showMassStatus('⚠ All CAs already in basket'); return; }
+
+  showMassStatus('⏳ Adding ' + newCAs.length + ' tokens...');
+
+  var added = 0;
+  newCAs.forEach(function(ca, i){
+    // Stagger fetches 300ms apart to avoid rate limiting
+    setTimeout(function(){
+      var tick = ca.slice(0,6) + '..' + ca.slice(-4);
+      addBasketCA(ca, tick, 0, 'open');
+      added++;
+      if(added === newCAs.length){
+        showMassStatus('✅ Added ' + added + ' tokens × $10 each = $' + (added*10));
+        document.getElementById('bsk-mass').value = '';
+      }
+    }, i * 300);
+  });
+}
+
+// ── MASS ADD from Sniper table ────────────────────────────────
+function massAddFromSniper(){
+  // Get all tokens currently showing in sniper table
+  var keys = Object.keys(liveTokens || {});
+  if(!keys.length){ showMassStatus('⚠ No tokens in Sniper — Connect Sniper first'); return; }
+
+  // Only add tokens that match current filters (visible ones)
+  var nowMs = Date.now();
+  var maxMC = parseFloat((document.getElementById('sn-mc')||{value:'20000'}).value) || 20000;
+  var maxAge = parseFloat((document.getElementById('sn-age')||{value:'2'}).value) || 2;
+
+  var eligible = keys
+    .map(function(ca){ return liveTokens[ca]; })
+    .filter(function(t){
+      if(!t || t.devSelling) return false;
+      var ageHrs = (nowMs - t.ts) / 3600000;
+      return ageHrs <= maxAge && t.mcUSD <= maxMC;
+    })
+    .slice(0, 10); // max 10 at once
+
+  if(!eligible.length){ showMassStatus('⚠ No matching tokens in Sniper table'); return; }
+
+  var newOnes = eligible.filter(function(t){
+    return !basket.find(function(b){ return b.ca === t.ca; });
+  });
+
+  if(!newOnes.length){ showMassStatus('⚠ All sniper tokens already in basket'); return; }
+
+  showMassStatus('⏳ Importing ' + newOnes.length + ' from Sniper...');
+  newOnes.forEach(function(t, i){
+    setTimeout(function(){
+      addBasketCA(t.ca, t.tick, 0, 'open');
+      if(i === newOnes.length - 1){
+        showMassStatus('✅ Imported ' + newOnes.length + ' tokens from Sniper');
+      }
+    }, i * 300);
+  });
+}
+
+// ── MASS CLOSE — sell/stop all open positions ─────────────────
+function massCloseAll(closeStatus, askPrice){
+  var openPositions = basket.filter(function(b){ return b.status === 'open' && !b.loading; });
+  if(!openPositions.length){ showMassStatus('⚠ No open positions to close'); return; }
+
+  var statusLabel = closeStatus === 'sold' ? 'SELL' : 'STOP LOSS';
+
+  if(!confirm(statusLabel + ' ALL ' + openPositions.length + ' open positions? This cannot be undone.')) return;
+
+  // Ask for a single price to use for all (optional)
+  var sharedPrice = 0;
+  if(askPrice){
+    var inp = window.prompt(
+      'Enter exit price to use for ALL ' + openPositions.length + ' positions\n(leave blank to fetch live price for each):',
+      ''
+    );
+    if(inp === null) return; // cancelled
+    sharedPrice = parseFloat(inp) || 0;
+  }
+
+  showMassStatus('⏳ Closing ' + openPositions.length + ' positions...');
+
+  var done = 0;
+  openPositions.forEach(function(b, i){
+    setTimeout(function(){
+      if(sharedPrice > 0){
+        // Use single shared price
+        b.exitPrice = sharedPrice;
+        b.current   = sharedPrice;
+        b.status    = closeStatus;
+        b.exitAt    = Date.now();
+        done++;
+        if(done === openPositions.length){
+          renderBasket();
+          renderDaySummary();
+          showMassStatus('✅ Closed ' + done + ' positions at $' + sharedPrice.toFixed(8));
+        }
+      } else {
+        // Fetch live price for each
+        fetchTokenPrice(b.ca, function(price){
+          if(price > 0){ b.exitPrice = price; b.current = price; }
+          b.status = closeStatus;
+          b.exitAt = Date.now();
+          done++;
+          if(done === openPositions.length){
+            renderBasket();
+            renderDaySummary();
+            showMassStatus('✅ Closed ' + done + ' positions at live prices');
+          }
+        });
+      }
+    }, i * 200); // stagger 200ms apart
+  });
+}
+
 function refreshBasketPrices(){
   basket.filter(function(b){ return b.status==='open'; }).forEach(function(b){
     fetchTokenPrice(b.ca, function(price){
@@ -2165,6 +2325,7 @@ function renderBasket(){
   var el    = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
   renderDaySummary();
+  updateOpenCount();
 
   if(!basket.length){
     el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No trades yet — click +$10 on any live token.</div>';
@@ -2254,7 +2415,7 @@ function addGrim(t){if(!t||grim.find(x=>x.ticker===t.ticker))return;grim.push(t)
 function remGrim(tick){grim=grim.filter(x=>x.ticker!==tick);renderGrim();}
 async function refGrim(tick){
   const btn=document.getElementById('rb-'+tick),el=document.getElementById('gu-'+tick);
-  if(btn)btn.disabled=true;if(el)el.textContent='👻 Refreshing...';
+  if(btn)btn.disabled=true;if(el)el.textContent='🎯 Refreshing...';
   const text=await callAI(`Brief 5-bullet status of ${tick} Solana meme coin (up to 2026): MC estimate, community, revival odds. 80 words max.`);
   if(el){el.textContent=text;el.style.display='block';}if(btn)btn.disabled=false;
 }
@@ -2271,7 +2432,7 @@ function renderGrim(){
           ${soul(t.score)}
           <div>
             <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
-              <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:900;color:var(--ac);">${safeStr(t.ticker)}</span>
+              <span style="font-family:'Cinzel','Georgia',serif;font-size:13px;font-weight:900;color:var(--ac);">${safeStr(t.ticker)}</span>
               ${t.category?tag(safeStr(t.category),'tg'):''}
             </div>
             <div style="font-size:11px;color:var(--mu);margin-top:2px;">
@@ -2291,77 +2452,59 @@ function renderGrim(){
 }
 </script>
 
-<!-- ══ PWA SPLASH SCREEN ══ -->
-<div id="pwa-splash">
-  <div style="font-size:80px;margin-bottom:16px;">👻</div>
-  <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:900;color:#818cf8;letter-spacing:.2em;">GHOSTCAP</div>
-  <div style="font-size:11px;color:#6870a0;margin-top:8px;letter-spacing:.15em;">SOLANA TOKEN SNIPER</div>
-  <div style="margin-top:32px;width:48px;height:3px;background:#34375a;border-radius:2px;overflow:hidden;">
-    <div style="height:3px;background:#818cf8;border-radius:2px;animation:splash-load 1.2s ease-in-out forwards;"></div>
-  </div>
 </div>
-<style>
-@keyframes splash-load {
-  0%   { width:0%; }
-  60%  { width:70%; }
-  100% { width:100%; }
-}
-</style>
+
 
 <!-- ══ iOS INSTALL BANNER (shows only in browser, not when installed) ══ -->
 <div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#242638;border-top:1px solid #34375a;padding:12px 16px;z-index:9999;align-items:center;gap:12px;">
-  <div style="font-size:28px;">👻</div>
+  <div style="font-size:28px;">🎯</div>
   <div style="flex:1;">
-    <div style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#818cf8;">Install GhostCap</div>
+    <div style="font-family:'Cinzel','Georgia',serif;font-size:12px;font-weight:700;color:#818cf8;">Install GhostSniperX</div>
     <div style="font-size:11px;color:#6870a0;margin-top:2px;">Tap <strong style="color:#c8d0f0;">Share</strong> then <strong style="color:#c8d0f0;">"Add to Home Screen"</strong></div>
   </div>
   <button onclick="document.getElementById('ios-install-banner').style.display='none';" style="font-size:18px;border:none;background:none;color:#6870a0;cursor:pointer;padding:4px;">✕</button>
 </div>
 
 <script>
-// ── Hide splash screen once page is loaded ──
+// ── Show splash screen ONLY when running as installed PWA (standalone) ──
 window.addEventListener('load', function(){
-  setTimeout(function(){
-    var splash = document.getElementById('pwa-splash');
-    if(splash){ splash.classList.add('hidden'); setTimeout(function(){ splash.remove(); }, 600); }
-  }, 800);
+  var isStandalone = window.navigator.standalone === true;
+  var splash = document.getElementById('pwa-splash');
+  if(isStandalone && splash){
+    splash.style.display = 'flex';
+    setTimeout(function(){
+      splash.classList.add('hidden');
+      setTimeout(function(){ splash.remove(); }, 600);
+    }, 1200);
+  } else if(splash){
+    splash.remove(); // not standalone — remove immediately
+  }
 });
 
-// ── Show iOS install banner if on iPhone Safari (not already installed) ──
+// iOS install banner - loads after page ready
 (function(){
-  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isInstalled = window.navigator.standalone === true;
-  var dismissed = false;
-  try { dismissed = localStorage.getItem('gc-install-dismissed') === '1'; } catch(e){}
-  if(isIOS && !isInstalled && !dismissed){
-    setTimeout(function(){
-      var banner = document.getElementById('ios-install-banner');
-      if(banner) banner.style.display = 'flex';
-    }, 3000);
-  }
-  var closeBtn = document.getElementById('ios-install-banner');
-  if(closeBtn){
-    closeBtn.addEventListener('click', function(){
-      try { localStorage.setItem('gc-install-dismissed','1'); } catch(e){}
-    });
-  }
+  try {
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var isInstalled = window.navigator.standalone === true;
+    if(isIOS && !isInstalled){
+      setTimeout(function(){
+        var banner = document.getElementById('ios-install-banner');
+        if(banner) banner.style.display = 'flex';
+      }, 4000);
+    }
+    // Puter loads via CDN when deployed to Vercel
+  } catch(e){}
 })();
 
-// ── Register Service Worker for offline cache ──
-if('serviceWorker' in navigator){
-  var swCode = [
-    "const CACHE='ghostcap-v1';",
-    "const ASSETS=['/'];",
-    "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));",
-    "self.addEventListener('fetch',e=>{",
-    "  if(e.request.mode==='navigate'){",
-    "    e.respondWith(fetch(e.request).catch(()=>caches.match('/')));",
-    "  }",
-    "});"
-  ].join('\n');
-  var blob = new Blob([swCode], {type:'application/javascript'});
-  var swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(function(){});
+// Service worker: registered on actual device only
+</script>
+<script>
+// Load Puter.js only when on HTTPS (Vercel deployment)
+if(location.protocol === 'https:'){
+  var _ps = document.createElement('script');
+  _ps.src = 'https://js.puter.com/v2/';
+  _ps.async = true;
+  document.head.appendChild(_ps);
 }
 </script>
 </body>
