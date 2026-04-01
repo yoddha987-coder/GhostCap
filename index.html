@@ -117,7 +117,15 @@ select option{background:var(--s1);color:var(--tx);}
 #sidebar{
   width:100%;background:var(--s1);border-bottom:1px solid var(--bd);
   padding:14px 14px 16px;
-  display:block; /* always visible on mobile — scrolls with page */
+  display:block;
+  transition:all .3s ease;
+  overflow:hidden;
+}
+#sidebar.collapsed{
+  padding:0;
+  height:0;
+  border-bottom:none;
+  display:none;
 }
 #main{flex:1;padding:14px;background:var(--bg);min-height:400px;}
 
@@ -128,6 +136,19 @@ select option{background:var(--s1);color:var(--tx);}
     height:calc(100vh - 52px);overflow-y:auto;
     border-bottom:none;border-right:1px solid var(--bd);
     position:sticky;top:52px;
+    transition:all .3s ease;
+  }
+  #sidebar.collapsed{
+    width:0;
+    min-width:0;
+    padding:0;
+    border:none;
+    height:calc(100vh - 52px);
+    overflow:hidden;
+    display:block;
+  }
+  #layout.sidebar-hidden{
+    grid-template-columns:0 1fr;
   }
   #main{padding:18px;min-height:calc(100vh - 52px);}
 }
@@ -394,43 +415,6 @@ textarea.mfld{resize:vertical;}
       </div>
       <div class="pc-sub"><span>GPT-4o · Free · Just login with Puter</span><a class="pc-link" href="https://puter.com" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;">→ puter.com</a></div>
     </div>
-
-    <!-- POLLINATIONS — NO KEY, NO LOGIN — DEFAULT -->
-    <div id="pc-pollinations" class="prov-card" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.08);">
-      <div class="pc-row">
-        <span class="pc-ico">🌸</span>
-        <span class="pc-name" style="color:#16a34a;">POLLINATIONS</span>
-        <span class="pc-badge" style="background:rgba(22,163,74,.15);color:#16a34a;border:1px solid rgba(22,163,74,.3);">100% FREE</span>
-        <span class="pc-check">✓</span>
-      </div>
-      <div class="pc-sub"><span>GPT-4o · No key · No login · Instant</span><a class="pc-link" href="https://pollinations.ai" target="_blank" onclick="event.stopPropagation()" style="color:#16a34a;">→ pollinations.ai</a></div>
-    </div>
-    <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
-      <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
-    </div>
-    <div id="pc-gemini" class="prov-card" onclick="pickProv('gemini')">
-      <div class="pc-row"><span class="pc-ico">🌟</span><span class="pc-name">GEMINI</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>Gemini 2.0 Flash · Google</span><a class="pc-link" href="https://aistudio.google.com/app/apikey" target="_blank" onclick="event.stopPropagation()">→ aistudio.google.com</a></div>
-    </div>
-    <div id="pc-openai" class="prov-card" onclick="pickProv('openai')">
-      <div class="pc-row"><span class="pc-ico">🤖</span><span class="pc-name">OPENAI</span><span class="pc-badge pb-free">$5 FREE</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>GPT-4o Mini</span><a class="pc-link" href="https://platform.openai.com/api-keys" target="_blank" onclick="event.stopPropagation()">→ platform.openai.com</a></div>
-    </div>
-    <div id="pc-deepseek" class="prov-card" onclick="pickProv('deepseek')">
-      <div class="pc-row"><span class="pc-ico">🔵</span><span class="pc-name">DEEPSEEK</span><span class="pc-badge pb-free">~FREE</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>DeepSeek Chat</span><a class="pc-link" href="https://platform.deepseek.com/api_keys" target="_blank" onclick="event.stopPropagation()">→ platform.deepseek.com</a></div>
-    </div>
-    <div id="pc-qwen" class="prov-card" onclick="pickProv('qwen')">
-      <div class="pc-row"><span class="pc-ico">🟣</span><span class="pc-name">QWEN</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>Qwen-Plus · Alibaba</span><a class="pc-link" href="https://dashscope.console.aliyun.com/apiKey" target="_blank" onclick="event.stopPropagation()">→ dashscope</a></div>
-    </div>
-    <div id="pc-anthropic" class="prov-card" onclick="pickProv('anthropic')">
-      <div class="pc-row"><span class="pc-ico">🧠</span><span class="pc-name">ANTHROPIC</span><span class="pc-badge pb-paid">PAID $5</span><span class="pc-check">✓</span></div>
-      <div class="pc-sub"><span>Claude Haiku · Best quality</span><a class="pc-link" href="https://console.anthropic.com" target="_blank" onclick="event.stopPropagation()">→ console.anthropic.com</a></div>
-    </div>
-  </div>
-
   <div class="sb-sec">
     <div class="sb-ttl" id="key-ttl">🔑 GROQ API KEY</div>
     <div class="key-box" id="key-box-inner">
@@ -445,28 +429,50 @@ textarea.mfld{resize:vertical;}
   </div>
 
   <div class="sb-sec" id="sb-crit">
-    <div class="sb-ttl">✦ SEARCH CRITERIA</div>
-    <label class="flbl">YEAR FROM</label>
-    <select id="cyf" class="fld"><option>2023</option><option>2024</option><option>2025</option></select>
-    <label class="flbl">YEAR TO</label>
-    <select id="cyt" class="fld"><option>2023</option><option>2024</option><option selected>2025</option><option>2026</option></select>
-    <label class="flbl"># OF TOKENS</label>
-    <select id="cn" class="fld"><option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option></select>
-    <label class="flbl">MIN CURRENT MC ($)</label>
-    <input id="cmn" class="fld" value="2000"/>
-    <label class="flbl">MAX CURRENT MC ($)</label>
-    <input id="cmx" class="fld" value="15000"/>
-    <label class="flbl">MIN PEAK MC ($K)</label>
-    <input id="cpk" class="fld" value="500"/>
-    <label class="flbl">CATEGORY</label>
-    <select id="ccat" class="fld"><option>any</option><option>meme</option><option>dog</option><option>cat</option><option>frog</option><option>celebrity</option><option>ai</option><option>gaming</option></select>
-    <label class="flbl">RISK LEVEL</label>
-    <select id="crisk" class="fld"><option>any</option><option>medium</option><option>high</option><option>very high</option></select>
-    <label class="flbl">KEYWORD / THEME</label>
-    <input id="ckw" class="fld" placeholder="e.g. squirrel, anime..."/>
-    <button class="sbtn" onclick="summon()">🎯 SUMMON SPIRITS</button>
+    <div class="sb-ttl">🔍 REAL TOKEN SCREENER</div>
+    <div style="font-size:9px;color:var(--go);margin-bottom:8px;line-height:1.5;">Live data from DexScreener · Real CAs · No AI</div>
+
+    <label class="flbl">KEYWORD / TOKEN NAME</label>
+    <input id="ckw" class="fld" placeholder="e.g. pepe, dog, cat, ai, pump..."/>
+
+    <label class="flbl">MIN MARKET CAP ($)</label>
+    <input id="cmn" class="fld" value="1000"/>
+
+    <label class="flbl">MAX MARKET CAP ($)</label>
+    <input id="cmx" class="fld" value="100000"/>
+
+    <label class="flbl">MIN LIQUIDITY ($)</label>
+    <input id="cmliq" class="fld" value="500"/>
+
+    <label class="flbl">MAX AGE (hours)</label>
+    <input id="cmage" class="fld" value="48"/>
+
+    <label class="flbl">MIN 5MIN BUYS</label>
+    <input id="cmbuys" class="fld" value="0"/>
+
+    <label class="flbl">SORT BY</label>
+    <select id="csort" class="fld">
+      <option value="m5">5m Volume</option>
+      <option value="h1">1h Volume</option>
+      <option value="h6">6h Volume</option>
+      <option value="h24" selected>24h Volume</option>
+      <option value="mc">Market Cap</option>
+      <option value="age">Newest First</option>
+    </select>
+
+    <label class="flbl"># OF RESULTS</label>
+    <select id="cn" class="fld">
+      <option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option>
+    </select>
+
+    <button class="sbtn" onclick="summon()">🔍 SCAN DEXSCREENER</button>
     <button class="rbtn" onclick="resetC()">↺ RESET</button>
+
+    <div style="margin-top:10px;padding:8px;background:rgba(0,212,116,.06);border:1px solid rgba(0,212,116,.2);border-radius:5px;font-size:9px;color:var(--mu);line-height:1.6;">
+      💡 <strong style="color:var(--tx);">Real tokens only.</strong> Fetches actual pump.fun tokens from DexScreener right now. CAs are real and verified. No AI hallucination.
+    </div>
   </div>
+
 
 </div><!-- /sidebar -->
 
@@ -482,21 +488,25 @@ textarea.mfld{resize:vertical;}
       </div>
     </div>
     <!-- Provider tip -->
-    <div id="search-tip" style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--mu);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span>💡</span>
-      <span><strong style="color:var(--tx);">Best for Search tab:</strong> GROQ (free, fast, reliable JSON) · Get key at <a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a> in 2 mins · Pollinations works for Check/Oracle/Duel tabs</span>
-      <button onclick="this.parentElement.style.display='none'" style="margin-left:auto;border:none;background:none;color:var(--mu);cursor:pointer;font-size:14px;">✕</button>
+    <div id="search-tip" style="background:rgba(0,212,116,.06);border:1px solid rgba(0,212,116,.2);border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:18px;">🔍</span>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:2px;">Real Token Discovery — Powered by DexScreener</div>
+        <div style="font-size:10px;color:var(--mu);">Fetches ACTUAL pump.fun tokens right now · Real CAs · No AI hallucination · No key needed · Free forever</div>
+        <div style="font-size:10px;color:var(--mu);">Type a keyword (dog, cat, pepe...) or leave blank to see all pump.fun tokens · Filter by MC, liquidity, age</div>
+      </div>
+      <button onclick="this.parentElement.style.display='none'" style="border:none;background:none;color:var(--mu);cursor:pointer;font-size:16px;padding:2px 6px;">✕</button>
     </div>
     <div id="sload" class="loading" style="display:none;">
-      <span class="lic">🎯</span>
-      <div class="ltxt">CONSULTING THE SPIRITS...</div>
-      <div class="lsub" id="sload-sub">Analysing via AI</div>
+      <span class="lic">🔍</span>
+      <div class="ltxt">SCANNING DEXSCREENER...</div>
+      <div class="lsub" id="sload-sub">Fetching real pump.fun tokens</div>
     </div>
     <div id="sres"></div>
     <div id="semp" class="empty">
       <span class="eico">🔍</span>
-      <div class="etxt">READY TO SUMMON</div>
-      <div class="esub">Set your filters and click SUMMON SPIRITS · For best results use GROQ (free key)</div>
+      <div class="etxt">READY TO SCAN</div>
+      <div class="esub">Set your filters and click SCAN DEXSCREENER · Finds REAL pump.fun tokens right now</div>
     </div>
   </div>
 
@@ -830,7 +840,6 @@ const TMAP={};
 
 const PROVS={
   puter:        {name:'PUTER',        fmt:'puter',        url:'',                                                                                               model:'gpt-4o',                    prefix:'',       hint:'puter.com',                    hurl:'https://puter.com'},
-  pollinations: {name:'POLLINATIONS', fmt:'pollinations', url:'https://text.pollinations.ai/',                                                                    model:'mistral',                   prefix:'',       hint:'pollinations.ai',              hurl:'https://pollinations.ai'},
   groq:         {name:'GROQ',         fmt:'openai',       url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
   gemini:       {name:'GEMINI',       fmt:'gemini',       url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
   openai:       {name:'OPENAI',       fmt:'openai',       url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
@@ -876,32 +885,48 @@ function setTheme(t){
 }
 (function(){
   try{var _t=localStorage.getItem('gsx-t')||'dark';setTheme(_t);}catch(e){setTheme('dark');}
-  // Restore saved key if any
+
+  // Restore saved key — user never has to re-enter
   try {
     var savedKey  = localStorage.getItem('gsx-key')||'';
     var savedProv = localStorage.getItem('gsx-prov')||'groq';
     if(savedKey && PROVS[savedProv]){
       PROV = savedProv;
       KEY  = savedKey;
-      // Mark card as selected
       document.querySelectorAll('.prov-card').forEach(function(c){c.classList.remove('on');});
       var card = document.getElementById('pc-'+savedProv);
       if(card) card.classList.add('on');
-      // Show connected state
       setTimeout(function(){
         try { doConnect(savedKey); } catch(e){}
       }, 50);
     } else {
+      // No saved key — highlight Groq and show clear setup guide
       setTimeout(function(){
         try {
-          showStatus('⚡ Get a FREE GROQ key at console.groq.com — takes 2 minutes. Or use 🌸 POLLINATIONS (no key needed).', 'info');
+          document.querySelectorAll('.prov-card').forEach(function(c){c.classList.remove('on');});
+          var groqCard = document.getElementById('pc-groq');
+          if(groqCard) groqCard.classList.add('on');
+          PROV = 'groq';
+          // Update sidebar key box for Groq
+          var p = PROVS['groq'];
+          var inp = document.getElementById('kinp');
+          var kbtn = document.getElementById('kbtn');
+          if(inp){ inp.value=''; inp.placeholder='gsk_...'; inp.disabled=false; }
+          if(kbtn){ kbtn.textContent='✓ CONNECT KEY'; kbtn.style.background=''; kbtn.style.borderColor=''; kbtn.style.color=''; }
+          var kttl = document.getElementById('key-ttl');
+          if(kttl) kttl.textContent='🔑 GROQ API KEY';
+          var kinfo = document.getElementById('kinfo');
+          if(kinfo) kinfo.innerHTML='Get free key → <a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a> (2 mins, free forever)<br/>🔒 Stored in browser only. Never sent anywhere else.';
+          var kstat = document.getElementById('kstat');
+          if(kstat) kstat.textContent='Paste your gsk_... key and click Connect';
+          showStatus('⚡ Paste your FREE Groq key above and click Connect', 'info');
         } catch(e){}
-      }, 100);
+      }, 120);
     }
   } catch(e){
     setTimeout(function(){
-      try { showStatus('⚡ Get a free GROQ key at console.groq.com for best AI results.', 'info'); } catch(ex){}
-    }, 100);
+      try { showStatus('⚡ Get a free GROQ key at console.groq.com for reliable AI results.', 'info'); } catch(ex){}
+    }, 120);
   }
 })();
 
@@ -910,6 +935,18 @@ function sw(i){
   document.querySelectorAll('.tab').forEach(function(b,j){b.classList.toggle('on',i===j);});
   document.querySelectorAll('.pnl').forEach(function(p,j){p.classList.toggle('on',i===j);});
   document.getElementById('sb-crit').style.display=i===0?'block':'none';
+
+  // Auto-collapse sidebar on Sniper tab, restore on others
+  var sidebar = document.getElementById('sidebar');
+  var layout  = document.getElementById('layout');
+  if(i===5){
+    sidebar.classList.add('collapsed');
+    if(layout) layout.classList.add('sidebar-hidden');
+  } else {
+    sidebar.classList.remove('collapsed');
+    if(layout) layout.classList.remove('sidebar-hidden');
+  }
+
   if(i===5 && !window._sniperRan){ window._sniperRan=true; runSniper(); }
 }
 
@@ -922,24 +959,7 @@ function pickProv(id){
   var inp=document.getElementById('kinp');
   var kbtn=document.getElementById('kbtn');
 
-  // ── POLLINATIONS — auto-connect instantly, no button needed ──
-  if(id==='pollinations'){
-    KEY='pollinations';
-    document.getElementById('key-ttl').textContent='🌸 POLLINATIONS — CONNECTED';
-    inp.value=''; inp.placeholder='No key required — connected!'; inp.disabled=true;
-    kbtn.textContent='✅ CONNECTED — READY';
-    kbtn.style.background='rgba(22,163,74,.2)';
-    kbtn.style.borderColor='#16a34a'; kbtn.style.color='#16a34a';
-    document.getElementById('kinfo').innerHTML='✅ Connected to <a href="https://pollinations.ai" target="_blank" style="color:#16a34a;">pollinations.ai</a> — No key, no login, completely anonymous.<br/>All AI tabs ready to use now.';
-    document.getElementById('kstat').textContent='✓ Connected — all AI tabs ready';
-    document.getElementById('kstat').className='kstat ok';
-    document.getElementById('kdot').className='kdot ok';
-    document.getElementById('pdot').className='pdot ok';
-    document.getElementById('plbl').textContent='POLLINATIONS';
-    const d=document.getElementById('disc-btn'); if(d)d.remove();
-    const f=document.getElementById('force-btn'); if(f)f.remove();
-    return;
-  }
+  
 
   // ── PUTER — show connect button ──
   if(id==='puter'){
@@ -979,12 +999,6 @@ function connectKey(){
     doConnect('puter');
     return;
   }
-  // POLLINATIONS — no key, no login, just connect instantly
-  if(PROV==='pollinations'){
-    KEY='pollinations';
-    doConnect('pollinations');
-    return;
-  }
   var v=document.getElementById('kinp').value.trim();
   if(!v||v.length<10){
     document.getElementById('kstat').textContent='⚠ Paste your API key first';
@@ -1012,7 +1026,7 @@ function doConnect(v){
   KEY=v;
   // Save key for next session (except free providers)
   try {
-    if(v !== 'pollinations' && v !== 'puter'){
+    if(v !== 'puter'){
       localStorage.setItem('gsx-key', v);
       localStorage.setItem('gsx-prov', PROV);
     } else {
@@ -1020,7 +1034,7 @@ function doConnect(v){
       localStorage.setItem('gsx-prov', PROV);
     }
   } catch(e){}
-  var masked = (v==='pollinations') ? 'POLLINATIONS FREE' : (v==='puter') ? 'PUTER FREE' : v.substring(0,8)+'••••'+v.slice(-4);
+  var masked = (v==='puter') ? 'PUTER FREE' : v.substring(0,8)+'••••'+v.slice(-4);
   document.getElementById('kdot').className='kdot ok';
   document.getElementById('kstat').textContent='✓ Connected — '+masked;
   document.getElementById('kstat').className='kstat ok';
@@ -1029,6 +1043,11 @@ function doConnect(v){
   document.getElementById('kinp').disabled=true;
   document.getElementById('pdot').className='pdot ok';
   document.getElementById('plbl').textContent=PROVS[PROV].name+' ✓';
+  // Hide search tip if real key connected
+  if(v !== 'puter'){
+    var tip = document.getElementById('search-tip');
+    if(tip) tip.style.display='none';
+  }
   var old=document.getElementById('disc-btn'); if(old)old.remove();
   var db=document.createElement('button');
   db.id='disc-btn'; db.className='rbtn'; db.style.marginTop='5px';
@@ -1059,8 +1078,8 @@ function setView(v){
 /* ══ AI CALL ══ */
 async function callAI(prompt, json){
   json = json || false;
-  // Pollinations and Puter don't need a real API key — allow through
-  var noKeyProviders = { pollinations:true, puter:true };
+  // Puter doesn't need a real API key — allow through
+  var noKeyProviders = { puter:true };
   if(!KEY && !noKeyProviders[PROV]){
     return json ? [] : '⚠ Please connect your API key first.';
   }
@@ -1089,61 +1108,6 @@ async function callAI(prompt, json){
         else if(Array.isArray(content)) raw = content.map(function(c){return c.text||'';}).join('');
         else raw = String(puterResp);
       } else raw = String(puterResp||'');
-
-    // ══ POLLINATIONS — no API key, no login, truly anonymous ══
-    } else if(p.fmt === 'pollinations'){
-      var pollOk = false;
-
-      // PRIMARY: Simple GET endpoint — text.pollinations.ai/{prompt}
-      // This is the stable, always-works anonymous endpoint
-      try {
-        var sysEncoded  = encodeURIComponent(sys.slice(0, 300));
-        var combined    = prompt.slice(0, 1000);
-        var encoded     = encodeURIComponent(combined);
-        var getUrl      = 'https://text.pollinations.ai/' + encoded
-                        + '?model=mistral'    // Mistral: fast, clean output, no reasoning
-                        + '&system=' + sysEncoded
-                        + '&seed=' + Math.floor(Math.random()*9999)
-                        + '&private=true';
-        var gr = await fetch(getUrl);
-        if(gr.ok){
-          raw = await gr.text();
-          if(raw && raw.length > 5) pollOk = true;
-        }
-      } catch(e1){ /* try POST fallback */ }
-
-      // FALLBACK: POST to new gen.pollinations.ai endpoint (no key needed for free tier)
-      if(!pollOk){
-        try {
-          var pollResp = await fetch('https://text.pollinations.ai/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'mistral',
-              messages: [
-                { role: 'system', content: sys },
-                { role: 'user',   content: prompt }
-              ],
-              seed: Math.floor(Math.random()*9999),
-              private: true
-            })
-          });
-          if(pollResp.ok){
-            var pt = await pollResp.text();
-            // May return plain text or JSON
-            try {
-              var pj = JSON.parse(pt);
-              var pm = (((pj.choices||[])[0])||{}).message || {};
-              raw = (typeof pm.content === 'string') ? pm.content : pt;
-            } catch(pe){ raw = pt; }
-            if(raw && raw.length > 5) pollOk = true;
-          }
-        } catch(e2){ /* both failed */ }
-      }
-
-      if(!pollOk && !raw){
-        errMsg = 'Pollinations unavailable right now. Get a free GROQ key at console.groq.com (takes 2 mins) for reliable AI access.';
-      }
 
     } else if(p.fmt === 'openai'){
       var r = await fetch(p.url, {
@@ -1206,7 +1170,7 @@ async function callAI(prompt, json){
       var cleaned = raw.trim();
 
       // Strip reasoning/thinking blocks that some models output
-      // e.g. DeepSeek R1, Pollinations reasoning models
+      // e.g. DeepSeek R1 reasoning models
       cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
       cleaned = cleaned.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '').trim();
 
@@ -1247,7 +1211,7 @@ async function callAI(prompt, json){
       if(objs.length) return objs;
 
       // All failed
-      showErr('Could not parse AI response. Pollinations may have returned a reasoning model. Try again or switch to GROQ.');
+      showErr('Could not parse AI response. Try again or switch to a different provider.');
       return [];
     }
     return raw;
@@ -1263,7 +1227,7 @@ function showErr(msg){
   el.style.display='block';
   el.querySelector('.etxt').textContent='⚠ ERROR';
   el.querySelector('.esub').textContent=msg;
-  console.error('GhostCap error:',msg);
+  console.error('GhostSniperX error:',msg);
 }
 
 /* ══ HELPERS ══ */
@@ -1289,72 +1253,170 @@ function caLink(t){
 
 /* ══ RESET ══ */
 function resetC(){
-  document.getElementById('cyf').selectedIndex=0;
-  document.getElementById('cyt').selectedIndex=2;
-  document.getElementById('cn').selectedIndex=2;
-  document.getElementById('cmn').value='2000';
-  document.getElementById('cmx').value='15000';
-  document.getElementById('cpk').value='500';
-  document.getElementById('ccat').selectedIndex=0;
-  document.getElementById('crisk').selectedIndex=0;
-  document.getElementById('ckw').value='';
+  var safe = function(id, val){ var el=document.getElementById(id); if(el) el.value=val; };
+  var safeIdx = function(id, idx){ var el=document.getElementById(id); if(el) el.selectedIndex=idx; };
+  safe('ckw',''); safe('cmn','1000'); safe('cmx','100000');
+  safe('cmliq','500'); safe('cmage','48'); safe('cmbuys','0');
+  safeIdx('csort', 3); safeIdx('cn', 2);
+  document.getElementById('sres').innerHTML='';
+  var cb = document.getElementById('sres-count');
+  if(cb) cb.style.display='none';
+  document.getElementById('semp').style.display='block';
 }
 
-/* ══ SUMMON ══ */
+/* ══ SUMMON — DexScreener Real Token Discovery ══ */
 async function summon(){
-  var noKeyProviders = { pollinations:true, puter:true };
-  if(!KEY && !noKeyProviders[PROV]){ showStatus('⚠ Connect your API key first','err'); return; }
-  var yf=document.getElementById('cyf').value;
-  var yt=document.getElementById('cyt').value;
-  var n=document.getElementById('cn').value;
-  var cat=document.getElementById('ccat').value;
-  var kw=document.getElementById('ckw').value;
+  var kw    = (document.getElementById('ckw')||{value:''}).value.trim();
+  var minMC = parseFloat((document.getElementById('cmn')||{value:'1000'}).value)||1000;
+  var maxMC = parseFloat((document.getElementById('cmx')||{value:'100000'}).value)||100000;
+  var minLiq= parseFloat((document.getElementById('cmliq')||{value:'500'}).value)||0;
+  var maxAge= parseFloat((document.getElementById('cmage')||{value:'48'}).value)||9999;
+  var minBuys=parseFloat((document.getElementById('cmbuys')||{value:'0'}).value)||0;
+  var sortBy= (document.getElementById('csort')||{value:'h24'}).value;
+  var limit = parseInt((document.getElementById('cn')||{value:'10'}).value)||10;
 
-  document.getElementById('sload').style.display='block';
-  document.getElementById('sload-sub').textContent='Asking '+PROVS[PROV].name+'... please wait';
-  document.getElementById('sres').innerHTML='';
-  document.getElementById('semp').style.display='none';
+  var sload = document.getElementById('sload');
+  var sres  = document.getElementById('sres');
+  var semp  = document.getElementById('semp');
+  sload.style.display='block';
+  document.getElementById('sload-sub').textContent='Fetching real tokens from DexScreener...';
+  sres.innerHTML=''; semp.style.display='none';
+  var cb = document.getElementById('sres-count'); if(cb) cb.style.display='none';
   scache={}; lastData=[];
 
-  var catLine = cat!=='any' ? ' Category: '+cat+'.' : '';
-  var kwLine  = kw ? ' Theme: '+kw+'.' : '';
-  var minMC   = document.getElementById('cmn') ? document.getElementById('cmn').value : '2000';
-  var maxMC   = document.getElementById('cmx') ? document.getElementById('cmx').value : '15000';
-  var minPeak = document.getElementById('cpk') ? document.getElementById('cpk').value : '500';
+  try {
+    // Build DexScreener search URL — uses keyword or defaults to "pump"
+    var query = kw || 'pump';
+    var url   = 'https://api.dexscreener.com/latest/dex/search?q=' + encodeURIComponent(query);
+    var resp  = await fetch(url);
+    if(!resp.ok) throw new Error('DexScreener returned ' + resp.status);
+    var json  = await resp.json();
+    var pairs = (json.pairs || []);
 
-  // Iron-clad prompt — works with ANY model including reasoning models
-  var prompt =
-    'OUTPUT FORMAT: You MUST reply with ONLY a raw JSON array starting with [ and ending with ]. '+
-    'Zero text before [. Zero text after ]. No markdown. No explanation. No thinking. Just the JSON array.\n\n'+
-    'TASK: List '+n+' Solana pump.fun meme tokens launched '+yf+'-'+yt+'.'+catLine+kwLine+'\n'+
-    'Criteria: currentMC $'+minMC+'-$'+maxMC+', peakMC above $'+minPeak+'K.\n'+
-    'Use real tokens: WIF, POPCAT, BOME, SLERF, BONK, MICHI, PNUT, GIGA, GOAT, MOODENG, CHILLGUY, SMOLE, MYRO, FWOG, HARAMBE, SILLY, NUB, ANALOS and others.\n'+
-    'If you know the real Solana contract address include it. If unsure leave contractAddress as "".\n'+
-    'Do NOT invent contract addresses.\n\n'+
-    'JSON array format (return exactly this structure):\n'+
-    '[{"name":"dogwifhat","ticker":"$WIF","contractAddress":"EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm","launchYear":2023,"peakMC":"$4.8B","currentMC":"~$50M","peakDate":"Mar 2024","category":"dog","description":"First meme coin to buy a Las Vegas Sphere ad.","signals":["Binance listed","Active community"],"risk":"Medium","score":72}]\n\n'+
-    'START YOUR REPLY WITH [ AND END WITH ] — NOTHING ELSE.';
+    // Filter to Solana + pump.fun only
+    var nowMs = Date.now();
+    pairs = pairs.filter(function(p){
+      if(p.chainId !== 'solana') return false;
+      if(p.dexId !== 'pumpfun' && !(p.dexId||'').includes('pump') && !(p.labels||[]).join('').toLowerCase().includes('pump')) return false;
+      return true;
+    });
 
-  var data = await callAI(prompt, true);
+    // If no results with pump filter, try all solana pairs
+    if(!pairs.length){
+      pairs = (json.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+    }
 
-  // If Pollinations fails, auto-retry with GET fallback using simpler prompt
-  if((!Array.isArray(data) || !data.length) && PROV === 'pollinations'){
-    document.getElementById('sload-sub').textContent = 'Retrying with simpler request...';
-    var simplePrompt =
-      'Return ONLY a JSON array of '+n+' Solana pump.fun meme tokens from '+yf+'-'+yt+'. '+
-      'Format: [{"name":"...","ticker":"$...","contractAddress":"","launchYear":'+yf+',"peakMC":"$Xm","currentMC":"$Xk","category":"meme","description":"...","signals":["..."],"risk":"Medium","score":60}] '+
-      'START WITH [ END WITH ]';
-    data = await callAI(simplePrompt, true);
+    // Apply criteria filters
+    var nowMins = Date.now();
+    pairs = pairs.filter(function(p){
+      var mc  = p.marketCap || p.fdv || 0;
+      var liq = (p.liquidity||{}).usd || 0;
+      var age = p.pairCreatedAt ? (nowMins - p.pairCreatedAt) / 3600000 : 9999;
+      var buys5m = ((p.txns||{}).m5||{}).buys || 0;
+
+      if(mc > 0 && mc < minMC) return false;
+      if(mc > 0 && mc > maxMC) return false;
+      if(liq < minLiq) return false;
+      if(age > maxAge) return false;
+      if(buys5m < minBuys) return false;
+      return true;
+    });
+
+    // Sort
+    pairs.sort(function(a,b){
+      if(sortBy === 'age') return (a.pairCreatedAt||0) - (b.pairCreatedAt||0);
+      if(sortBy === 'mc')  return (b.marketCap||b.fdv||0) - (a.marketCap||a.fdv||0);
+      var vol = function(p, k){ return (p.volume||{})[k]||0; };
+      var k = sortBy; // m5, h1, h6, h24
+      return vol(b,k) - vol(a,k);
+    });
+
+    // Take top N
+    pairs = pairs.slice(0, limit);
+
+    if(!pairs.length){
+      sload.style.display='none';
+      showStatus('No pump.fun tokens found matching your filters. Try wider criteria — increase Max MC, reduce Min Liquidity, or change keyword.', 'err');
+      return;
+    }
+
+    // Map DexScreener pairs → our token card format
+    var data = pairs.map(function(p){
+      var base = p.baseToken || {};
+      var ca   = base.address || '';
+      var mc   = p.marketCap || p.fdv || 0;
+      var liq  = (p.liquidity||{}).usd || 0;
+      var age  = p.pairCreatedAt ? ((Date.now()-p.pairCreatedAt)/3600000) : null;
+      var vol24= (p.volume||{}).h24 || 0;
+      var vol1 = (p.volume||{}).h1 || 0;
+      var buys5= ((p.txns||{}).m5||{}).buys || 0;
+      var sells5=((p.txns||{}).m5||{}).sells || 0;
+      var pc5  = ((p.priceChange||{}).m5)||0;
+      var pc1  = ((p.priceChange||{}).h1)||0;
+      var pc24 = ((p.priceChange||{}).h24)||0;
+
+      var signals = [];
+      if(buys5 > 10) signals.push('Hot: '+buys5+' buys/5m');
+      if(pc5 > 10)   signals.push('+'+pc5.toFixed(0)+'% in 5m');
+      if(pc1 > 20)   signals.push('+'+pc1.toFixed(0)+'% in 1h');
+      if(liq > 5000) signals.push('Liq $'+formatNum(liq));
+      if(vol24 > 1000) signals.push('Vol $'+formatNum(vol24));
+      if(!signals.length) signals.push('Low activity');
+
+      var ageStr = age !== null
+        ? (age < 1 ? Math.round(age*60)+'m old' : age.toFixed(1)+'h old')
+        : 'Age unknown';
+
+      // Score: MC fit + liquidity + volume + buy pressure
+      var score = 40;
+      if(mc >= minMC && mc <= maxMC) score += 20;
+      if(liq > 2000) score += 10;
+      if(buys5 > 5) score += 10;
+      if(pc5 > 5)   score += 10;
+      if(vol24 > 5000) score += 10;
+      score = Math.min(99, score);
+
+      return {
+        name:            base.name || base.symbol || 'Unknown',
+        ticker:          '$'+(base.symbol||'???'),
+        contractAddress: ca,
+        launchYear:      p.pairCreatedAt ? new Date(p.pairCreatedAt).getFullYear() : 2025,
+        peakMC:          '$'+formatNum(mc),
+        currentMC:       '$'+formatNum(mc),
+        peakDate:        ageStr,
+        category:        'pump.fun',
+        description:     'Liq: $'+formatNum(liq)+' · Vol 24h: $'+formatNum(vol24)+' · '+buys5+' buys / '+sells5+' sells in 5m · '+(pc24>=0?'+':'')+pc24.toFixed(1)+'% 24h',
+        signals:         signals,
+        risk:            mc < 5000 ? 'Very High' : mc < 20000 ? 'High' : 'Medium',
+        score:           score,
+        // Extra raw data for table view
+        _mc: mc, _liq: liq, _vol24: vol24, _age: age, _buys5: buys5, _pc24: pc24
+      };
+    });
+
+    sload.style.display='none';
+    lastData = data;
+    VIEW==='card' ? renderCards(data) : renderTable(data);
+
+    // Update search tip
+    var tip = document.getElementById('search-tip');
+    if(tip) tip.style.display='none';
+
+    // Show result count bar above cards
+    var countBar = document.getElementById('sres-count');
+    if(!countBar){
+      countBar = document.createElement('div');
+      countBar.id = 'sres-count';
+      countBar.style.cssText = 'font-size:10px;color:var(--go);margin-bottom:8px;padding:6px 10px;background:rgba(0,212,116,.07);border:1px solid rgba(0,212,116,.2);border-radius:5px;';
+      sres.parentNode.insertBefore(countBar, sres);
+    }
+    countBar.textContent = '✅ Found ' + data.length + ' real pump.fun tokens · Live from DexScreener · Real CAs · No AI';
+    countBar.style.display = 'block';
+
+  } catch(err) {
+    sload.style.display='none';
+    showStatus('DexScreener fetch failed: '+err.message+'. Check internet or try a different keyword.', 'err');
   }
-
-  document.getElementById('sload').style.display='none';
-
-  if(!Array.isArray(data)||!data.length){
-    showStatus('AI returned no results. For reliable Search tab use GROQ (free key at console.groq.com) — Pollinations works best for Check/Oracle/Duel tabs.', 'err');
-    return;
-  }
-  lastData=data;
-  VIEW==='card' ? renderCards(data) : renderTable(data);
 }
 
 function showStatus(msg, type){
