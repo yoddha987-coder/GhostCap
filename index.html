@@ -1052,42 +1052,41 @@ async function callAI(prompt, json){
 
     // ══ POLLINATIONS — no API key, no login, truly anonymous ══
     } else if(p.fmt === 'pollinations'){
-      // Try POST endpoint first (OpenAI-compatible)
+      // Use 'openai' model (GPT-4o-mini) — no reasoning tokens
       var pollOk = false;
       try {
         var pollResp = await fetch('https://text.pollinations.ai/openai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'openai',
+            model: 'openai',       // GPT-4o-mini — fast, no reasoning tokens
             messages: [
               { role: 'system', content: sys },
               { role: 'user',   content: prompt }
             ],
-            seed: Math.floor(Math.random()*9999)
+            seed: Math.floor(Math.random()*9999),
+            private: true          // don't show in public feed
           })
         });
         if(pollResp.ok){
           var pollData = await pollResp.json();
-          raw = (((pollData.choices||[])[0])||{}).message
-            ? (pollData.choices[0].message.content || '')
-            : '';
+          var msg = (((pollData.choices||[])[0])||{}).message || {};
+          // Use 'content' field — ignore reasoning_content if present
+          raw = (typeof msg.content === 'string') ? msg.content : '';
           if(raw) pollOk = true;
         }
       } catch(e1){ /* fallback below */ }
 
-      // Fallback: simple GET endpoint (no CORS issues)
+      // Fallback: simple GET endpoint (always works, no CORS)
       if(!pollOk){
         try {
           var combined = sys + '\n\n' + prompt;
-          var encoded  = encodeURIComponent(combined.slice(0, 1500));
-          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=openai&seed=' + Math.floor(Math.random()*9999), {
-            method: 'GET'
-          });
+          var encoded  = encodeURIComponent(combined.slice(0, 1200));
+          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=openai&seed=' + Math.floor(Math.random()*9999));
           if(gr.ok) raw = await gr.text();
-          else errMsg = 'Pollinations unavailable (status ' + gr.status + '). Try GROQ or GEMINI instead.';
+          else errMsg = 'Pollinations error ' + gr.status + ' — try GROQ (free at console.groq.com)';
         } catch(e2){
-          errMsg = 'Pollinations network error. Check internet connection or switch to GROQ (free key at console.groq.com).';
+          errMsg = 'Pollinations network error — switch to GROQ for reliability';
         }
       }
 
@@ -1148,20 +1147,52 @@ async function callAI(prompt, json){
     }
 
     if(json){
-      // Extract JSON array from response - try multiple strategies
+      // ── Clean raw response before extracting JSON ──────────────
       var cleaned = raw.trim();
-      // Strategy 1: direct parse
-      try{ var r1 = JSON.parse(cleaned); if(Array.isArray(r1) && r1.length) return r1; } catch(e1){}
-      // Strategy 2: strip markdown fences
-      cleaned = cleaned.replace(/^```json\s*/,'').replace(/\s*```$/,'').replace(/^```\s*/,'').trim();
-      try{ var r2p = JSON.parse(cleaned); if(Array.isArray(r2p) && r2p.length) return r2p; } catch(e2){}
-      // Strategy 3: find first [ to last ]
-      var start = raw.indexOf('['), end = raw.lastIndexOf(']');
-      if(start !== -1 && end !== -1 && end > start){
-        try{ var r3p = JSON.parse(raw.slice(start, end+1)); if(Array.isArray(r3p) && r3p.length) return r3p; } catch(e3){}
+
+      // Strip reasoning/thinking blocks that some models output
+      // e.g. DeepSeek R1, Pollinations reasoning models
+      cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      cleaned = cleaned.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '').trim();
+
+      // If response is a JSON object with reasoning_content, extract content field
+      if(cleaned.charAt(0) === '{'){
+        try {
+          var obj = JSON.parse(cleaned);
+          // Handle {role, content, reasoning_content} shape
+          if(obj.content) cleaned = typeof obj.content === 'string' ? obj.content : JSON.stringify(obj.content);
+          else if(obj.message) cleaned = typeof obj.message === 'string' ? obj.message : JSON.stringify(obj.message);
+        } catch(e){}
       }
-      // All failed - show raw for debug
-      showErr('JSON parse failed. Raw: '+raw.substring(0,200));
+
+      // Strip markdown code fences
+      cleaned = cleaned.replace(/^```json\s*/i,'').replace(/\s*```$/,'').replace(/^```\s*/,'').trim();
+
+      // Strategy 1: direct parse of cleaned
+      try{ var p1 = JSON.parse(cleaned); if(Array.isArray(p1) && p1.length) return p1; } catch(e1){}
+
+      // Strategy 2: find first [ ... ] block
+      var a1 = cleaned.indexOf('['), a2 = cleaned.lastIndexOf(']');
+      if(a1 !== -1 && a2 > a1){
+        try{ var p2 = JSON.parse(cleaned.slice(a1, a2+1)); if(Array.isArray(p2) && p2.length) return p2; } catch(e2){}
+      }
+
+      // Strategy 3: search full raw for JSON array
+      var b1 = raw.indexOf('['), b2 = raw.lastIndexOf(']');
+      if(b1 !== -1 && b2 > b1){
+        try{ var p3 = JSON.parse(raw.slice(b1, b2+1)); if(Array.isArray(p3) && p3.length) return p3; } catch(e3){}
+      }
+
+      // Strategy 4: find multiple JSON objects and wrap as array
+      var objs = [];
+      var objRe = /\{[^{}]*\}/g, m;
+      while((m = objRe.exec(raw)) !== null){
+        try{ var o = JSON.parse(m[0]); if(o.ticker||o.symbol||o.name) objs.push(o); }catch(e){}
+      }
+      if(objs.length) return objs;
+
+      // All failed
+      showErr('Could not parse AI response. Pollinations may have returned a reasoning model. Try again or switch to GROQ.');
       return [];
     }
     return raw;
