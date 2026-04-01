@@ -118,13 +118,8 @@ select option{background:var(--s1);color:var(--tx);}
   width:100%;background:var(--s1);border-bottom:1px solid var(--bd);
   padding:14px 14px 16px;
   display:block;
-  transition:all .3s ease;
-  overflow:hidden;
 }
 #sidebar.collapsed{
-  padding:0;
-  height:0;
-  border-bottom:none;
   display:none;
 }
 #main{flex:1;padding:14px;background:var(--bg);min-height:400px;}
@@ -132,23 +127,14 @@ select option{background:var(--s1);color:var(--tx);}
 /* Desktop: sidebar on left */
 @media(min-width:768px){
   #layout{display:grid;grid-template-columns:270px 1fr;align-items:start;}
+  #layout.sidebar-hidden{grid-template-columns:1fr;}
   #sidebar{
     height:calc(100vh - 52px);overflow-y:auto;
     border-bottom:none;border-right:1px solid var(--bd);
     position:sticky;top:52px;
-    transition:all .3s ease;
   }
   #sidebar.collapsed{
-    width:0;
-    min-width:0;
-    padding:0;
-    border:none;
-    height:calc(100vh - 52px);
-    overflow:hidden;
-    display:block;
-  }
-  #layout.sidebar-hidden{
-    grid-template-columns:0 1fr;
+    display:none;
   }
   #main{padding:18px;min-height:calc(100vh - 52px);}
 }
@@ -415,6 +401,75 @@ textarea.mfld{resize:vertical;}
       </div>
       <div class="pc-sub"><span>GPT-4o · Free · Just login with Puter</span><a class="pc-link" href="https://puter.com" target="_blank" onclick="event.stopPropagation()" style="color:#7c3aed;">→ puter.com</a></div>
     </div>
+
+    <!-- GROQ — FREE KEY -->
+    <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
+      <div class="pc-row">
+        <span class="pc-ico">⚡</span>
+        <span class="pc-name">GROQ</span>
+        <span class="pc-badge">FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
+    </div>
+
+    <!-- GEMINI — FREE KEY -->
+    <div id="pc-gemini" class="prov-card" onclick="pickProv('gemini')">
+      <div class="pc-row">
+        <span class="pc-ico">🌟</span>
+        <span class="pc-name">GEMINI</span>
+        <span class="pc-badge">FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>Gemini 2.0 Flash · Google</span><a class="pc-link" href="https://aistudio.google.com" target="_blank" onclick="event.stopPropagation()">→ aistudio.google.com</a></div>
+    </div>
+
+    <!-- OPENAI -->
+    <div id="pc-openai" class="prov-card" onclick="pickProv('openai')">
+      <div class="pc-row">
+        <span class="pc-ico">🤖</span>
+        <span class="pc-name">OPENAI</span>
+        <span class="pc-badge">$5 FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>GPT-4o Mini</span><a class="pc-link" href="https://platform.openai.com" target="_blank" onclick="event.stopPropagation()">→ platform.openai.com</a></div>
+    </div>
+
+    <!-- DEEPSEEK -->
+    <div id="pc-deepseek" class="prov-card" onclick="pickProv('deepseek')">
+      <div class="pc-row">
+        <span class="pc-ico">🔵</span>
+        <span class="pc-name">DEEPSEEK</span>
+        <span class="pc-badge">~FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>DeepSeek Chat</span><a class="pc-link" href="https://platform.deepseek.com" target="_blank" onclick="event.stopPropagation()">→ platform.deepseek.com</a></div>
+    </div>
+
+    <!-- QWEN -->
+    <div id="pc-qwen" class="prov-card" onclick="pickProv('qwen')">
+      <div class="pc-row">
+        <span class="pc-ico">🟡</span>
+        <span class="pc-name">QWEN</span>
+        <span class="pc-badge">FREE</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>Qwen-Plus · Alibaba</span><a class="pc-link" href="https://dashscope.console.aliyun.com" target="_blank" onclick="event.stopPropagation()">→ dashscope</a></div>
+    </div>
+
+    <!-- ANTHROPIC -->
+    <div id="pc-anthropic" class="prov-card" onclick="pickProv('anthropic')">
+      <div class="pc-row">
+        <span class="pc-ico">🧠</span>
+        <span class="pc-name">ANTHROPIC</span>
+        <span class="pc-badge">PAID $5</span>
+        <span class="pc-check">✓</span>
+      </div>
+      <div class="pc-sub"><span>Claude Haiku · Best quality</span><a class="pc-link" href="https://console.anthropic.com" target="_blank" onclick="event.stopPropagation()">→ console.anthropic.com</a></div>
+    </div>
+
+  </div><!-- /AI PROVIDER sb-sec -->
+
   <div class="sb-sec">
     <div class="sb-ttl" id="key-ttl">🔑 GROQ API KEY</div>
     <div class="key-box" id="key-box-inner">
@@ -2639,8 +2694,6 @@ function renderGrim(){
     </div>`).join('');
 }
 </script>
-
-</div>
 
 
 <!-- ══ iOS INSTALL BANNER (shows only in browser, not when installed) ══ -->
