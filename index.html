@@ -396,7 +396,7 @@ textarea.mfld{resize:vertical;}
     </div>
 
     <!-- POLLINATIONS — NO KEY, NO LOGIN — DEFAULT -->
-    <div id="pc-pollinations" class="prov-card on" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.08);">
+    <div id="pc-pollinations" class="prov-card" onclick="pickProv('pollinations')" style="border-color:#16a34a;background:rgba(22,163,74,.08);">
       <div class="pc-row">
         <span class="pc-ico">🌸</span>
         <span class="pc-name" style="color:#16a34a;">POLLINATIONS</span>
@@ -405,7 +405,7 @@ textarea.mfld{resize:vertical;}
       </div>
       <div class="pc-sub"><span>GPT-4o · No key · No login · Instant</span><a class="pc-link" href="https://pollinations.ai" target="_blank" onclick="event.stopPropagation()" style="color:#16a34a;">→ pollinations.ai</a></div>
     </div>
-    <div id="pc-groq" class="prov-card" onclick="pickProv('groq')">
+    <div id="pc-groq" class="prov-card on" onclick="pickProv('groq')">
       <div class="pc-row"><span class="pc-ico">⚡</span><span class="pc-name">GROQ</span><span class="pc-badge pb-free">FREE</span><span class="pc-check">✓</span></div>
       <div class="pc-sub"><span>Llama 3.3 70B · Very fast</span><a class="pc-link" href="https://console.groq.com" target="_blank" onclick="event.stopPropagation()">→ console.groq.com</a></div>
     </div>
@@ -481,6 +481,12 @@ textarea.mfld{resize:vertical;}
         <button id="vb-table" class="vbtn" onclick="setView('table')">≡ TABLE</button>
       </div>
     </div>
+    <!-- Provider tip -->
+    <div id="search-tip" style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--mu);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>💡</span>
+      <span><strong style="color:var(--tx);">Best for Search tab:</strong> GROQ (free, fast, reliable JSON) · Get key at <a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a> in 2 mins · Pollinations works for Check/Oracle/Duel tabs</span>
+      <button onclick="this.parentElement.style.display='none'" style="margin-left:auto;border:none;background:none;color:var(--mu);cursor:pointer;font-size:14px;">✕</button>
+    </div>
     <div id="sload" class="loading" style="display:none;">
       <span class="lic">🎯</span>
       <div class="ltxt">CONSULTING THE SPIRITS...</div>
@@ -490,7 +496,7 @@ textarea.mfld{resize:vertical;}
     <div id="semp" class="empty">
       <span class="eico">🔍</span>
       <div class="etxt">READY TO SUMMON</div>
-      <div class="esub">Select provider → paste key → connect → results load automatically</div>
+      <div class="esub">Set your filters and click SUMMON SPIRITS · For best results use GROQ (free key)</div>
     </div>
   </div>
 
@@ -819,7 +825,7 @@ textarea.mfld{resize:vertical;}
 
 <script>
 /* ══ STATE ══ */
-let KEY='pollinations', PROV='pollinations', VIEW='card', grim=[], scache={}, lastData=[];
+let KEY='', PROV='groq', VIEW='card', grim=[], scache={}, lastData=[];
 const TMAP={};
 
 const PROVS={
@@ -870,12 +876,33 @@ function setTheme(t){
 }
 (function(){
   try{var _t=localStorage.getItem('gsx-t')||'dark';setTheme(_t);}catch(e){setTheme('dark');}
-  // Show ready state on search tab — no auto-summon
-  setTimeout(function(){
-    try {
-      showStatus('🌸 Pollinations AI ready — set your filters and click SUMMON SPIRITS', 'ok');
-    } catch(e){}
-  }, 100);
+  // Restore saved key if any
+  try {
+    var savedKey  = localStorage.getItem('gsx-key')||'';
+    var savedProv = localStorage.getItem('gsx-prov')||'groq';
+    if(savedKey && PROVS[savedProv]){
+      PROV = savedProv;
+      KEY  = savedKey;
+      // Mark card as selected
+      document.querySelectorAll('.prov-card').forEach(function(c){c.classList.remove('on');});
+      var card = document.getElementById('pc-'+savedProv);
+      if(card) card.classList.add('on');
+      // Show connected state
+      setTimeout(function(){
+        try { doConnect(savedKey); } catch(e){}
+      }, 50);
+    } else {
+      setTimeout(function(){
+        try {
+          showStatus('⚡ Get a FREE GROQ key at console.groq.com — takes 2 minutes. Or use 🌸 POLLINATIONS (no key needed).', 'info');
+        } catch(e){}
+      }, 100);
+    }
+  } catch(e){
+    setTimeout(function(){
+      try { showStatus('⚡ Get a free GROQ key at console.groq.com for best AI results.', 'info'); } catch(ex){}
+    }, 100);
+  }
 })();
 
 /* ══ TABS ══ */
@@ -983,6 +1010,16 @@ function connectKey(){
 
 function doConnect(v){
   KEY=v;
+  // Save key for next session (except free providers)
+  try {
+    if(v !== 'pollinations' && v !== 'puter'){
+      localStorage.setItem('gsx-key', v);
+      localStorage.setItem('gsx-prov', PROV);
+    } else {
+      localStorage.removeItem('gsx-key');
+      localStorage.setItem('gsx-prov', PROV);
+    }
+  } catch(e){}
   var masked = (v==='pollinations') ? 'POLLINATIONS FREE' : (v==='puter') ? 'PUTER FREE' : v.substring(0,8)+'••••'+v.slice(-4);
   document.getElementById('kdot').className='kdot ok';
   document.getElementById('kstat').textContent='✓ Connected — '+masked;
@@ -996,7 +1033,10 @@ function doConnect(v){
   var db=document.createElement('button');
   db.id='disc-btn'; db.className='rbtn'; db.style.marginTop='5px';
   db.textContent='⟳ DISCONNECT';
-  db.onclick=function(){pickProv(PROV);};
+  db.onclick=function(){
+    try { localStorage.removeItem('gsx-key'); } catch(e){}
+    pickProv(PROV);
+  };
   var kbtn=document.getElementById('kbtn');
   if(kbtn) kbtn.after(db);
   else document.getElementById('key-box-inner').appendChild(db);
@@ -1026,7 +1066,7 @@ async function callAI(prompt, json){
   }
   var p = PROVS[PROV];
   var sys = json
-    ? 'You are a Solana meme coin research expert with knowledge up to 2026. You MUST return ONLY a valid JSON array. Start your response with [ and end with ]. No explanation, no markdown, no backticks, no text before or after the JSON array.'
+    ? 'You are a JSON data API. Output ONLY a raw JSON array. Start with [ end with ]. No text before. No text after. No markdown. No explanation. No thinking. No reasoning. ONLY the JSON array.'
     : 'You are a crypto research expert on Solana, pump.fun and DeFi with knowledge up to 2026. Be direct, factual, concise.';
   try{
     var raw = '';
@@ -1059,7 +1099,7 @@ async function callAI(prompt, json){
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'openai',       // GPT-4o-mini — fast, no reasoning tokens
+            model: 'mistral',      // Mistral — fast, no reasoning tokens, no JSON issues
             messages: [
               { role: 'system', content: sys },
               { role: 'user',   content: prompt }
@@ -1082,7 +1122,7 @@ async function callAI(prompt, json){
         try {
           var combined = sys + '\n\n' + prompt;
           var encoded  = encodeURIComponent(combined.slice(0, 1200));
-          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=openai&seed=' + Math.floor(Math.random()*9999));
+          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=mistral&seed=' + Math.floor(Math.random()*9999));
           if(gr.ok) raw = await gr.text();
           else errMsg = 'Pollinations error ' + gr.status + ' — try GROQ (free at console.groq.com)';
         } catch(e2){
@@ -1255,34 +1295,47 @@ async function summon(){
   var cat=document.getElementById('ccat').value;
   var kw=document.getElementById('ckw').value;
 
-  console.log('GhostCap summon: provider='+PROV+' n='+n+' yf='+yf);
-
   document.getElementById('sload').style.display='block';
   document.getElementById('sload-sub').textContent='Asking '+PROVS[PROV].name+'... please wait';
   document.getElementById('sres').innerHTML='';
   document.getElementById('semp').style.display='none';
   scache={}; lastData=[];
 
-  var catLine = cat!=='any' ? ' Focus on '+cat+' category tokens.' : '';
-  var kwLine  = kw ? ' Theme/keyword: '+kw+'.' : '';
+  var catLine = cat!=='any' ? ' Category: '+cat+'.' : '';
+  var kwLine  = kw ? ' Theme: '+kw+'.' : '';
+  var minMC   = document.getElementById('cmn') ? document.getElementById('cmn').value : '2000';
+  var maxMC   = document.getElementById('cmx') ? document.getElementById('cmx').value : '15000';
+  var minPeak = document.getElementById('cpk') ? document.getElementById('cpk').value : '500';
 
+  // Iron-clad prompt — works with ANY model including reasoning models
   var prompt =
-    'You are a Solana meme coin expert. List '+n+' REAL pump.fun tokens launched '+yf+'-'+yt+'.'+catLine+kwLine+
-    ' These must be real tokens that actually existed on pump.fun with verifiable history.'+
-    ' Mix well-known tokens (WIF, POPCAT, BOME, SLERF, BONK, MICHI, PNUT, GIGA, GOAT, MOODENG, CHILLGUY, SMOLE, MYRO, FWOG, HARAMBE, ANALOS, SILLY, NUB) with lesser-known ones.'+
-    ' Each token must include its REAL Solana contract address if you know it (e.g. WIF is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm).'+
-    ' If you do not know the exact CA, leave contractAddress as empty string — do NOT invent addresses.'+
-    ' Return ONLY a JSON array, no other text:\n'+
-    '[{"name":"dogwifhat","ticker":"$WIF","contractAddress":"EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm","launchYear":2023,"peakMC":"$4.8B","currentMC":"~$50M","peakDate":"Mar 2024","category":"dog","description":"First meme coin to buy a Las Vegas Sphere ad — defined the 2024 Solana meme season.","signals":["Massive brand recognition","Binance listed","Still active community"],"risk":"Medium","score":72}]';
+    'OUTPUT FORMAT: You MUST reply with ONLY a raw JSON array starting with [ and ending with ]. '+
+    'Zero text before [. Zero text after ]. No markdown. No explanation. No thinking. Just the JSON array.\n\n'+
+    'TASK: List '+n+' Solana pump.fun meme tokens launched '+yf+'-'+yt+'.'+catLine+kwLine+'\n'+
+    'Criteria: currentMC $'+minMC+'-$'+maxMC+', peakMC above $'+minPeak+'K.\n'+
+    'Use real tokens: WIF, POPCAT, BOME, SLERF, BONK, MICHI, PNUT, GIGA, GOAT, MOODENG, CHILLGUY, SMOLE, MYRO, FWOG, HARAMBE, SILLY, NUB, ANALOS and others.\n'+
+    'If you know the real Solana contract address include it. If unsure leave contractAddress as "".\n'+
+    'Do NOT invent contract addresses.\n\n'+
+    'JSON array format (return exactly this structure):\n'+
+    '[{"name":"dogwifhat","ticker":"$WIF","contractAddress":"EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm","launchYear":2023,"peakMC":"$4.8B","currentMC":"~$50M","peakDate":"Mar 2024","category":"dog","description":"First meme coin to buy a Las Vegas Sphere ad.","signals":["Binance listed","Active community"],"risk":"Medium","score":72}]\n\n'+
+    'START YOUR REPLY WITH [ AND END WITH ] — NOTHING ELSE.';
 
   var data = await callAI(prompt, true);
 
-  console.log('GhostCap result: isArray='+Array.isArray(data)+' len='+(Array.isArray(data)?data.length:0));
+  // If Pollinations fails, auto-retry with GET fallback using simpler prompt
+  if((!Array.isArray(data) || !data.length) && PROV === 'pollinations'){
+    document.getElementById('sload-sub').textContent = 'Retrying with simpler request...';
+    var simplePrompt =
+      'Return ONLY a JSON array of '+n+' Solana pump.fun meme tokens from '+yf+'-'+yt+'. '+
+      'Format: [{"name":"...","ticker":"$...","contractAddress":"","launchYear":'+yf+',"peakMC":"$Xm","currentMC":"$Xk","category":"meme","description":"...","signals":["..."],"risk":"Medium","score":60}] '+
+      'START WITH [ END WITH ]';
+    data = await callAI(simplePrompt, true);
+  }
 
   document.getElementById('sload').style.display='none';
 
   if(!Array.isArray(data)||!data.length){
-    document.getElementById('semp').style.display='block';
+    showStatus('AI returned no results. For reliable Search tab use GROQ (free key at console.groq.com) — Pollinations works best for Check/Oracle/Duel tabs.', 'err');
     return;
   }
   lastData=data;
