@@ -830,7 +830,7 @@ const TMAP={};
 
 const PROVS={
   puter:        {name:'PUTER',        fmt:'puter',        url:'',                                                                                               model:'gpt-4o',                    prefix:'',       hint:'puter.com',                    hurl:'https://puter.com'},
-  pollinations: {name:'POLLINATIONS', fmt:'pollinations', url:'https://text.pollinations.ai/openai',                                                           model:'openai',                    prefix:'',       hint:'pollinations.ai',              hurl:'https://pollinations.ai'},
+  pollinations: {name:'POLLINATIONS', fmt:'pollinations', url:'https://text.pollinations.ai/',                                                                    model:'mistral',                   prefix:'',       hint:'pollinations.ai',              hurl:'https://pollinations.ai'},
   groq:         {name:'GROQ',         fmt:'openai',       url:'https://api.groq.com/openai/v1/chat/completions',                                            model:'llama-3.3-70b-versatile',  prefix:'gsk_',   hint:'console.groq.com',             hurl:'https://console.groq.com'},
   gemini:       {name:'GEMINI',       fmt:'gemini',       url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',   model:'gemini-2.0-flash',          prefix:'AIza',   hint:'aistudio.google.com',          hurl:'https://aistudio.google.com/app/apikey'},
   openai:       {name:'OPENAI',       fmt:'openai',       url:'https://api.openai.com/v1/chat/completions',                                                 model:'gpt-4o-mini',               prefix:'sk-',    hint:'platform.openai.com',          hurl:'https://platform.openai.com/api-keys'},
@@ -1092,42 +1092,57 @@ async function callAI(prompt, json){
 
     // ══ POLLINATIONS — no API key, no login, truly anonymous ══
     } else if(p.fmt === 'pollinations'){
-      // Use 'openai' model (GPT-4o-mini) — no reasoning tokens
       var pollOk = false;
-      try {
-        var pollResp = await fetch('https://text.pollinations.ai/openai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'mistral',      // Mistral — fast, no reasoning tokens, no JSON issues
-            messages: [
-              { role: 'system', content: sys },
-              { role: 'user',   content: prompt }
-            ],
-            seed: Math.floor(Math.random()*9999),
-            private: true          // don't show in public feed
-          })
-        });
-        if(pollResp.ok){
-          var pollData = await pollResp.json();
-          var msg = (((pollData.choices||[])[0])||{}).message || {};
-          // Use 'content' field — ignore reasoning_content if present
-          raw = (typeof msg.content === 'string') ? msg.content : '';
-          if(raw) pollOk = true;
-        }
-      } catch(e1){ /* fallback below */ }
 
-      // Fallback: simple GET endpoint (always works, no CORS)
+      // PRIMARY: Simple GET endpoint — text.pollinations.ai/{prompt}
+      // This is the stable, always-works anonymous endpoint
+      try {
+        var sysEncoded  = encodeURIComponent(sys.slice(0, 300));
+        var combined    = prompt.slice(0, 1000);
+        var encoded     = encodeURIComponent(combined);
+        var getUrl      = 'https://text.pollinations.ai/' + encoded
+                        + '?model=mistral'    // Mistral: fast, clean output, no reasoning
+                        + '&system=' + sysEncoded
+                        + '&seed=' + Math.floor(Math.random()*9999)
+                        + '&private=true';
+        var gr = await fetch(getUrl);
+        if(gr.ok){
+          raw = await gr.text();
+          if(raw && raw.length > 5) pollOk = true;
+        }
+      } catch(e1){ /* try POST fallback */ }
+
+      // FALLBACK: POST to new gen.pollinations.ai endpoint (no key needed for free tier)
       if(!pollOk){
         try {
-          var combined = sys + '\n\n' + prompt;
-          var encoded  = encodeURIComponent(combined.slice(0, 1200));
-          var gr = await fetch('https://text.pollinations.ai/' + encoded + '?model=mistral&seed=' + Math.floor(Math.random()*9999));
-          if(gr.ok) raw = await gr.text();
-          else errMsg = 'Pollinations error ' + gr.status + ' — try GROQ (free at console.groq.com)';
-        } catch(e2){
-          errMsg = 'Pollinations network error — switch to GROQ for reliability';
-        }
+          var pollResp = await fetch('https://text.pollinations.ai/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'mistral',
+              messages: [
+                { role: 'system', content: sys },
+                { role: 'user',   content: prompt }
+              ],
+              seed: Math.floor(Math.random()*9999),
+              private: true
+            })
+          });
+          if(pollResp.ok){
+            var pt = await pollResp.text();
+            // May return plain text or JSON
+            try {
+              var pj = JSON.parse(pt);
+              var pm = (((pj.choices||[])[0])||{}).message || {};
+              raw = (typeof pm.content === 'string') ? pm.content : pt;
+            } catch(pe){ raw = pt; }
+            if(raw && raw.length > 5) pollOk = true;
+          }
+        } catch(e2){ /* both failed */ }
+      }
+
+      if(!pollOk && !raw){
+        errMsg = 'Pollinations unavailable right now. Get a free GROQ key at console.groq.com (takes 2 mins) for reliable AI access.';
       }
 
     } else if(p.fmt === 'openai'){
