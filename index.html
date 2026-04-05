@@ -662,89 +662,128 @@ textarea.mfld{resize:vertical;}
     <div style="font-size:10px;color:var(--mu);margin-bottom:10px;" id="sniper-count">No tokens yet — click CONNECT to start live feed</div>
     <!-- Filters bar -->
     <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
         <span style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--mu);letter-spacing:.15em;">🎯 FILTER CRITERIA</span>
+        <!-- Quick preset buttons -->
+        <button onclick="presetSniper('safe')" style="font-size:9px;border:1px solid var(--go);background:rgba(0,180,0,.1);color:var(--go);padding:2px 7px;border-radius:3px;cursor:pointer;">🛡 SAFE</button>
+        <button onclick="presetSniper('hot')" style="font-size:9px;border:1px solid var(--ac);background:rgba(99,102,241,.1);color:var(--ac);padding:2px 7px;border-radius:3px;cursor:pointer;">🔥 HOT</button>
+        <button onclick="presetSniper('sniper')" style="font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:2px 7px;border-radius:3px;cursor:pointer;">⚡ SNIPER</button>
         <button onclick="resetFilters()" style="margin-left:auto;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;">RESET</button>
         <button onclick="updateSniperTable()" style="font-size:9px;border:1px solid var(--ac);background:none;color:var(--ac);padding:2px 8px;border-radius:3px;cursor:pointer;font-weight:700;">APPLY ▸</button>
       </div>
+
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
 
-        <!-- MC Filter -->
+        <!-- MIN MC — new -->
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN MARKET CAP</div>
+          <select id="sn-minmc" class="fld" style="width:100%;">
+            <option value="0" selected>Any (no minimum)</option>
+            <option value="1000">MC ≥ $1K</option>
+            <option value="3000">MC ≥ $3K ✅</option>
+            <option value="5000">MC ≥ $5K</option>
+            <option value="10000">MC ≥ $10K</option>
+          </select>
+        </div>
+
+        <!-- MAX MC -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MAX MARKET CAP</div>
           <select id="sn-mc" class="fld" style="width:100%;">
+            <option value="5000">MC &lt; $5K 💎 Ultra early</option>
             <option value="10000">MC &lt; $10K 🔥 Hot</option>
             <option value="20000" selected>MC &lt; $20K ✅ Sweet spot</option>
             <option value="50000">MC &lt; $50K</option>
-            <option value="100000">MC &lt; $100K</option>
+            <option value="80000">MC &lt; $80K</option>
             <option value="999999">Any MC</option>
           </select>
         </div>
 
-        <!-- Age Filter -->
+        <!-- Max Age — more options -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MAX TOKEN AGE</div>
           <select id="sn-age" class="fld" style="width:100%;">
-            <option value="0.5">Age &lt; 30 min ⚡ Ultra fresh</option>
-            <option value="1">Age &lt; 1 hr 🔥 Fresh</option>
-            <option value="2" selected>Age &lt; 2 hrs ✅ Good</option>
+            <option value="0.083">Age &lt; 5 min 🚀 Just launched</option>
+            <option value="0.167">Age &lt; 10 min ⚡ Ultra fresh</option>
+            <option value="0.5" selected>Age &lt; 30 min ✅ Fresh</option>
+            <option value="1">Age &lt; 1 hr</option>
+            <option value="2">Age &lt; 2 hrs</option>
             <option value="6">Age &lt; 6 hrs</option>
             <option value="24">Age &lt; 24 hrs</option>
           </select>
         </div>
 
-        <!-- Min Buy Velocity -->
+        <!-- Min Buy Velocity — more options -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN BUY VELOCITY</div>
           <select id="sn-buyrate" class="fld" style="width:100%;">
             <option value="0">Any velocity</option>
-            <option value="2">≥ 2 buys/min</option>
-            <option value="5" selected>≥ 5 buys/min 🔥</option>
+            <option value="1">≥ 1 buy/min</option>
+            <option value="3" selected>≥ 3 buys/min ✅</option>
+            <option value="5">≥ 5 buys/min 🔥</option>
             <option value="10">≥ 10 buys/min ⚡</option>
-            <option value="20">≥ 20 buys/min 🚀</option>
+            <option value="15">≥ 15 buys/min 🚀</option>
+            <option value="25">≥ 25 buys/min 🌋 VIRAL</option>
           </select>
         </div>
 
-        <!-- Min Total Buys (Holder proxy) -->
+        <!-- Min Total Buys -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN TOTAL BUYS</div>
           <select id="sn-minbuys" class="fld" style="width:100%;">
             <option value="0">Any buys</option>
-            <option value="5" selected>≥ 5 buys</option>
+            <option value="3" selected>≥ 3 buys ✅</option>
+            <option value="5">≥ 5 buys</option>
             <option value="10">≥ 10 buys</option>
             <option value="25">≥ 25 buys</option>
             <option value="50">≥ 50 buys</option>
+            <option value="100">≥ 100 buys 🔥</option>
           </select>
         </div>
 
-        <!-- Min Volume -->
+        <!-- Min Volume — added 0.5 SOL -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN VOLUME (SOL)</div>
           <select id="sn-minvol" class="fld" style="width:100%;">
             <option value="0">Any volume</option>
-            <option value="1" selected>≥ 1 SOL</option>
+            <option value="0.5" selected>≥ 0.5 SOL ✅</option>
+            <option value="1">≥ 1 SOL</option>
+            <option value="3">≥ 3 SOL</option>
             <option value="5">≥ 5 SOL</option>
             <option value="10">≥ 10 SOL</option>
             <option value="50">≥ 50 SOL</option>
           </select>
         </div>
 
-        <!-- Min Initial Buy (Whale detector) -->
+        <!-- Min Init Buy — added max init buy warning -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN INIT BUY (SOL)</div>
           <select id="sn-initbuy" class="fld" style="width:100%;">
             <option value="0" selected>Any init buy</option>
-            <option value="1">≥ 1 SOL init buy</option>
+            <option value="0.5">≥ 0.5 SOL</option>
+            <option value="1">≥ 1 SOL</option>
             <option value="3">≥ 3 SOL 🐳 Whale</option>
             <option value="5">≥ 5 SOL 🐳🐳 Big whale</option>
           </select>
         </div>
 
+        <!-- Max Init Buy — NEW — filter bots/bundles -->
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MAX INIT BUY (SOL)</div>
+          <select id="sn-maxinitbuy" class="fld" style="width:100%;">
+            <option value="9999" selected>Any (no limit)</option>
+            <option value="10">≤ 10 SOL (hide bundles)</option>
+            <option value="5">≤ 5 SOL (strict)</option>
+            <option value="2">≤ 2 SOL (ultra strict)</option>
+          </select>
+        </div>
+
         <!-- Buy/Sell Ratio -->
         <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">BUY/SELL RATIO</div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN BUY/SELL RATIO</div>
           <select id="sn-bsratio" class="fld" style="width:100%;">
             <option value="0" selected>Any ratio</option>
+            <option value="0.5">≥ 50% buys</option>
             <option value="0.6">≥ 60% buys</option>
             <option value="0.75">≥ 75% buys 🔥</option>
             <option value="0.9">≥ 90% buys ⚡</option>
@@ -752,7 +791,31 @@ textarea.mfld{resize:vertical;}
           </select>
         </div>
 
-        <!-- Sort By -->
+        <!-- Min Bonding Curve % — NEW -->
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN BONDING CURVE</div>
+          <select id="sn-minbond" class="fld" style="width:100%;">
+            <option value="0" selected>Any progress</option>
+            <option value="10">≥ 10% bonded</option>
+            <option value="25">≥ 25% bonded</option>
+            <option value="50">≥ 50% bonded 🔥</option>
+            <option value="70">≥ 70% bonded ⚡ Pump zone</option>
+          </select>
+        </div>
+
+        <!-- Max Bonding Curve % — NEW -->
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MAX BONDING CURVE</div>
+          <select id="sn-maxbond" class="fld" style="width:100%;">
+            <option value="100" selected>Any (incl. graduated)</option>
+            <option value="95">≤ 95% (not graduated)</option>
+            <option value="80">≤ 80% ✅ Safe zone</option>
+            <option value="60">≤ 60% Early entry</option>
+            <option value="30">≤ 30% Very early</option>
+          </select>
+        </div>
+
+        <!-- Sort By — more options -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">SORT BY</div>
           <select id="sn-sort" class="fld" style="width:100%;">
@@ -762,16 +825,18 @@ textarea.mfld{resize:vertical;}
             <option value="buys">Total buys</option>
             <option value="buyrate">Buy velocity</option>
             <option value="mc">Market cap</option>
+            <option value="bond">Bonding curve %</option>
+            <option value="bsratio">Buy/Sell ratio</option>
           </select>
         </div>
 
       </div>
 
       <!-- Toggle filters row -->
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
         <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
           <input type="checkbox" id="sn-nodev" checked style="cursor:pointer;"/>
-          <span>Hide dev-selling tokens</span>
+          <span>🚫 Hide dev-selling</span>
         </label>
         <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
           <input type="checkbox" id="sn-whaleonly" style="cursor:pointer;"/>
@@ -779,20 +844,29 @@ textarea.mfld{resize:vertical;}
         </label>
         <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
           <input type="checkbox" id="sn-cleanonly" style="cursor:pointer;"/>
-          <span>✓ Clean tokens only (0 sells)</span>
+          <span>✓ Zero sells only</span>
         </label>
         <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
           <input type="checkbox" id="sn-dexonly" style="cursor:pointer;"/>
-          <span>💧 DexScreener confirmed only</span>
+          <span>💧 DexScreener only</span>
         </label>
-        <div style="margin-left:auto;">
-          <span style="font-size:9px;color:var(--mu);">Min score: </span>
-          <select id="sn-minscore" class="fld" style="width:80px;padding:3px 6px;">
+        <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="sn-nobots" style="cursor:pointer;"/>
+          <span>🤖 Hide bots (init&gt;15 SOL)</span>
+        </label>
+        <label style="font-size:10px;color:var(--mu);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="sn-momentum" style="cursor:pointer;"/>
+          <span>📈 Momentum only</span>
+        </label>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
+          <span style="font-size:9px;color:var(--mu);">Min score:</span>
+          <select id="sn-minscore" class="fld" style="width:75px;padding:3px 6px;">
             <option value="0">Any</option>
-            <option value="40" selected>≥ 40</option>
-            <option value="55">≥ 55</option>
+            <option value="40">≥ 40</option>
+            <option value="55" selected>≥ 55 ✅</option>
+            <option value="65">≥ 65 Silver</option>
             <option value="70">≥ 70</option>
-            <option value="80">≥ 80</option>
+            <option value="80">≥ 80 Gold</option>
           </select>
         </div>
       </div>
@@ -1746,9 +1820,11 @@ function connectPumpPortal(){
           img:       d.image || '',
           // Insider signals
           buyTimes:  [],          // timestamps of buys for velocity calc
-          whaleFlag: (d.initialBuy||0) > 5,   // initial buy > 5 SOL = whale/insider
-          bundled:   false,       // detected if multiple wallets same block
-          devSelling: false       // dev wallet selling early
+          volTimes:  [],          // [{ ts, sol }] for acceleration tracking
+          whaleFlag: (d.initialBuy||0) > 5,
+          bundled:   false,
+          devSelling: false,
+          alerted:   false        // cooldown — only alert once per token
         };
         liveTokens[ca] = token;
         liveTokenOrder.unshift(ca);
@@ -1766,23 +1842,35 @@ function connectPumpPortal(){
         var t = liveTokens[d.mint];
         if(d.txType === 'buy'){
           t.buys++;
-          t.buyTimes.push(Date.now());
-          // Keep only last 60s of buy times
-          var cutoff = Date.now() - 60000;
-          t.buyTimes = t.buyTimes.filter(function(ts){ return ts > cutoff; });
-          // Whale buy detection — any buy > 3 SOL
+          var nowTs = Date.now();
+          t.buyTimes.push(nowTs);
+          var cutoff60 = nowTs - 60000;
+          t.buyTimes = t.buyTimes.filter(function(ts){ return ts > cutoff60; });
+          // Volume acceleration tracking
+          if(!t.volTimes) t.volTimes = [];
+          t.volTimes.push({ ts: nowTs, sol: d.solAmount||0 });
+          t.volTimes = t.volTimes.filter(function(v){ return v.ts > cutoff60; });
+          // Whale buy detection
           if((d.solAmount||0) > 3) t.whaleFlag = true;
         } else {
           t.sells++;
-          // Dev selling early — dev wallet selling within 10 mins
-          var ageMin = (Date.now()-t.ts)/60000;
-          if(d.traderPublicKey && d.traderPublicKey === t.dev && ageMin < 10){
+          var ageMin2 = (Date.now()-t.ts)/60000;
+          if(d.traderPublicKey && d.traderPublicKey === t.dev && ageMin2 < 10){
             t.devSelling = true;
           }
         }
         t.mcSol = d.marketCapSol || t.mcSol;
         t.mcUSD = t.mcSol * getSolPrice();
         t.vol  += (d.solAmount || 0);
+
+        // ── ALERT COOLDOWN — fire sound+flash only once per token when score crosses 65 ──
+        if(!t.alerted){
+          var sc2 = tokenScore(t);
+          if(sc2 >= 65){
+            t.alerted = true;
+            fireScoreAlert(t, sc2);
+          }
+        }
         updateSniperTable();
       }
     } catch(e){ /* ignore parse errors */ }
@@ -1852,17 +1940,113 @@ function showFlash(msg){
   setTimeout(function(){ el.style.opacity='0'; }, 2000);
 }
 
+// ── SOUND + VISUAL ALERT when high-score token found ──────────
+function fireScoreAlert(t, sc){
+  var v = tokenVerdict(sc);
+  // Flash the sniper table border
+  var res = document.getElementById('sniper-res');
+  if(res){
+    res.style.boxShadow = '0 0 20px '+v.color;
+    setTimeout(function(){ res.style.boxShadow='none'; }, 1500);
+  }
+  // Big flash notification
+  var el = document.getElementById('sniper-flash');
+  if(el){
+    el.innerHTML = v.verdict+' <strong>$'+safeStr(t.tick)+'</strong> — Score '+sc;
+    el.style.background = v.bg;
+    el.style.color = v.color;
+    el.style.border = '1px solid '+v.color;
+    el.style.opacity='1';
+    setTimeout(function(){ el.style.opacity='0'; }, 4000);
+  }
+  // Audio alert — Web Audio API beep (no external file needed)
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var count = sc >= 80 ? 3 : 1; // triple beep for GOLD
+    for(var i=0; i<count; i++){
+      (function(idx){
+        setTimeout(function(){
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = sc >= 80 ? 880 : 660;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.3);
+        }, idx * 400);
+      })(i);
+    }
+  } catch(e){}
+}
+
 // Render the live table
 function resetFilters(){
-  var defs = { 'sn-mc':'20000','sn-age':'2','sn-buyrate':'5','sn-minbuys':'5',
-    'sn-minvol':'1','sn-initbuy':'0','sn-bsratio':'0','sn-sort':'score','sn-minscore':'40' };
+  var defs = {
+    'sn-minmc':'0','sn-mc':'20000','sn-age':'0.5',
+    'sn-buyrate':'3','sn-minbuys':'3','sn-minvol':'0.5',
+    'sn-initbuy':'0','sn-maxinitbuy':'9999',
+    'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
+    'sn-sort':'score','sn-minscore':'55'
+  };
   Object.keys(defs).forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.value = defs[id];
   });
-  ['sn-nodev','sn-whaleonly','sn-cleanonly','sn-dexonly'].forEach(function(id){
+  ['sn-nodev','sn-whaleonly','sn-cleanonly','sn-dexonly','sn-nobots','sn-momentum'].forEach(function(id){
     var el = document.getElementById(id);
-    if(el) el.checked = id === 'sn-nodev'; // only nodev checked by default
+    if(el) el.checked = (id === 'sn-nodev');
+  });
+  updateSniperTable();
+}
+
+// ── PRESET FILTER MODES ────────────────────────────────────
+function presetSniper(mode){
+  var sets = {
+    // SAFE — conservative, higher quality signals only
+    safe: {
+      'sn-minmc':'3000','sn-mc':'30000','sn-age':'0.5',
+      'sn-buyrate':'5','sn-minbuys':'10','sn-minvol':'2',
+      'sn-initbuy':'0','sn-maxinitbuy':'10',
+      'sn-bsratio':'0.75','sn-minbond':'10','sn-maxbond':'80',
+      'sn-sort':'score','sn-minscore':'65'
+    },
+    // HOT — high activity, catching momentum
+    hot: {
+      'sn-minmc':'0','sn-mc':'50000','sn-age':'0.167',
+      'sn-buyrate':'10','sn-minbuys':'5','sn-minvol':'1',
+      'sn-initbuy':'0','sn-maxinitbuy':'9999',
+      'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
+      'sn-sort':'buyrate','sn-minscore':'40'
+    },
+    // SNIPER — ultra early, fastest entries
+    sniper: {
+      'sn-minmc':'0','sn-mc':'10000','sn-age':'0.083',
+      'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0',
+      'sn-initbuy':'0','sn-maxinitbuy':'9999',
+      'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
+      'sn-sort':'age','sn-minscore':'0'
+    }
+  };
+  var s = sets[mode];
+  if(!s) return;
+  Object.keys(s).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = s[id];
+  });
+  // Checkboxes per mode
+  var chks = {
+    'sn-nodev':    true,
+    'sn-whaleonly': mode === 'safe',
+    'sn-cleanonly': mode === 'safe',
+    'sn-dexonly':   false,
+    'sn-nobots':    mode === 'safe' || mode === 'hot',
+    'sn-momentum':  mode === 'hot'
+  };
+  Object.keys(chks).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.checked = chks[id];
   });
   updateSniperTable();
 }
@@ -1871,51 +2055,74 @@ function getFilterVal(id, def){ var el=document.getElementById(id); return el ? 
 function getFilterChk(id){ var el=document.getElementById(id); return el ? el.checked : false; }
 
 function updateSniperTable(){
-  // ── Read all filters ──────────────────────────────────
+  var nowMs = Date.now();
+
+  // ── Read ALL filters ──────────────────────────────────
+  var minMC      = getFilterVal('sn-minmc', 0);
   var maxMC      = getFilterVal('sn-mc', 20000);
-  var maxAge     = getFilterVal('sn-age', 2);
+  var maxAge     = getFilterVal('sn-age', 0.5);
   var minBuyRate = getFilterVal('sn-buyrate', 0);
   var minBuys    = getFilterVal('sn-minbuys', 0);
   var minVol     = getFilterVal('sn-minvol', 0);
   var minInitBuy = getFilterVal('sn-initbuy', 0);
+  var maxInitBuy = getFilterVal('sn-maxinitbuy', 9999);
   var minBSRatio = getFilterVal('sn-bsratio', 0);
+  var minBond    = getFilterVal('sn-minbond', 0);
+  var maxBond    = getFilterVal('sn-maxbond', 100);
   var sortBy     = (document.getElementById('sn-sort')||{value:'score'}).value||'score';
   var minScore   = getFilterVal('sn-minscore', 0);
   var nodev      = getFilterChk('sn-nodev');
   var whaleOnly  = getFilterChk('sn-whaleonly');
   var cleanOnly  = getFilterChk('sn-cleanonly');
   var dexOnly    = getFilterChk('sn-dexonly');
-
-  var nowMs = Date.now();
+  var nobots     = getFilterChk('sn-nobots');
+  var momentum   = getFilterChk('sn-momentum');
 
   // ── Apply filters ─────────────────────────────────────
   var visible = liveTokenOrder
     .map(function(ca){ return liveTokens[ca]; })
     .filter(function(t){
       if(!t) return false;
-      var ageHrs = (nowMs - t.ts)/3600000;
-      if(ageHrs > maxAge) return false;
-      if(t.mcUSD > maxMC) return false;
-
-      // Buy velocity — buys in last 60s
+      var ageHrs  = (nowMs - t.ts) / 3600000;
+      var bondPct = Math.min((t.mcUSD / 90000) * 100, 100);
       var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-60000; }).length : 0;
-      if(buyRate < minBuyRate) return false;
+      var total   = t.buys + t.sells;
+      var bsr     = total > 0 ? t.buys / total : 0;
 
-      if(t.buys < minBuys) return false;
-      if(t.vol < minVol) return false;
-      if((t.initBuy||0) < minInitBuy) return false;
+      // Core range filters
+      if(ageHrs > maxAge)               return false;
+      if(t.mcUSD < minMC)               return false;
+      if(t.mcUSD > maxMC)               return false;
+      if(buyRate < minBuyRate)           return false;
+      if(t.buys < minBuys)              return false;
+      if(t.vol < minVol)                return false;
+      if((t.initBuy||0) < minInitBuy)   return false;
+      if((t.initBuy||0) > maxInitBuy)   return false;
 
       // Buy/sell ratio
-      if(minBSRatio > 0 && (t.buys + t.sells) > 0){
-        var bsr = t.buys / (t.buys + t.sells);
-        if(bsr < minBSRatio) return false;
-      }
+      if(minBSRatio > 0 && total > 0 && bsr < minBSRatio) return false;
+
+      // Bonding curve range
+      if(bondPct < minBond) return false;
+      if(bondPct > maxBond) return false;
 
       // Toggle filters
-      if(nodev && t.devSelling) return false;
-      if(whaleOnly && !t.whaleFlag) return false;
-      if(cleanOnly && t.sells > 0) return false;
-      if(dexOnly && !t.dexData) return false;
+      if(nodev && t.devSelling)         return false;
+      if(whaleOnly && !t.whaleFlag)     return false;
+      if(cleanOnly && t.sells > 0)      return false;
+      if(dexOnly && !t.dexData)         return false;
+
+      // Hide bots — init buy > 15 SOL = likely bundled bot launch
+      if(nobots && (t.initBuy||0) > 15) return false;
+
+      // Momentum only — volume accelerating in last 30s vs previous 30s
+      if(momentum && t.volTimes && t.volTimes.length > 0){
+        var cut30  = nowMs - 30000;
+        var cut60  = nowMs - 60000;
+        var vol30  = t.volTimes.filter(function(v){ return v.ts > cut30; }).reduce(function(s,v){ return s+v.sol; }, 0);
+        var vol60  = t.volTimes.filter(function(v){ return v.ts > cut60 && v.ts <= cut30; }).reduce(function(s,v){ return s+v.sol; }, 0);
+        if(vol30 <= vol60) return false; // not accelerating
+      }
 
       // Min score
       if(minScore > 0 && tokenScore(t) < minScore) return false;
@@ -1924,16 +2131,25 @@ function updateSniperTable(){
     });
 
   // ── Sort ──────────────────────────────────────────────
-  visible.sort(function(a,b){
+  visible.sort(function(a, b){
     if(sortBy === 'score')   return tokenScore(b) - tokenScore(a);
     if(sortBy === 'age')     return b.ts - a.ts;
     if(sortBy === 'vol')     return b.vol - a.vol;
     if(sortBy === 'buys')    return b.buys - a.buys;
-    if(sortBy === 'mc')      return a.mcUSD - b.mcUSD; // lowest first
-    if(sortBy === 'buyrate'){
-      var ra = a.buyTimes ? a.buyTimes.filter(function(ts){return ts>nowMs-60000;}).length : 0;
-      var rb = b.buyTimes ? b.buyTimes.filter(function(ts){return ts>nowMs-60000;}).length : 0;
+    if(sortBy === 'mc')      return a.mcUSD - b.mcUSD;
+    if(sortBy === 'bond'){
+      return (b.mcUSD/90000) - (a.mcUSD/90000);
+    }
+    if(sortBy === 'bsratio'){
+      var ta = a.buys+a.sells; var tb = b.buys+b.sells;
+      var ra = ta>0?a.buys/ta:0; var rb = tb>0?b.buys/tb:0;
       return rb - ra;
+    }
+    if(sortBy === 'buyrate'){
+      var nowMs2 = Date.now();
+      var ra2 = a.buyTimes ? a.buyTimes.filter(function(ts){return ts>nowMs2-60000;}).length : 0;
+      var rb2 = b.buyTimes ? b.buyTimes.filter(function(ts){return ts>nowMs2-60000;}).length : 0;
+      return rb2 - ra2;
     }
     return b.ts - a.ts;
   });
@@ -2018,29 +2234,39 @@ function updateSniperTable(){
     if(bondPct>=50) signals += '<span class="sig sig-ok">'+bondPct+'% GRAD</span>';
     if(!signals) signals = '<span style="font-size:9px;color:var(--mu);">new</span>';
 
+    // Verdict + confidence band
+    var verd = tokenVerdict(sc);
+
     html += '<tr class="trow" style="background:'+bg+';">'
-      // Score
-      +'<td><div style="font-family:Cinzel,serif;font-size:14px;font-weight:900;color:'+sc_c+';">'+sc+'</div>'
-        +'<div style="font-size:8px;color:var(--mu);">/ 99</div></td>'
+      // Score + verdict
+      +'<td style="min-width:70px;">'
+        +'<div style="font-family:Cinzel,serif;font-size:16px;font-weight:900;color:'+sc_c+';">'+sc+'</div>'
+        +'<div style="font-size:8px;color:var(--mu);">/ 99</div>'
+        +'<div style="margin-top:3px;font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;background:'+verd.bg+';color:'+verd.color+';white-space:nowrap;">'+verd.band+'</div>'
+      +'</td>'
       // Token name
       +'<td><div style="font-family:Cinzel,serif;font-size:12px;font-weight:900;color:var(--ac);">$'+safeStr(t.tick)+'</div>'
-         +'<div style="font-size:9px;color:var(--mu);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+safeStr(t.name)+'</div></td>'
-      // CA
-      +'<td style="font-size:10px;white-space:nowrap;"><span style="color:var(--ac);font-family:monospace;font-size:9px;">'+caShort+'</span>'
-        +'<button onclick="copySnipCA(\''+t.ca+'\')" style="display:block;margin-top:2px;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:1px 4px;border-radius:3px;cursor:pointer;">⧉ copy</button></td>'
+         +'<div style="font-size:9px;color:var(--mu);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+safeStr(t.name)+'</div>'
+         +'<div style="margin-top:3px;font-size:9px;font-weight:700;color:'+verd.color+';">'+verd.verdict+'</div>'
+      +'</td>'
+      // CA — BIG COPY BUTTON
+      +'<td style="white-space:nowrap;">'
+        +'<div style="font-family:monospace;font-size:8px;color:var(--mu);">'+caShort+'</div>'
+        +'<button onclick="copySnipCA(\''+t.ca+'\')" style="margin-top:3px;font-size:11px;font-weight:700;border:2px solid var(--ac);background:var(--ac);color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;width:100%;">⧉ COPY CA</button>'
+      +'</td>'
       // MC + bond bar
       +'<td><div style="color:var(--go);font-weight:700;font-size:12px;">$'+formatNum(t.mcUSD)+'</div>'
         +'<div style="font-size:8px;color:var(--mu);">'+bondPct+'% grad</div>'+bondBar+'</td>'
       // Age
       +'<td style="color:var(--tx);font-size:11px;white-space:nowrap;">'+ageStr+'</td>'
       // Buy velocity
-      +'<td><div style="font-weight:700;color:'+buyRateCol+';font-size:12px;">'+buyRate+'</div>'
-        +'<div style="font-size:9px;color:var(--mu);">per min</div></td>'
+      +'<td><div style="font-weight:700;color:'+buyRateCol+';font-size:13px;">'+buyRate+'</div>'
+        +'<div style="font-size:9px;color:var(--mu);">buys/min</div></td>'
       // B/S ratio
       +'<td><div style="font-weight:700;color:'+bsColor+';font-size:11px;">'+bsStr+'</div>'
         +'<div style="font-size:9px;color:'+bsColor+';">'+bsRatio+'% buy</div></td>'
       // Volume
-      +'<td style="font-size:11px;white-space:nowrap;"><span style="color:var(--mu);">'+t.vol.toFixed(2)+'</span><span style="font-size:9px;color:var(--mu);"> SOL</span></td>'
+      +'<td style="font-size:11px;white-space:nowrap;"><span style="color:'+(t.vol>=5?'var(--ac)':t.vol>=2?'var(--go)':'var(--mu)')+';">'+t.vol.toFixed(2)+'</span><span style="font-size:9px;color:var(--mu);"> SOL</span></td>'
       // Init buy
       +'<td style="font-size:10px;color:'+initCol+';white-space:nowrap;">'+initStr+'</td>'
       // Signals
@@ -2055,7 +2281,7 @@ function updateSniperTable(){
           +'<a href="'+trojanUrl+'" target="_blank" class="sn-btn sn-btn-mu">TROJAN↗</a>'
           +'<a href="'+photonUrl+'" target="_blank" class="sn-btn sn-btn-mu">PHOTON↗</a>'
         +'</div>'
-        +'<button onclick="addBasketCA(\''+t.ca+'\',\''+safeStr(t.tick)+'\')" class="sn-btn sn-btn-go" style="border:1px solid var(--go);background:none;cursor:pointer;width:100%;text-align:center;">+ $10 BASKET</button>'
+        +'<button onclick="addBasketCA(\''+t.ca+'\',\''+safeStr(t.tick)+'\')" class="sn-btn sn-btn-go" style="border:1px solid var(--go);background:rgba(0,180,0,.12);cursor:pointer;width:100%;text-align:center;font-weight:700;">+ $10 BASKET</button>'
       +'</div></td>'
       +'</tr>';
   });
@@ -2069,53 +2295,83 @@ function copySnipCA(ca){
   navigator.clipboard.writeText(ca).catch(function(){});
 }
 
-// Score 0-99 based on your 4 criteria + insider signals
+// ── VERDICT + CONFIDENCE BAND ─────────────────────────
+function tokenVerdict(sc){
+  if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
+  if(sc >= 65) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
+  if(sc >= 45) return { verdict:'👀 MONITOR',    band:'BRONZE', color:'var(--go)', bg:'rgba(138,92,0,.10)' };
+  return            { verdict:'❌ SKIP',         band:'WEAK',   color:'var(--mu)', bg:'transparent' };
+}
+
+// ── IMPROVED SCORING ENGINE (Phase 1) ─────────────────
 function tokenScore(t){
-  var sc = 25;
+  var sc = 0;
 
-  // ── CRITERION 1: MC < $20K ─────────────────────────
-  if(t.mcUSD < 3000)       sc += 20;
-  else if(t.mcUSD < 8000)  sc += 15;
-  else if(t.mcUSD < 15000) sc += 10;
-  else if(t.mcUSD < 20000) sc += 5;
+  var nowMs   = Date.now();
+  var ageMin  = (nowMs - t.ts) / 60000;
+  var total   = t.buys + t.sells;
+  var bsRatio = total > 0 ? t.buys / total : 0;
 
-  // ── CRITERION 2: VIEWS PROXY — Buy Velocity ────────
-  // Buys per minute in last 60s (real attention signal)
-  var buyRate = t.buyTimes ? t.buyTimes.length : 0;
-  if(buyRate >= 20)      sc += 20; // viral — equiv 500+ views
-  else if(buyRate >= 10) sc += 14;
-  else if(buyRate >= 5)  sc += 8;
-  else if(buyRate >= 2)  sc += 4;
+  // ── 1. MARKET CAP — sweet spot for pump potential ──────── max 20
+  if(t.mcUSD < 5000)        sc += 20;
+  else if(t.mcUSD < 10000)  sc += 16;
+  else if(t.mcUSD < 20000)  sc += 12;
+  else if(t.mcUSD < 40000)  sc += 6;
+  else if(t.mcUSD > 80000)  sc -= 5; // too close to graduation = less room
 
-  // ── CRITERION 3: HOLDER PROXY — Total unique buys ──
-  // Each buy is roughly one unique holder early on
-  if(t.buys >= 100) sc += 15;
-  else if(t.buys >= 50)  sc += 12;
-  else if(t.buys >= 20)  sc += 8;
-  else if(t.buys >= 10)  sc += 4;
+  // ── 2. BUY VELOCITY — buys per minute (last 60s) ────────── max 20
+  var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-60000; }).length : 0;
+  if(buyRate >= 25)      sc += 20; // insane velocity
+  else if(buyRate >= 15) sc += 16;
+  else if(buyRate >= 8)  sc += 11;
+  else if(buyRate >= 3)  sc += 6;
+  else if(buyRate >= 1)  sc += 2;
 
-  // ── CRITERION 4: AGE — recently launched ───────────
-  var ageMin = (Date.now()-t.ts)/60000;
-  if(ageMin < 2)        sc += 15;
-  else if(ageMin < 10)  sc += 10;
-  else if(ageMin < 30)  sc += 6;
-  else if(ageMin < 60)  sc += 2;
+  // ── 3. VOLUME ACCELERATION — total SOL traded ──────────── max 15
+  if(t.vol >= 20)       sc += 15;
+  else if(t.vol >= 10)  sc += 12;
+  else if(t.vol >= 5)   sc += 8;
+  else if(t.vol >= 2)   sc += 5;
+  else if(t.vol >= 0.5) sc += 2;
 
-  // ── INSIDER SIGNALS: BONUSES ───────────────────────
-  // Whale initial buy = smart money noticed it
-  if(t.whaleFlag) sc += 8;
-  // Strong buy/sell ratio = organic not dumped yet
-  if(t.buys > 3 && t.sells === 0) sc += 5;
-  else if(t.buys > 0 && (t.buys/(t.buys+t.sells)) > 0.8) sc += 3;
-  // Liquidity confirmed by DexScreener
-  if(t.dexData && t.liq > 1000) sc += 5;
-  else if(t.dexData && t.liq > 500) sc += 3;
+  // ── 4. BUY/SELL RATIO — organic vs dump signal ─────────── max 15
+  if(total >= 5){
+    if(bsRatio >= 0.95)      sc += 15; // nearly all buys
+    else if(bsRatio >= 0.85) sc += 12;
+    else if(bsRatio >= 0.70) sc += 8;
+    else if(bsRatio >= 0.50) sc += 4;
+    else sc -= 5; // more sells than buys
+  }
 
-  // ── INSIDER SIGNALS: PENALTIES ─────────────────────
-  // Dev selling early = biggest red flag
-  if(t.devSelling) sc -= 30;
-  // Very high sell ratio = people exiting
-  if(t.sells > t.buys && t.sells > 5) sc -= 15;
+  // ── 5. AGE — early = more upside ───────────────────────── max 12
+  if(ageMin < 1)        sc += 12; // under 1 min — ultra fresh
+  else if(ageMin < 3)   sc += 10;
+  else if(ageMin < 10)  sc += 7;
+  else if(ageMin < 30)  sc += 3;
+  else if(ageMin > 120) sc -= 5;  // stale
+
+  // ── 6. BONDING CURVE — graduation progress ─────────────── max 10
+  var bondPct = Math.min(Math.round((t.mcUSD / 90000) * 100), 100);
+  if(bondPct >= 70 && bondPct < 95)  sc += 10; // near graduation = pump zone
+  else if(bondPct >= 50)             sc += 7;
+  else if(bondPct >= 30)             sc += 4;
+
+  // ── 7. INITIAL BUY SIZE — insider/whale signal ─────────── max 8
+  if(t.initBuy >= 10)     sc += 8;  // whale opened
+  else if(t.initBuy >= 5) sc += 6;
+  else if(t.initBuy >= 2) sc += 3;
+
+  // ── BONUSES ────────────────────────────────────────────────
+  if(t.whaleFlag)                      sc += 6;  // whale buy detected
+  if(t.buys > 0 && t.sells === 0)      sc += 5;  // zero sells = pristine
+  if(t.dexData && t.liq > 2000)        sc += 5;  // strong liquidity
+  else if(t.dexData && t.liq > 1000)   sc += 3;
+  if(total >= 10 && bsRatio >= 0.90)   sc += 4;  // volume + clean ratio
+
+  // ── PENALTIES (risk guard) ─────────────────────────────────
+  if(t.devSelling)                          sc -= 35; // dev dump = instant fail
+  if(t.sells > t.buys && t.sells > 5)       sc -= 15; // mass exit
+  if(t.mcUSD > 85000)                        sc -= 10; // about to graduate
 
   return Math.max(0, Math.min(sc, 99));
 }
@@ -2303,15 +2559,20 @@ function massAddFromSniper(){
 
   // Only add tokens that match current filters (visible ones)
   var nowMs = Date.now();
-  var maxMC = parseFloat((document.getElementById('sn-mc')||{value:'20000'}).value) || 20000;
-  var maxAge = parseFloat((document.getElementById('sn-age')||{value:'2'}).value) || 2;
+  var maxMC  = parseFloat((document.getElementById('sn-mc')||{value:'20000'}).value) || 20000;
+  var minMC  = parseFloat((document.getElementById('sn-minmc')||{value:'0'}).value) || 0;
+  var maxAge = parseFloat((document.getElementById('sn-age')||{value:'0.5'}).value) || 0.5;
+  var minSc  = parseFloat((document.getElementById('sn-minscore')||{value:'55'}).value) || 0;
 
   var eligible = keys
     .map(function(ca){ return liveTokens[ca]; })
     .filter(function(t){
       if(!t || t.devSelling) return false;
       var ageHrs = (nowMs - t.ts) / 3600000;
-      return ageHrs <= maxAge && t.mcUSD <= maxMC;
+      if(ageHrs > maxAge) return false;
+      if(t.mcUSD < minMC || t.mcUSD > maxMC) return false;
+      if(minSc > 0 && tokenScore(t) < minSc) return false;
+      return true;
     })
     .slice(0, 10); // max 10 at once
 
