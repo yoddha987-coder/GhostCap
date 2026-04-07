@@ -2072,11 +2072,11 @@ function fireScoreAlert(t, sc){
 // Render the live table
 function resetFilters(){
   var defs = {
-    'sn-minmc':'0','sn-mc':'50000','sn-age':'2',
-    'sn-buyrate':'2','sn-minbuys':'3','sn-minvol':'0.5',
+    'sn-minmc':'0','sn-mc':'999999','sn-age':'24',
+    'sn-buyrate':'0','sn-minbuys':'0','sn-minvol':'0',
     'sn-initbuy':'0','sn-maxinitbuy':'9999',
     'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
-    'sn-sort':'score','sn-minscore':'40','sn-mingain':'0'
+    'sn-sort':'score','sn-minscore':'0','sn-mingain':'0'
   };
   Object.keys(defs).forEach(function(id){
     var el = document.getElementById(id);
@@ -2120,19 +2120,19 @@ function presetSniper(mode){
     // HOT — high activity, catching momentum
     // SAFE — conservative, higher quality
     safe: {
-      'sn-minmc':'1000','sn-mc':'30000','sn-age':'0.5',
-      'sn-buyrate':'3','sn-minbuys':'5','sn-minvol':'1',
-      'sn-initbuy':'0','sn-maxinitbuy':'10',
-      'sn-bsratio':'0.7','sn-minbond':'0','sn-maxbond':'85',
-      'sn-sort':'score','sn-minscore':'55','sn-mingain':'0'
+      'sn-minmc':'0','sn-mc':'50000','sn-age':'1',
+      'sn-buyrate':'2','sn-minbuys':'3','sn-minvol':'0.5',
+      'sn-initbuy':'0','sn-maxinitbuy':'15',
+      'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'90',
+      'sn-sort':'score','sn-minscore':'50','sn-mingain':'0'
     },
     // HOT — catch fast movers, balanced filters
     hot: {
-      'sn-minmc':'0','sn-mc':'50000','sn-age':'2',
-      'sn-buyrate':'2','sn-minbuys':'3','sn-minvol':'0.5',
+      'sn-minmc':'0','sn-mc':'999999','sn-age':'2',
+      'sn-buyrate':'0','sn-minbuys':'0','sn-minvol':'0',
       'sn-initbuy':'0','sn-maxinitbuy':'9999',
       'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
-      'sn-sort':'score','sn-minscore':'40','sn-mingain':'0'
+      'sn-sort':'score','sn-minscore':'0','sn-mingain':'0'
     },
     // SNIPER — ultra early, everything
     sniper: {
@@ -2151,11 +2151,11 @@ function presetSniper(mode){
   });
   // Checkboxes per mode
   var chks = {
-    'sn-nodev':     true,
-    'sn-whaleonly': mode === 'safe',
+    'sn-nodev':     mode !== 'sniper', // always on except full sniper mode
+    'sn-whaleonly': false,
     'sn-cleanonly': false,
     'sn-dexonly':   false,
-    'sn-nobots':    mode === 'safe',
+    'sn-nobots':    false,
     'sn-momentum':  false
   };
   Object.keys(chks).forEach(function(id){
@@ -2279,10 +2279,34 @@ function updateSniperTable(){
   });
   visible = visible.slice(0, 50);
 
-  // ── Status ────────────────────────────────────────────
+  // ── Status + debug ────────────────────────────────────
   var total = liveTokenOrder.length;
   var countEl = document.getElementById('sniper-count');
-  if(countEl) countEl.textContent = total+' tokens received · '+visible.length+' match your filters';
+  if(countEl){
+    if(visible.length === 0 && total > 0){
+      // Debug — count why tokens fail
+      var failAge=0, failMC=0, failDev=0, failScore=0, failOther=0;
+      liveTokenOrder.forEach(function(ca){
+        var t = liveTokens[ca];
+        if(!t) return;
+        var ageHrs = (nowMs-t.ts)/3600000;
+        if(ageHrs > maxAge){ failAge++; return; }
+        if(t.mcUSD > maxMC || t.mcUSD < minMC){ failMC++; return; }
+        if(nodev && t.devSelling){ failDev++; return; }
+        if(minScore > 0 && tokenScore(t) < minScore){ failScore++; return; }
+        failOther++;
+      });
+      countEl.innerHTML = '<span style="color:var(--dn);">'+total+' tokens · 0 match — '
+        +(failAge?' age:'+failAge:'')
+        +(failMC?' mc:'+failMC:'')
+        +(failDev?' devsell:'+failDev:'')
+        +(failScore?' score:'+failScore:'')
+        +(failOther?' other:'+failOther:'')
+        +' · <button onclick="presetSniper(\'sniper\')" style="color:var(--ac);background:none;border:none;cursor:pointer;font-size:10px;text-decoration:underline;">Click SNIPER preset to see all</button></span>';
+    } else {
+      countEl.textContent = total+' tokens received · '+visible.length+' match your filters';
+    }
+  }
 
   if(!visible.length){
     document.getElementById('sniper-res').innerHTML='';
