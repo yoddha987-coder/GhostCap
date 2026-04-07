@@ -2882,12 +2882,36 @@ var PUMP_SELL_FEE = 0.01;  // 1% sell fee
 var PER_TRADE     = 10;    // $10 per trade
 // Each basket entry: { ca, tick, entry, current, amount, status, addedAt, loading, priceError }
 
+// ── GLOBAL TOAST NOTIFICATION ──────────────────────────────
+function showToast(msg, type){
+  var el = document.getElementById('gsx-toast');
+  if(!el) return;
+  var colors = { ok:'#16a34a', err:'#dc2626', warn:'#d97706', info:'#4f46e5' };
+  el.textContent = msg;
+  el.style.background = colors[type||'info'] || colors.info;
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(0)';
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+  }, 3000);
+}
+
 function addBasket(){
   var ca     = document.getElementById('bsk-ca').value.trim();
   var entry  = parseFloat(document.getElementById('bsk-entry').value)||0;
   var status = (document.getElementById('bsk-status')||{value:'open'}).value||'open';
-  if(!ca) return;
-  var tick = ca.length > 20 ? ca.slice(0,6)+'...' : ca;
+  if(!ca){
+    showToast('⚠ Paste a Contract Address first', 'err');
+    return;
+  }
+  // Basic CA validation
+  if(ca.length < 32 || ca.length > 44){
+    showToast('⚠ Invalid CA — must be 32-44 characters', 'err');
+    return;
+  }
+  var tick = ca.slice(0,6)+'..'+ca.slice(-4);
   addBasketCA(ca, tick, entry, status);
   document.getElementById('bsk-ca').value='';
   document.getElementById('bsk-entry').value='';
@@ -2931,24 +2955,33 @@ function fetchPumpPrice(ca, cb){
 
 function addBasketCA(ca, tick, entryPrice, status){
   if(basket.find(function(b){ return b.ca===ca; })){
-    showBasketMsg('Already in basket: $'+tick); return;
+    showToast('Already in basket: $'+tick, 'warn');
+    showBasketMsg('Already in basket: $'+tick);
+    return;
   }
   status = status || 'open';
   var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0,
     amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false };
   basket.push(entry);
+  showToast('⏳ Adding $'+safeStr(tick)+' — fetching price...', 'info');
   renderBasket();
 
   if(entryPrice && entryPrice > 0){
     entry.entry = entryPrice; entry.current = entryPrice; entry.loading = false;
+    showToast('✅ $'+safeStr(tick)+' added at $'+entryPrice.toFixed(8), 'ok');
     renderBasket(); return;
   }
   fetchTokenPrice(ca, function(price){
     entry.entry = price; entry.current = price; entry.loading = false;
     if(price === 0) entry.priceError = true;
     renderBasket();
-    if(price > 0) showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
-    else          showBasketMsg('⚠ $'+safeStr(tick)+' — price fetching, try refresh');
+    if(price > 0){
+      showToast('✅ $'+safeStr(tick)+' added at $'+price.toFixed(8), 'ok');
+      showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
+    } else {
+      showToast('⚠ $'+safeStr(tick)+' added — price pending (auto-retry)', 'warn');
+      showBasketMsg('⚠ $'+safeStr(tick)+' — price fetching, try refresh');
+    }
   });
 }
 
@@ -3543,5 +3576,7 @@ if(location.protocol === 'https:'){
   document.head.appendChild(_ps);
 }
 </script>
+<!-- ── GLOBAL TOAST ── -->
+<div id="gsx-toast" style="position:fixed;top:16px;right:16px;z-index:99999;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;color:#fff;background:#4f46e5;box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0;transform:translateY(-10px);transition:all .3s ease;pointer-events:none;max-width:320px;"></div>
 </body>
 </html>
