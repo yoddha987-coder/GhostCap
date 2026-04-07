@@ -1846,6 +1846,7 @@ function connectPumpPortal(){
   ppWS.onopen = function(){
     ppConnected = true;
     ppWS.send(JSON.stringify({ method:'subscribeNewToken' }));
+    startAutoRefresh();
     setStatus('🟢 LIVE — Receiving new tokens from pump.fun','var(--ac)');
     document.getElementById('sniper-status').textContent='🟢 CONNECTED';
     document.getElementById('sniper-load').style.display='none';
@@ -2071,11 +2072,11 @@ function fireScoreAlert(t, sc){
 // Render the live table
 function resetFilters(){
   var defs = {
-    'sn-minmc':'0','sn-mc':'20000','sn-age':'0.5',
-    'sn-buyrate':'3','sn-minbuys':'3','sn-minvol':'0.5',
+    'sn-minmc':'0','sn-mc':'50000','sn-age':'2',
+    'sn-buyrate':'2','sn-minbuys':'3','sn-minvol':'0.5',
     'sn-initbuy':'0','sn-maxinitbuy':'9999',
     'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
-    'sn-sort':'score','sn-minscore':'55'
+    'sn-sort':'score','sn-minscore':'40','sn-mingain':'0'
   };
   Object.keys(defs).forEach(function(id){
     var el = document.getElementById(id);
@@ -2117,20 +2118,29 @@ function presetSniper(mode){
       'sn-sort':'score','sn-minscore':'65'
     },
     // HOT — high activity, catching momentum
-    hot: {
-      'sn-minmc':'0','sn-mc':'50000','sn-age':'0.167',
-      'sn-buyrate':'10','sn-minbuys':'5','sn-minvol':'1',
-      'sn-initbuy':'0','sn-maxinitbuy':'9999',
-      'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
-      'sn-sort':'buyrate','sn-minscore':'40'
+    // SAFE — conservative, higher quality
+    safe: {
+      'sn-minmc':'1000','sn-mc':'30000','sn-age':'0.5',
+      'sn-buyrate':'3','sn-minbuys':'5','sn-minvol':'1',
+      'sn-initbuy':'0','sn-maxinitbuy':'10',
+      'sn-bsratio':'0.7','sn-minbond':'0','sn-maxbond':'85',
+      'sn-sort':'score','sn-minscore':'55','sn-mingain':'0'
     },
-    // SNIPER — ultra early, fastest entries
-    sniper: {
-      'sn-minmc':'0','sn-mc':'10000','sn-age':'0.083',
-      'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0',
+    // HOT — catch fast movers, balanced filters
+    hot: {
+      'sn-minmc':'0','sn-mc':'50000','sn-age':'2',
+      'sn-buyrate':'2','sn-minbuys':'3','sn-minvol':'0.5',
       'sn-initbuy':'0','sn-maxinitbuy':'9999',
       'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
-      'sn-sort':'age','sn-minscore':'0'
+      'sn-sort':'score','sn-minscore':'40','sn-mingain':'0'
+    },
+    // SNIPER — ultra early, everything
+    sniper: {
+      'sn-minmc':'0','sn-mc':'999999','sn-age':'24',
+      'sn-buyrate':'0','sn-minbuys':'0','sn-minvol':'0',
+      'sn-initbuy':'0','sn-maxinitbuy':'9999',
+      'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
+      'sn-sort':'age','sn-minscore':'0','sn-mingain':'0'
     }
   };
   var s = sets[mode];
@@ -2141,12 +2151,12 @@ function presetSniper(mode){
   });
   // Checkboxes per mode
   var chks = {
-    'sn-nodev':    true,
+    'sn-nodev':     true,
     'sn-whaleonly': mode === 'safe',
-    'sn-cleanonly': mode === 'safe',
+    'sn-cleanonly': false,
     'sn-dexonly':   false,
-    'sn-nobots':    mode === 'safe' || mode === 'hot',
-    'sn-momentum':  mode === 'hot'
+    'sn-nobots':    mode === 'safe',
+    'sn-momentum':  false
   };
   Object.keys(chks).forEach(function(id){
     var el = document.getElementById(id);
@@ -2810,6 +2820,15 @@ function tokenScore(t){
   if(t.mcUSD > 85000)                        sc -= 10; // about to graduate
 
   return Math.max(0, Math.min(sc, 99));
+}
+
+// ── AUTO-REFRESH table every 30s ──────────────────────────
+var _refreshTimer = null;
+function startAutoRefresh(){
+  if(_refreshTimer) clearInterval(_refreshTimer);
+  _refreshTimer = setInterval(function(){
+    if(ppConnected) updateSniperTable();
+  }, 30000);
 }
 
 function runSniper(){
