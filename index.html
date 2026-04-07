@@ -908,25 +908,27 @@ textarea.mfld{resize:vertical;}
       <div class="lsub">Checking DexScreener for new Solana pairs</div>
     </div>
 
-    <!-- ── GOOD MOVERS PANEL ── -->
-    <div id="fast-movers-panel" style="display:none;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:900;letter-spacing:.15em;">
-            <span id="gm-title-snipe" style="color:#f59e0b;">🎯 GOOD MOVERS</span>
-            <span id="gm-title-revival" style="color:#a78bfa;display:none;">🌙 REVIVAL ALERTS</span>
-          </span>
-          <span id="gm-badge" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
+    <!-- ── GOOD MOVERS — always visible header + toggle ── -->
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <!-- Title -->
+        <span style="font-family:'Cinzel','Georgia',serif;font-size:10px;font-weight:900;letter-spacing:.12em;">
+          <span id="gm-title-snipe" style="color:#f59e0b;">🎯 GOOD MOVERS</span>
+          <span id="gm-title-revival" style="color:#a78bfa;display:none;">🌙 REVIVAL ALERTS</span>
+        </span>
+        <span id="gm-badge" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
+        <!-- Mode toggle buttons — always visible -->
+        <div style="display:flex;gap:4px;">
+          <button id="gm-mode-snipe" onclick="setGmMode('snipe')" style="font-size:10px;font-weight:700;background:#f59e0b;color:#000;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">🎯 SNIPE</button>
+          <button id="gm-mode-revival" onclick="setGmMode('revival')" style="font-size:10px;background:none;color:var(--mu);border:1px solid var(--bd);padding:4px 12px;border-radius:4px;cursor:pointer;">🌙 REVIVAL</button>
         </div>
-        <!-- Mode toggle -->
-        <div style="display:flex;gap:4px;margin-left:4px;">
-          <button id="gm-mode-snipe" onclick="setGmMode('snipe')" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;border:none;padding:2px 9px;border-radius:3px;cursor:pointer;">🎯 SNIPE</button>
-          <button id="gm-mode-revival" onclick="setGmMode('revival')" style="font-size:9px;background:none;color:var(--mu);border:1px solid var(--bd);padding:2px 9px;border-radius:3px;cursor:pointer;">🌙 REVIVAL</button>
-        </div>
-        <span id="gm-desc" style="font-size:9px;color:var(--mu);">Fresh · Pumping · Clean · SILVER+</span>
-        <button onclick="applyGoodMoversFilter()" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;" id="gm-showall">Show All ▸</button>
+        <span id="gm-desc" style="font-size:9px;color:var(--mu);">Connect Sniper to see live movers</span>
+        <button onclick="applyGoodMoversFilter()" id="gm-showall" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Show All ▸</button>
       </div>
-      <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      <!-- Cards — hidden until tokens qualify -->
+      <div id="fast-movers-panel" style="display:none;margin-top:10px;">
+        <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      </div>
     </div>
 
     <div id="sniper-res"></div>
@@ -2490,18 +2492,8 @@ function renderFastMovers(){
     })
     .slice(0, 8);
 
-  if(!movers.length){
-    panel.style.display = 'none';
-    return;
-  }
-
-  panel.style.display = 'block';
-  if(badge){
-    badge.style.display = 'inline';
-    badge.textContent = movers.length + ' NOW';
-  }
-
-  cards.innerHTML = movers.map(function(t){
+  // render snipe cards inline below
+  var snipeCards = movers.map(function(t){
     var g1m    = getMcGain(t, 60);
     var g5m    = getMcGain(t, 300);
     var sc     = tokenScore(t);
@@ -2661,7 +2653,8 @@ function renderFastMovers(){
   var panel = document.getElementById('fast-movers-panel');
   var cards = document.getElementById('fast-movers-cards');
   var badge = document.getElementById('gm-badge');
-  if(!panel || !cards) return;
+  var desc  = document.getElementById('gm-desc');
+  if(!cards) return;
 
   var movers = [];
 
@@ -2722,11 +2715,14 @@ function renderFastMovers(){
     }).join('');
   }
 
+  // Show/hide cards panel
   if(!movers.length){
-    panel.style.display = 'none';
+    if(panel) panel.style.display = 'none';
+    if(desc) desc.textContent = _gmMode === 'snipe' ? 'Connect Sniper to see live movers' : 'No revival signals yet — waiting for old tokens to wake up';
     return;
   }
-  panel.style.display = 'block';
+  if(panel) panel.style.display = 'block';
+  if(desc) desc.textContent = _gmMode === 'snipe' ? 'Fresh · Pumping · Clean · SILVER+' : 'Old tokens waking up · Volume spike detected';
   if(badge){
     badge.style.display = 'inline';
     badge.textContent = movers.length + ' NOW';
