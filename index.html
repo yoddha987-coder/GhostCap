@@ -2454,137 +2454,23 @@ function drawSparkChart(t, width, height, color){
 }
 
 // ── GOOD MOVERS — fresh + pumping + clean + scored ──────────
-function renderFastMovers(){
-  var nowMs = Date.now();
-  var panel = document.getElementById('fast-movers-panel');
-  var cards = document.getElementById('fast-movers-cards');
-  var badge = document.getElementById('gm-badge');
-  if(!panel || !cards) return;
 
-  // ── GOOD MOVER CRITERIA (all must pass) ──────────────────
-  var movers = liveTokenOrder
-    .map(function(ca){ return liveTokens[ca]; })
-    .filter(function(t){
-      if(!t) return false;
-      // Hard rules
-      var ageMin = (nowMs - t.ts) / 60000;
-      if(ageMin > 30)              return false; // max 30 min old
-      if(t.devSelling)             return false; // no dev dump
-      if(t.mcUSD > 60000)          return false; // still room to pump
-      if((t.initBuy||0) > 15)      return false; // no bot bundles
-      var total = t.buys + t.sells;
-      var bsr = total > 0 ? t.buys/total : 1;
-      if(total > 3 && bsr < 0.6)   return false; // mostly selling
-      // Must be actually pumping
-      var g1m = getMcGain(t, 60);
-      var g5m = getMcGain(t, 300);
-      if(g1m < 20 && g5m < 40)     return false; // not moving enough
-      // Must have minimum score
-      var sc = tokenScore(t);
-      if(sc < 45)                  return false; // too weak
-      return true;
-    })
-    .sort(function(a, b){
-      // Sort: weight recent gain heavily
-      var ga = getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3;
-      var gb = getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3;
-      return gb - ga;
-    })
-    .slice(0, 8);
+// ── GM MODE STATE + TOGGLE ──────────────────────────────────
+var _gmMode = 'snipe';
 
-  // render snipe cards inline below
-  var snipeCards = movers.map(function(t){
-    var g1m    = getMcGain(t, 60);
-    var g5m    = getMcGain(t, 300);
-    var sc     = tokenScore(t);
-    var verd   = tokenVerdict(sc);
-    var isGold = sc >= 80;
-    var cardCls = isGold ? 'gm-card' : 'gm-card silver';
-    var color   = isGold ? '#f59e0b' : '#818cf8';
-    var ageMin  = Math.floor((nowMs - t.ts) / 60000);
-    var ageSec  = Math.floor((nowMs - t.ts) / 1000);
-    var ageStr  = ageMin < 1 ? ageSec+'s ago' : ageMin+'m ago';
-    var total   = t.buys + t.sells;
-    var bsr     = total > 0 ? Math.round(t.buys/total*100) : 100;
-    var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
-    var photonUrl = 'https://photon-sol.tinyastro.io/en/r/@gmgnsol/'+t.ca;
-
-    // Token image — from pump.fun IPFS if available
-    var imgHtml = t.img
-      ? '<img src="'+safeStr(t.img)+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
-      : '<div style="width:32px;height:32px;border-radius:6px;background:var(--a1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎯</div>';
-
-    // Spark chart
-    var spark = drawSparkChart(t, 185, 52, color);
-
-    // Gain display
-    var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
-    var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
-
-    return '<div class="'+cardCls+'" onclick="copySnipCA(\''+t.ca+'\')" title="Click to copy CA">'
-      // Spark chart at top
-      + spark
-      // Body
-      +'<div class="gm-body">'
-        // Header row: image + name
-        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'
-          + imgHtml
-          +'<div style="overflow:hidden;flex:1;">'
-            +'<div class="gm-tick">$'+safeStr(t.tick)+'</div>'
-            +'<div class="gm-name">'+safeStr(t.name).slice(0,18)+'</div>'
-          +'</div>'
-          // Score badge
-          +'<div style="text-align:right;">'
-            +'<div style="font-size:14px;font-weight:900;color:'+color+';">'+sc+'</div>'
-            +'<div style="font-size:7px;color:var(--mu);">'+verd.band+'</div>'
-          +'</div>'
-        +'</div>'
-        // Gain + age
-        +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">'
-          +'<div class="gm-gain" style="color:'+color+';">'+gainDisp+'</div>'
-          +'<div style="font-size:9px;color:var(--mu);">/1min · '+ageStr+'</div>'
-        +'</div>'
-        // Stats grid
-        +'<div class="gm-stats">'
-          +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong></div>'
-          +'<div>5m <strong style="color:'+color+';">'+gain5Disp+'</strong></div>'
-          +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
-          +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
-        +'</div>'
-        // Verdict
-        +'<div style="font-size:9px;color:'+color+';font-weight:700;margin-bottom:6px;">'+verd.verdict+'</div>'
-        // Action buttons
-        +'<div class="gm-actions">'
-          +'<button class="gm-btn gm-btn-copy" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
-          +'<a href="'+trojanUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">BUY↗</a>'
-        +'</div>'
-      +'</div>'
-    +'</div>';
-  }).join('');
-}
-
-// ── GM MODE TOGGLE ──────────────────────────────────────────
-var _gmMode = 'snipe'; // 'snipe' or 'revival'
 function setGmMode(mode){
   _gmMode = mode;
   var isSnipe = mode === 'snipe';
-  // Button styles
   var bs = document.getElementById('gm-mode-snipe');
   var br = document.getElementById('gm-mode-revival');
-  if(bs){ bs.style.background = isSnipe ? '#f59e0b' : 'none'; bs.style.color = isSnipe ? '#000' : 'var(--mu)'; bs.style.border = isSnipe ? 'none' : '1px solid var(--bd)'; }
-  if(br){ br.style.background = !isSnipe ? '#a78bfa' : 'none'; br.style.color = !isSnipe ? '#000' : 'var(--mu)'; br.style.border = !isSnipe ? 'none' : '1px solid var(--bd)'; }
-  // Title
+  if(bs){ bs.style.background = isSnipe ? '#f59e0b' : 'none'; bs.style.color = isSnipe ? '#000' : 'var(--mu)'; bs.style.border = isSnipe ? 'none' : '1px solid var(--bd)'; bs.style.fontWeight = isSnipe ? '700' : 'normal'; }
+  if(br){ br.style.background = !isSnipe ? '#a78bfa' : 'none'; br.style.color = !isSnipe ? '#000' : 'var(--mu)'; br.style.border = !isSnipe ? 'none' : '1px solid var(--bd)'; br.style.fontWeight = !isSnipe ? '700' : 'normal'; }
   var ts = document.getElementById('gm-title-snipe');
   var tr = document.getElementById('gm-title-revival');
   if(ts) ts.style.display = isSnipe ? 'inline' : 'none';
   if(tr) tr.style.display = !isSnipe ? 'inline' : 'none';
-  // Desc
-  var desc = document.getElementById('gm-desc');
-  if(desc) desc.textContent = isSnipe ? 'Fresh · Pumping · Clean · SILVER+' : 'Old tokens waking up · Volume spike · Sudden pump';
-  // Show all button
   var btn = document.getElementById('gm-showall');
-  if(btn){ btn.style.borderColor = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.color = isSnipe ? '#f59e0b' : '#a78bfa'; }
-  // Badge color
+  if(btn){ btn.style.borderColor = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.color = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.background = isSnipe ? 'rgba(245,158,11,.1)' : 'rgba(167,139,250,.1)'; }
   var badge = document.getElementById('gm-badge');
   if(badge) badge.style.background = isSnipe ? '#f59e0b' : '#a78bfa';
   renderFastMovers();
@@ -2671,10 +2557,8 @@ function renderFastMovers(){
         var total = t.buys + t.sells;
         var bsr = total > 0 ? t.buys/total : 1;
         if(total > 3 && bsr < 0.6) return false;
-        var g1m = getMcGain(t, 60);
-        var g5m = getMcGain(t, 300);
-        if(g1m < 20 && g5m < 40)  return false; // must be moving
-        return tokenScore(t) >= 45;
+        // Show by score + activity — gain is bonus not requirement
+        return tokenScore(t) >= 50;
       })
       .sort(function(a, b){
         return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
@@ -2697,10 +2581,10 @@ function renderFastMovers(){
         if(!t || t.devSelling) return false;
         var ageHrs = (Date.now() - t.ts) / 3600000;
         if(ageHrs < 0.5) return false; // must be at least 30 min old
-        var volSpike = getVolSpike(t, 300);
-        var g5m = getMcGain(t, 300);
-        if(volSpike < 50 && g5m < 20) return false; // nothing happening
-        return getRevivalScore(t) >= 40;
+        // Any token older than 30min with buying activity
+        var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > Date.now()-60000; }).length : 0;
+        if(buyRate < 1 && t.buys < 5) return false; // nothing happening
+        return getRevivalScore(t) >= 30;
       })
       .sort(function(a, b){
         return getRevivalScore(b) - getRevivalScore(a);
