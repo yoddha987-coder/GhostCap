@@ -2895,15 +2895,36 @@ function addBasket(){
 
 // Fetch real price from DexScreener
 function fetchTokenPrice(ca, cb){
+  // Primary: DexScreener
   fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
     .then(function(r){ return r.json(); })
     .then(function(d){
       var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
-      if(!pairs.length){ cb(0); return; }
+      if(!pairs.length){
+        // Fallback: pump.fun bonding curve API
+        fetchPumpPrice(ca, cb);
+        return;
+      }
       pairs.sort(function(a,b){
         return ((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0);
       });
-      cb(parseFloat(pairs[0].priceUsd||0));
+      var price = parseFloat(pairs[0].priceUsd||0);
+      if(price > 0){ cb(price); return; }
+      fetchPumpPrice(ca, cb);
+    })
+    .catch(function(){ fetchPumpPrice(ca, cb); });
+}
+
+// Fallback price from pump.fun coin API
+function fetchPumpPrice(ca, cb){
+  fetch('https://frontend-api-v3.pump.fun/coins/'+ca)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      // Calculate price from bonding curve: priceUsd = market_cap / total_supply
+      var usdMc = d.usd_market_cap || 0;
+      var supply = 1000000000; // pump.fun always 1B supply
+      if(usdMc > 0){ cb(usdMc / supply); return; }
+      cb(0);
     })
     .catch(function(){ cb(0); });
 }
@@ -3143,8 +3164,20 @@ function refreshBasketPrices(){
 function refreshSinglePrice(ca){
   var b = basket.find(function(x){ return x.ca===ca; });
   if(!b) return;
+  b.loading = true;
+  renderBasket();
   fetchTokenPrice(ca, function(price){
-    if(price > 0){ b.current = price; renderBasket(); renderDaySummary(); }
+    if(price > 0){
+      if(b.entry === 0 || b.priceError) b.entry = price; // fix missing entry
+      b.current    = price;
+      b.priceError = false;
+      b.loading    = false;
+    } else {
+      b.priceError = true;
+      b.loading    = false;
+    }
+    renderBasket();
+    renderDaySummary();
   });
 }
 
@@ -3152,8 +3185,25 @@ var basketRefreshTimer = null;
 function startBasketRefresh(){
   if(basketRefreshTimer) clearInterval(basketRefreshTimer);
   basketRefreshTimer = setInterval(function(){
-    if(basket.length > 0) refreshBasketPrices();
-  }, 30000);
+    if(!basket.length) return;
+    // Refresh open positions AND retry price errors
+    basket.filter(function(b){
+      return b.status==='open' || b.priceError || b.entry===0;
+    }).forEach(function(b, i){
+      setTimeout(function(){
+        fetchTokenPrice(b.ca, function(price){
+          if(price > 0){
+            if(b.entry === 0 || b.priceError) b.entry = price; // set entry if missing
+            b.current    = price;
+            b.priceError = false;
+            b.loading    = false;
+          }
+          renderBasket();
+          renderDaySummary();
+        });
+      }, i * 400); // stagger 400ms each
+    });
+  }, 15000); // every 15 seconds
 }
 startBasketRefresh();
 
@@ -3383,7 +3433,10 @@ function renderBasket(){
         )
         +'<a href="'+pumpUrl+'" target="_blank" style="font-size:10px;color:var(--ac);">PUMP↗</a>'
         +'<a href="'+dexUrl+'" target="_blank" style="font-size:10px;color:var(--go);">DEX↗</a>'
-        +(b.priceError?'<span style="font-size:9px;color:var(--dn);">⚠ price not found</span>':'')
+        +(b.priceError
+          ? '<button onclick="refreshSinglePrice(\''+b.ca+'\')" style="font-size:9px;border:1px solid var(--dn);background:none;color:var(--dn);padding:2px 7px;border-radius:3px;cursor:pointer;">🔄 Retry Price</button><span style="font-size:9px;color:var(--mu);"> auto-retries every 15s</span>'
+          : ''
+        )
       +'</div>'
     +'</div>';
   }).join('');
