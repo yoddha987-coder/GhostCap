@@ -911,12 +911,20 @@ textarea.mfld{resize:vertical;}
     <!-- ── GOOD MOVERS PANEL ── -->
     <div id="fast-movers-panel" style="display:none;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <div>
-          <span style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:900;color:#f59e0b;letter-spacing:.15em;">🚀 GOOD MOVERS</span>
-          <span id="gm-badge" style="margin-left:6px;font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:900;letter-spacing:.15em;">
+            <span id="gm-title-snipe" style="color:#f59e0b;">🎯 GOOD MOVERS</span>
+            <span id="gm-title-revival" style="color:#a78bfa;display:none;">🌙 REVIVAL ALERTS</span>
+          </span>
+          <span id="gm-badge" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
         </div>
-        <span style="font-size:9px;color:var(--mu);">Fresh · Pumping · Clean · SILVER+ score</span>
-        <button onclick="applyGoodMoversFilter()" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Show All ▸</button>
+        <!-- Mode toggle -->
+        <div style="display:flex;gap:4px;margin-left:4px;">
+          <button id="gm-mode-snipe" onclick="setGmMode('snipe')" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;border:none;padding:2px 9px;border-radius:3px;cursor:pointer;">🎯 SNIPE</button>
+          <button id="gm-mode-revival" onclick="setGmMode('revival')" style="font-size:9px;background:none;color:var(--mu);border:1px solid var(--bd);padding:2px 9px;border-radius:3px;cursor:pointer;">🌙 REVIVAL</button>
+        </div>
+        <span id="gm-desc" style="font-size:9px;color:var(--mu);">Fresh · Pumping · Clean · SILVER+</span>
+        <button onclick="applyGoodMoversFilter()" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;" id="gm-showall">Show All ▸</button>
       </div>
       <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
     </div>
@@ -1867,19 +1875,25 @@ function connectPumpPortal(){
           dexData:   false,
           img:       d.image || '',
           // Insider signals
-          buyTimes:  [],          // timestamps of buys for velocity calc
-          volTimes:  [],          // [{ ts, sol }] for acceleration tracking
-          mcHistory: [],          // [{ ts, mc }] snapshots for pump velocity
+          buyTimes:  [],
+          volTimes:  [],
+          mcHistory: [],
+          volSnap:   [],          // [{ ts, vol }] — rolling vol snapshots for spike detection
           whaleFlag: (d.initialBuy||0) > 5,
           bundled:   false,
           devSelling: false,
-          alerted:   false        // cooldown — only alert once per token
+          alerted:    false,
+          revivalAlerted: false   // separate cooldown for revival alert
         };
         liveTokens[ca] = token;
         liveTokenOrder.unshift(ca);
-        if(liveTokenOrder.length > 200) {
+        if(liveTokenOrder.length > 500) {
           var old = liveTokenOrder.pop();
           delete liveTokens[old];
+        }
+        // Subscribe to trade events for this token — needed for revival detection
+        if(ppWS && ppWS.readyState === 1){
+          ppWS.send(JSON.stringify({ method:'subscribeTokenTrade', keys:[ca] }));
         }
         // Enrich with DexScreener after 15s (pair needs time to appear)
         setTimeout(function(){ enrichFromDex(ca); }, 15000);
@@ -1912,14 +1926,29 @@ function connectPumpPortal(){
         t.mcUSD = t.mcSol * getSolPrice();
         t.vol  += (d.solAmount || 0);
 
-        // ── MC HISTORY — snapshot for pump velocity ──────────
-        if(!t.mcHistory) t.mcHistory = [];
-        t.mcHistory.push({ ts: Date.now(), mc: t.mcUSD });
-        // Keep only last 10 mins of history
-        var cut10 = Date.now() - 600000;
-        t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > cut10; });
+        // ── VOL SNAPSHOT — for revival spike detection ────────
+        var nowSnap = Date.now();
+        if(!t.volSnap) t.volSnap = [];
+        t.volSnap.push({ ts: nowSnap, vol: d.solAmount||0 });
+        t.volSnap = t.volSnap.filter(function(s){ return s.ts > nowSnap - 600000; }); // keep 10min
 
-        // ── ALERT COOLDOWN — fire sound+flash only once per token when score crosses 65 ──
+        // ── MC HISTORY ────────────────────────────────────────
+        if(!t.mcHistory) t.mcHistory = [];
+        t.mcHistory.push({ ts: nowSnap, mc: t.mcUSD });
+        t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > nowSnap - 600000; });
+
+        // ── REVIVAL DETECTION — old token suddenly active ─────
+        var ageHoursNow = (nowSnap - t.ts) / 3600000;
+        if(ageHoursNow > 0.5 && !t.revivalAlerted){
+          var revScore = getRevivalScore(t);
+          if(revScore >= 60){
+            t.revivalAlerted = true;
+            t.isRevival = true;
+            fireScoreAlert(t, revScore);
+          }
+        }
+
+        // ── NEW TOKEN ALERT ───────────────────────────────────
         if(!t.alerted){
           var sc2 = tokenScore(t);
           if(sc2 >= 65){
@@ -2542,24 +2571,196 @@ function renderFastMovers(){
   }).join('');
 }
 
-// ── APPLY GOOD MOVERS FILTER to main table ──────────────────
+// ── GM MODE TOGGLE ──────────────────────────────────────────
+var _gmMode = 'snipe'; // 'snipe' or 'revival'
+function setGmMode(mode){
+  _gmMode = mode;
+  var isSnipe = mode === 'snipe';
+  // Button styles
+  var bs = document.getElementById('gm-mode-snipe');
+  var br = document.getElementById('gm-mode-revival');
+  if(bs){ bs.style.background = isSnipe ? '#f59e0b' : 'none'; bs.style.color = isSnipe ? '#000' : 'var(--mu)'; bs.style.border = isSnipe ? 'none' : '1px solid var(--bd)'; }
+  if(br){ br.style.background = !isSnipe ? '#a78bfa' : 'none'; br.style.color = !isSnipe ? '#000' : 'var(--mu)'; br.style.border = !isSnipe ? 'none' : '1px solid var(--bd)'; }
+  // Title
+  var ts = document.getElementById('gm-title-snipe');
+  var tr = document.getElementById('gm-title-revival');
+  if(ts) ts.style.display = isSnipe ? 'inline' : 'none';
+  if(tr) tr.style.display = !isSnipe ? 'inline' : 'none';
+  // Desc
+  var desc = document.getElementById('gm-desc');
+  if(desc) desc.textContent = isSnipe ? 'Fresh · Pumping · Clean · SILVER+' : 'Old tokens waking up · Volume spike · Sudden pump';
+  // Show all button
+  var btn = document.getElementById('gm-showall');
+  if(btn){ btn.style.borderColor = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.color = isSnipe ? '#f59e0b' : '#a78bfa'; }
+  // Badge color
+  var badge = document.getElementById('gm-badge');
+  if(badge) badge.style.background = isSnipe ? '#f59e0b' : '#a78bfa';
+  renderFastMovers();
+}
+
+// ── BUILD ONE MOVER CARD (shared by both modes) ─────────────
+function buildMoverCard(t, sc, g1m, g5m, color, mode){
+  var nowMs    = Date.now();
+  var verd     = tokenVerdict(sc);
+  var ageMs    = nowMs - t.ts;
+  var ageMin   = Math.floor(ageMs / 60000);
+  var ageHrs   = Math.floor(ageMs / 3600000);
+  var ageDays  = Math.floor(ageMs / 86400000);
+  var ageStr   = ageDays > 0 ? ageDays+'d ago' : ageHrs > 0 ? ageHrs+'h ago' : ageMin < 1 ? 'just now' : ageMin+'m ago';
+  var total    = t.buys + t.sells;
+  var bsr      = total > 0 ? Math.round(t.buys/total*100) : 100;
+  var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
+  var spark    = drawSparkChart(t, 185, 52, color);
+  var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
+  var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
+  var volSpike = mode === 'revival' ? Math.round(getVolSpike(t, 300)) : 0;
+  var modeBadge = mode === 'revival'
+    ? '<div style="font-size:8px;font-weight:700;background:#a78bfa;color:#000;padding:1px 5px;border-radius:3px;margin-bottom:4px;display:inline-block;">🌙 REVIVAL</div>'
+    : '';
+
+  var imgHtml = t.img
+    ? '<img src="'+safeStr(t.img)+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
+    : '<div style="width:32px;height:32px;border-radius:6px;background:var(--a1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">'+(mode==='revival'?'🌙':'🎯')+'</div>';
+
+  return '<div class="gm-card" style="border-color:'+color+';" onclick="copySnipCA(\''+t.ca+'\')" title="Tap to copy CA">'
+    + spark
+    +'<div class="gm-body">'
+      + modeBadge
+      +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'
+        + imgHtml
+        +'<div style="overflow:hidden;flex:1;">'
+          +'<div class="gm-tick">$'+safeStr(t.tick)+'</div>'
+          +'<div class="gm-name">'+safeStr(t.name).slice(0,18)+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;">'
+          +'<div style="font-size:14px;font-weight:900;color:'+color+';">'+sc+'</div>'
+          +'<div style="font-size:7px;color:var(--mu);">'+verd.band+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">'
+        +'<div class="gm-gain" style="color:'+color+';">'+gainDisp+'</div>'
+        +'<div style="font-size:9px;color:var(--mu);">/1min · '+ageStr+'</div>'
+      +'</div>'
+      +'<div class="gm-stats">'
+        +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong></div>'
+        +'<div>'+(mode==='revival' ? 'Spike <strong style="color:'+color+';">'+(volSpike>999?'∞':volSpike)+'%</strong>' : '5m <strong style="color:'+color+';">'+gain5Disp+'</strong>')+'</div>'
+        +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
+        +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
+      +'</div>'
+      +'<div style="font-size:9px;color:'+color+';font-weight:700;margin-bottom:6px;">'+verd.verdict+'</div>'
+      +'<div class="gm-actions">'
+        +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
+        +'<a href="'+trojanUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">BUY↗</a>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
+// ── MAIN RENDER — picks SNIPE or REVIVAL mode ───────────────
+function renderFastMovers(){
+  var panel = document.getElementById('fast-movers-panel');
+  var cards = document.getElementById('fast-movers-cards');
+  var badge = document.getElementById('gm-badge');
+  if(!panel || !cards) return;
+
+  var movers = [];
+
+  if(_gmMode === 'snipe'){
+    // ── SNIPE MODE — fresh tokens pumping hard ──────────────
+    movers = liveTokenOrder
+      .map(function(ca){ return liveTokens[ca]; })
+      .filter(function(t){
+        if(!t || t.devSelling) return false;
+        var ageMin = (Date.now() - t.ts) / 60000;
+        if(ageMin > 30)           return false; // max 30 min
+        if(t.mcUSD > 60000)       return false; // still has room
+        if((t.initBuy||0) > 15)   return false; // no bots
+        var total = t.buys + t.sells;
+        var bsr = total > 0 ? t.buys/total : 1;
+        if(total > 3 && bsr < 0.6) return false;
+        var g1m = getMcGain(t, 60);
+        var g5m = getMcGain(t, 300);
+        if(g1m < 20 && g5m < 40)  return false; // must be moving
+        return tokenScore(t) >= 45;
+      })
+      .sort(function(a, b){
+        return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
+      })
+      .slice(0, 8);
+
+    cards.innerHTML = movers.map(function(t){
+      var g1m = getMcGain(t, 60);
+      var g5m = getMcGain(t, 300);
+      var sc  = tokenScore(t);
+      var col = sc >= 80 ? '#f59e0b' : '#818cf8';
+      return buildMoverCard(t, sc, g1m, g5m, col, 'snipe');
+    }).join('');
+
+  } else {
+    // ── REVIVAL MODE — old tokens suddenly waking up ────────
+    movers = liveTokenOrder
+      .map(function(ca){ return liveTokens[ca]; })
+      .filter(function(t){
+        if(!t || t.devSelling) return false;
+        var ageHrs = (Date.now() - t.ts) / 3600000;
+        if(ageHrs < 0.5) return false; // must be at least 30 min old
+        var volSpike = getVolSpike(t, 300);
+        var g5m = getMcGain(t, 300);
+        if(volSpike < 50 && g5m < 20) return false; // nothing happening
+        return getRevivalScore(t) >= 40;
+      })
+      .sort(function(a, b){
+        return getRevivalScore(b) - getRevivalScore(a);
+      })
+      .slice(0, 8);
+
+    cards.innerHTML = movers.map(function(t){
+      var g1m = getMcGain(t, 60);
+      var g5m = getMcGain(t, 300);
+      var sc  = getRevivalScore(t);
+      return buildMoverCard(t, sc, g1m, g5m, '#a78bfa', 'revival');
+    }).join('');
+  }
+
+  if(!movers.length){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  if(badge){
+    badge.style.display = 'inline';
+    badge.textContent = movers.length + ' NOW';
+    badge.style.background = _gmMode === 'snipe' ? '#f59e0b' : '#a78bfa';
+    badge.style.color = '#000';
+  }
+}
+
+// ── APPLY GOOD MOVERS FILTER ────────────────────────────────
 function applyGoodMoversFilter(){
-  var els = {
-    'sn-minmc':'0','sn-mc':'60000','sn-age':'0.5',
-    'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0.5',
-    'sn-initbuy':'0','sn-maxinitbuy':'15',
-    'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
-    'sn-sort':'gain','sn-minscore':'45','sn-mingain':'20'
-  };
-  Object.keys(els).forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.value = els[id];
-  });
-  var chks = {'sn-nodev':true,'sn-nobots':true,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':false};
-  Object.keys(chks).forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.checked = chks[id];
-  });
+  if(_gmMode === 'snipe'){
+    var els = {
+      'sn-minmc':'0','sn-mc':'60000','sn-age':'0.5',
+      'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0.5',
+      'sn-initbuy':'0','sn-maxinitbuy':'15',
+      'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
+      'sn-sort':'gain','sn-minscore':'45','sn-mingain':'20'
+    };
+    Object.keys(els).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=els[id]; });
+    var chks = {'sn-nodev':true,'sn-nobots':true,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':false};
+    Object.keys(chks).forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=chks[id]; });
+  } else {
+    // Revival — remove age filter, sort by gain
+    var rEls = {
+      'sn-minmc':'0','sn-mc':'80000','sn-age':'24',
+      'sn-buyrate':'1','sn-minbuys':'0','sn-minvol':'0',
+      'sn-initbuy':'0','sn-maxinitbuy':'9999',
+      'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
+      'sn-sort':'gain','sn-minscore':'0','sn-mingain':'20'
+    };
+    Object.keys(rEls).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=rEls[id]; });
+    var rChks = {'sn-nodev':true,'sn-nobots':false,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':true};
+    Object.keys(rChks).forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=rChks[id]; });
+  }
   updateSniperTable();
 }
 
@@ -2590,6 +2791,75 @@ function tokenVerdict(sc){
 }
 
 // ── IMPROVED SCORING ENGINE (Phase 1) ─────────────────
+// ── VOL SPIKE — vol in last N sec vs previous N sec ────────
+function getVolSpike(t, windowSec){
+  if(!t.volSnap || t.volSnap.length < 2) return 0;
+  var nowMs  = Date.now();
+  var cutNew = nowMs - windowSec*1000;
+  var cutOld = nowMs - windowSec*2000;
+  var volNew = t.volSnap.filter(function(s){ return s.ts > cutNew; })
+                        .reduce(function(a,s){ return a+s.vol; }, 0);
+  var volOld = t.volSnap.filter(function(s){ return s.ts > cutOld && s.ts <= cutNew; })
+                        .reduce(function(a,s){ return a+s.vol; }, 0);
+  if(volOld <= 0) return volNew > 0 ? 999 : 0; // was dead, now active = massive spike
+  return ((volNew - volOld) / volOld) * 100;    // % spike
+}
+
+// ── REVIVAL SCORE — for older dormant tokens waking up ─────
+function getRevivalScore(t){
+  var sc      = 0;
+  var nowMs   = Date.now();
+  var ageHrs  = (nowMs - t.ts) / 3600000;
+  var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-60000; }).length : 0;
+  var total   = t.buys + t.sells;
+  var bsr     = total > 0 ? t.buys/total : 0;
+  var volSpike= getVolSpike(t, 300); // vol spike in last 5 min vs previous 5 min
+  var g1m     = getMcGain(t, 60);
+  var g5m     = getMcGain(t, 300);
+
+  // Token must be at least 30 min old to be a revival
+  if(ageHrs < 0.5) return 0;
+
+  // ── Signal 1: Volume spike — sudden activity after silence ── max 30
+  if(volSpike >= 500) sc += 30;       // was dead, now exploding
+  else if(volSpike >= 200) sc += 22;
+  else if(volSpike >= 100) sc += 15;
+  else if(volSpike >= 50)  sc += 8;
+
+  // ── Signal 2: MC gain — price actually moving ──────────── max 25
+  if(g5m >= 100)     sc += 25;
+  else if(g5m >= 50) sc += 18;
+  else if(g5m >= 20) sc += 10;
+  else if(g1m >= 30) sc += 12;
+
+  // ── Signal 3: Buy velocity — people rushing in ─────────── max 20
+  if(buyRate >= 15)     sc += 20;
+  else if(buyRate >= 8) sc += 14;
+  else if(buyRate >= 3) sc += 8;
+  else if(buyRate >= 1) sc += 3;
+
+  // ── Signal 4: Buy/sell ratio — buyers dominating ───────── max 15
+  if(total >= 3){
+    if(bsr >= 0.90)      sc += 15;
+    else if(bsr >= 0.75) sc += 10;
+    else if(bsr >= 0.60) sc += 5;
+    else sc -= 10; // selling = not real revival
+  }
+
+  // ── Signal 5: MC size — still has room ─────────────────── max 10
+  if(t.mcUSD < 10000)       sc += 10;
+  else if(t.mcUSD < 30000)  sc += 6;
+  else if(t.mcUSD < 80000)  sc += 2;
+  else sc -= 5; // too big
+
+  // ── Penalties ─────────────────────────────────────────────
+  if(t.devSelling)              sc -= 30;
+  if(t.sells > t.buys * 2)     sc -= 15; // sell pressure
+  if((t.initBuy||0) > 15)      sc -= 10; // original launch was botted
+
+  return Math.max(0, Math.min(sc, 99));
+}
+
 function tokenScore(t){
   var sc = 0;
 
