@@ -347,7 +347,7 @@ textarea.mfld{resize:vertical;}
     <span class="tl-ghost">🎯</span>
     <div>
       <div class="tl-brand">GHOSTSNIPERX</div>
-      <div class="tl-sub">DEAD COINS · SECOND CHANCES · v3.0</div>
+      <div class="tl-sub">DEAD COINS · SECOND CHANCES · v15.0</div>
     </div>
   </div>
   <div class="tb-div"></div>
@@ -2524,6 +2524,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
   var total    = t.buys + t.sells;
   var bsr      = total > 0 ? Math.round(t.buys/total*100) : 100;
   var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
+  var pumpBuyUrl = 'https://pump.fun/'+t.ca;
   var spark    = drawSparkChart(t, 185, 52, color);
   var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
   var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
@@ -2564,7 +2565,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
       +'<div style="font-size:9px;color:'+color+';font-weight:700;margin-bottom:6px;">'+verd.verdict+'</div>'
       +'<div class="gm-actions">'
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
-        +'<a href="'+trojanUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">BUY↗</a>'
+        +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">🎯 PUMP.FUN↗</a>'
       +'</div>'
     +'</div>'
   +'</div>';
@@ -2703,7 +2704,7 @@ function tokenVerdict(sc){
   if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
   if(sc >= 65) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
   if(sc >= 45) return { verdict:'👀 MONITOR',    band:'BRONZE', color:'var(--go)', bg:'rgba(138,92,0,.10)' };
-  return            { verdict:'❌ SKIP',         band:'WEAK',   color:'var(--mu)', bg:'transparent' };
+  return            { verdict:'',                band:'WEAK',   color:'var(--mu)', bg:'transparent' };
 }
 
 // ── IMPROVED SCORING ENGINE (Phase 1) ─────────────────
