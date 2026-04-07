@@ -2232,7 +2232,9 @@ function updateSniperTable(){
       if(nobots && (t.initBuy||0) > 15) return false;
 
       // Momentum only — volume accelerating in last 30s vs previous 30s
-      if(momentum && t.volTimes && t.volTimes.length > 0){
+      // Only apply if token has enough trade history (at least 3 volTime entries)
+      if(momentum){
+        if(!t.volTimes || t.volTimes.length < 3) return false; // not enough data
         var cut30  = nowMs - 30000;
         var cut60  = nowMs - 60000;
         var vol30  = t.volTimes.filter(function(v){ return v.ts > cut30; }).reduce(function(s,v){ return s+v.sol; }, 0);
@@ -2561,14 +2563,14 @@ function renderFastMovers(){
       .filter(function(t){
         if(!t || t.devSelling) return false;
         var ageMin = (Date.now() - t.ts) / 60000;
-        if(ageMin > 30)           return false; // max 30 min
+        if(ageMin > 120)          return false; // max 2 hours
         if(t.mcUSD > 60000)       return false; // still has room
-        if((t.initBuy||0) > 15)   return false; // no bots
+        // initBuy filter removed — not restrictive here
         var total = t.buys + t.sells;
         var bsr = total > 0 ? t.buys/total : 1;
-        if(total > 3 && bsr < 0.6) return false;
+        if(total > 10 && bsr < 0.5) return false; // only filter heavy selling
         // Show by score + activity — gain is bonus not requirement
-        return tokenScore(t) >= 50;
+        return tokenScore(t) >= 35;
       })
       .sort(function(a, b){
         return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
@@ -2594,7 +2596,7 @@ function renderFastMovers(){
         // Any token older than 30min with buying activity
         var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > Date.now()-60000; }).length : 0;
         if(buyRate < 1 && t.buys < 5) return false; // nothing happening
-        return getRevivalScore(t) >= 30;
+        return getRevivalScore(t) >= 20;
       })
       .sort(function(a, b){
         return getRevivalScore(b) - getRevivalScore(a);
@@ -2612,7 +2614,7 @@ function renderFastMovers(){
   // Show/hide cards panel
   if(!movers.length){
     if(panel) panel.style.display = 'none';
-    if(desc) desc.textContent = _gmMode === 'snipe' ? 'Connect Sniper to see live movers' : 'No revival signals yet — waiting for old tokens to wake up';
+    if(desc) desc.textContent = _gmMode === 'snipe' ? (liveTokenOrder.length > 0 ? 'No tokens score 35+ yet — more coming soon' : 'Connect Sniper to see live movers') : (liveTokenOrder.length > 0 ? 'No revival signals yet — tokens need buy activity' : 'Connect Sniper first');
     return;
   }
   if(panel) panel.style.display = 'block';
@@ -2633,7 +2635,7 @@ function applyGoodMoversFilter(){
       'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0.5',
       'sn-initbuy':'0','sn-maxinitbuy':'15',
       'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
-      'sn-sort':'gain','sn-minscore':'45','sn-mingain':'20'
+      'sn-sort':'score','sn-minscore':'35','sn-mingain':'0'
     };
     Object.keys(els).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=els[id]; });
     var chks = {'sn-nodev':true,'sn-nobots':true,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':false};
@@ -2645,10 +2647,10 @@ function applyGoodMoversFilter(){
       'sn-buyrate':'1','sn-minbuys':'0','sn-minvol':'0',
       'sn-initbuy':'0','sn-maxinitbuy':'9999',
       'sn-bsratio':'0','sn-minbond':'0','sn-maxbond':'100',
-      'sn-sort':'gain','sn-minscore':'0','sn-mingain':'20'
+      'sn-sort':'score','sn-minscore':'0','sn-mingain':'0'
     };
     Object.keys(rEls).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=rEls[id]; });
-    var rChks = {'sn-nodev':true,'sn-nobots':false,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':true};
+    var rChks = {'sn-nodev':true,'sn-nobots':false,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':false};
     Object.keys(rChks).forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=rChks[id]; });
   }
   updateSniperTable();
