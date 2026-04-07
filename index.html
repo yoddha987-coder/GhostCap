@@ -259,6 +259,23 @@ select.fld{cursor:pointer;}
 .sig-ok{background:rgba(245,184,0,.1);color:var(--go);border:1px solid rgba(245,184,0,.25);}
 .sig-fire{background:rgba(255,100,0,.15);color:#fb923c;border:1px solid rgba(255,100,0,.3);}
 .sig-liq{background:rgba(0,150,255,.1);color:#60a5fa;border:1px solid rgba(0,150,255,.25);}
+
+/* Good Mover Cards */
+.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;min-width:155px;flex:1;max-width:185px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.gm-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25);}
+.gm-card.silver{border-color:var(--ac);}
+.gm-card.silver:hover{box-shadow:0 6px 20px rgba(99,102,241,.25);}
+.gm-chart{width:100%;height:52px;display:block;}
+.gm-body{padding:9px 11px 10px;}
+.gm-tick{font-family:'Cinzel','Georgia',serif;font-size:13px;font-weight:900;color:var(--tx);}
+.gm-name{font-size:9px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:5px;}
+.gm-gain{font-size:16px;font-weight:900;line-height:1;}
+.gm-stats{display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:9px;color:var(--mu);margin:5px 0;}
+.gm-actions{display:flex;gap:4px;margin-top:7px;}
+.gm-btn{flex:1;font-size:9px;font-weight:700;padding:5px 0;border-radius:4px;text-align:center;cursor:pointer;border:none;text-decoration:none;display:block;}
+.gm-btn-copy{background:#f59e0b;color:#000;}
+.gm-btn-buy{background:rgba(99,102,241,.2);border:1px solid var(--ac) !important;color:var(--ac);}
+.gm-card.silver .gm-btn-copy{background:var(--ac);color:#fff;}
 /* Sniper action buttons */
 .sn-btn{font-size:10px;padding:2px 6px;border-radius:3px;text-decoration:none;white-space:nowrap;font-weight:600;}
 .sn-btn-ac{color:var(--ac);}
@@ -665,9 +682,9 @@ textarea.mfld{resize:vertical;}
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
         <span style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:var(--mu);letter-spacing:.15em;">🎯 FILTER CRITERIA</span>
         <!-- Quick preset buttons -->
-        <button onclick="presetSniper('safe')" style="font-size:9px;border:1px solid var(--go);background:rgba(0,180,0,.1);color:var(--go);padding:2px 7px;border-radius:3px;cursor:pointer;">🛡 SAFE</button>
-        <button onclick="presetSniper('hot')" style="font-size:9px;border:1px solid var(--ac);background:rgba(99,102,241,.1);color:var(--ac);padding:2px 7px;border-radius:3px;cursor:pointer;">🔥 HOT</button>
-        <button onclick="presetSniper('sniper')" style="font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:2px 7px;border-radius:3px;cursor:pointer;">⚡ SNIPER</button>
+        <button id="preset-safe" onclick="presetSniper('safe')" style="font-size:9px;border:1px solid var(--go);background:rgba(0,180,0,.1);color:var(--go);padding:2px 7px;border-radius:3px;cursor:pointer;">🛡 SAFE</button>
+        <button id="preset-hot" onclick="presetSniper('hot')" style="font-size:9px;border:1px solid var(--ac);background:rgba(99,102,241,.2);color:var(--ac);padding:2px 7px;border-radius:3px;cursor:pointer;font-weight:700;box-shadow:0 0 0 2px var(--ac);">🔥 HOT</button>
+        <button id="preset-sniper" onclick="presetSniper('sniper')" style="font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:2px 7px;border-radius:3px;cursor:pointer;">⚡ SNIPER</button>
         <button onclick="resetFilters()" style="margin-left:auto;font-size:9px;border:1px solid var(--bd);background:none;color:var(--mu);padding:2px 8px;border-radius:3px;cursor:pointer;">RESET</button>
         <button onclick="updateSniperTable()" style="font-size:9px;border:1px solid var(--ac);background:none;color:var(--ac);padding:2px 8px;border-radius:3px;cursor:pointer;font-weight:700;">APPLY ▸</button>
       </div>
@@ -815,6 +832,18 @@ textarea.mfld{resize:vertical;}
           </select>
         </div>
 
+        <!-- Min MC Gain — FAST MOVER detector -->
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">🚀 MIN MC GAIN (1 MIN)</div>
+          <select id="sn-mingain" class="fld" style="width:100%;">
+            <option value="0" selected>Any (no filter)</option>
+            <option value="20">≥ 20% gain/min</option>
+            <option value="50">≥ 50% gain/min 🔥</option>
+            <option value="100">≥ 100% gain/min 🚀</option>
+            <option value="200">≥ 200% gain/min 🌋</option>
+          </select>
+        </div>
+
         <!-- Sort By — more options -->
         <div>
           <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">SORT BY</div>
@@ -827,6 +856,7 @@ textarea.mfld{resize:vertical;}
             <option value="mc">Market cap</option>
             <option value="bond">Bonding curve %</option>
             <option value="bsratio">Buy/Sell ratio</option>
+            <option value="gain">🚀 MC Gain % (fast movers)</option>
           </select>
         </div>
 
@@ -877,6 +907,20 @@ textarea.mfld{resize:vertical;}
       <div class="ltxt">SCANNING LIVE TOKENS...</div>
       <div class="lsub">Checking DexScreener for new Solana pairs</div>
     </div>
+
+    <!-- ── GOOD MOVERS PANEL ── -->
+    <div id="fast-movers-panel" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <div>
+          <span style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:900;color:#f59e0b;letter-spacing:.15em;">🚀 GOOD MOVERS</span>
+          <span id="gm-badge" style="margin-left:6px;font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
+        </div>
+        <span style="font-size:9px;color:var(--mu);">Fresh · Pumping · Clean · SILVER+ score</span>
+        <button onclick="applyGoodMoversFilter()" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Show All ▸</button>
+      </div>
+      <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+    </div>
+
     <div id="sniper-res"></div>
     <div id="sniper-emp" class="empty">
       <span class="eico" style="font-size:36px;">🟢</span>
@@ -1076,7 +1120,11 @@ function sw(i){
     if(layout) layout.classList.remove('sidebar-hidden');
   }
 
-  if(i===5 && !window._sniperRan){ window._sniperRan=true; runSniper(); }
+  if(i===5 && !window._sniperRan){
+    window._sniperRan=true;
+    presetSniper('hot'); // HOT is default — catch fast movers
+    runSniper();
+  }
 }
 
 /* ══ PROVIDER ══ */
@@ -1821,6 +1869,7 @@ function connectPumpPortal(){
           // Insider signals
           buyTimes:  [],          // timestamps of buys for velocity calc
           volTimes:  [],          // [{ ts, sol }] for acceleration tracking
+          mcHistory: [],          // [{ ts, mc }] snapshots for pump velocity
           whaleFlag: (d.initialBuy||0) > 5,
           bundled:   false,
           devSelling: false,
@@ -1862,6 +1911,13 @@ function connectPumpPortal(){
         t.mcSol = d.marketCapSol || t.mcSol;
         t.mcUSD = t.mcSol * getSolPrice();
         t.vol  += (d.solAmount || 0);
+
+        // ── MC HISTORY — snapshot for pump velocity ──────────
+        if(!t.mcHistory) t.mcHistory = [];
+        t.mcHistory.push({ ts: Date.now(), mc: t.mcUSD });
+        // Keep only last 10 mins of history
+        var cut10 = Date.now() - 600000;
+        t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > cut10; });
 
         // ── ALERT COOLDOWN — fire sound+flash only once per token when score crosses 65 ──
         if(!t.alerted){
@@ -2003,6 +2059,23 @@ function resetFilters(){
 
 // ── PRESET FILTER MODES ────────────────────────────────────
 function presetSniper(mode){
+  // Highlight active preset button
+  var btns = { safe:'preset-safe', hot:'preset-hot', sniper:'preset-sniper' };
+  var styles = {
+    safe:   { border:'1px solid var(--go)',  bg:'rgba(0,180,0,.1)',       color:'var(--go)',  shadow:'' },
+    hot:    { border:'1px solid var(--ac)',   bg:'rgba(99,102,241,.2)',    color:'var(--ac)', shadow:'0 0 0 2px var(--ac)' },
+    sniper: { border:'1px solid #f59e0b',    bg:'rgba(245,158,11,.1)',    color:'#f59e0b',   shadow:'' }
+  };
+  Object.keys(btns).forEach(function(k){
+    var el = document.getElementById(btns[k]);
+    if(!el) return;
+    var s = styles[k];
+    el.style.border      = s.border;
+    el.style.background  = s.bg;
+    el.style.color       = s.color;
+    el.style.fontWeight  = k === mode ? '700' : 'normal';
+    el.style.boxShadow   = k === mode ? s.shadow : 'none';
+  });
   var sets = {
     // SAFE — conservative, higher quality signals only
     safe: {
@@ -2056,6 +2129,7 @@ function getFilterChk(id){ var el=document.getElementById(id); return el ? el.ch
 
 function updateSniperTable(){
   var nowMs = Date.now();
+  renderFastMovers(); // always update fast movers panel
 
   // ── Read ALL filters ──────────────────────────────────
   var minMC      = getFilterVal('sn-minmc', 0);
@@ -2069,6 +2143,7 @@ function updateSniperTable(){
   var minBSRatio = getFilterVal('sn-bsratio', 0);
   var minBond    = getFilterVal('sn-minbond', 0);
   var maxBond    = getFilterVal('sn-maxbond', 100);
+  var minGain    = getFilterVal('sn-mingain', 0);
   var sortBy     = (document.getElementById('sn-sort')||{value:'score'}).value||'score';
   var minScore   = getFilterVal('sn-minscore', 0);
   var nodev      = getFilterChk('sn-nodev');
@@ -2127,6 +2202,9 @@ function updateSniperTable(){
       // Min score
       if(minScore > 0 && tokenScore(t) < minScore) return false;
 
+      // Fast mover filter — min MC gain % in last 1 min
+      if(minGain > 0 && getMcGain(t, 60) < minGain) return false;
+
       return true;
     });
 
@@ -2144,6 +2222,9 @@ function updateSniperTable(){
       var ta = a.buys+a.sells; var tb = b.buys+b.sells;
       var ra = ta>0?a.buys/ta:0; var rb = tb>0?b.buys/tb:0;
       return rb - ra;
+    }
+    if(sortBy === 'gain'){
+      return getMcGain(b, 60) - getMcGain(a, 60);
     }
     if(sortBy === 'buyrate'){
       var nowMs2 = Date.now();
@@ -2232,10 +2313,22 @@ function updateSniperTable(){
     else if(buyRate>=8) signals += '<span class="sig sig-ok">⚡ HOT</span>';
     if(t.dexData && t.liq>1000) signals += '<span class="sig sig-liq">💧 LIQ ✓</span>';
     if(bondPct>=50) signals += '<span class="sig sig-ok">'+bondPct+'% GRAD</span>';
+
+    // Fast mover badge
+    var gain1m = getMcGain(t, 60);
+    var gain5m = getMcGain(t, 300);
+    var gainStr = '';
+    if(gain1m >= 200) { signals += '<span class="sig sig-fire">🌋 +'+Math.round(gain1m)+'% /1m</span>'; gainStr = '+'+Math.round(gain1m)+'%'; }
+    else if(gain1m >= 100) { signals += '<span class="sig sig-bull">🚀 +'+Math.round(gain1m)+'% /1m</span>'; gainStr = '+'+Math.round(gain1m)+'%'; }
+    else if(gain1m >= 30)  { signals += '<span class="sig sig-ok">📈 +'+Math.round(gain1m)+'% /1m</span>'; gainStr = '+'+Math.round(gain1m)+'%'; }
+    else if(gain5m >= 50)  { signals += '<span class="sig sig-ok">📊 +'+Math.round(gain5m)+'% /5m</span>'; gainStr = '+'+Math.round(gain5m)+'%/5m'; }
     if(!signals) signals = '<span style="font-size:9px;color:var(--mu);">new</span>';
 
     // Verdict + confidence band
     var verd = tokenVerdict(sc);
+
+    // MC gain color for MC column
+    var mcGainColor = gain1m>=100?'#f59e0b':gain1m>=30?'#4ade80':'var(--go)';
 
     html += '<tr class="trow" style="background:'+bg+';">'
       // Score + verdict
@@ -2254,8 +2347,9 @@ function updateSniperTable(){
         +'<div style="font-family:monospace;font-size:8px;color:var(--mu);">'+caShort+'</div>'
         +'<button onclick="copySnipCA(\''+t.ca+'\')" style="margin-top:3px;font-size:11px;font-weight:700;border:2px solid var(--ac);background:var(--ac);color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;width:100%;">⧉ COPY CA</button>'
       +'</td>'
-      // MC + bond bar
-      +'<td><div style="color:var(--go);font-weight:700;font-size:12px;">$'+formatNum(t.mcUSD)+'</div>'
+      // MC + bond bar + gain
+      +'<td><div style="color:'+mcGainColor+';font-weight:700;font-size:12px;">$'+formatNum(t.mcUSD)+'</div>'
+        +(gainStr ? '<div style="font-size:9px;font-weight:700;color:'+mcGainColor+';">'+gainStr+' 🚀</div>' : '')
         +'<div style="font-size:8px;color:var(--mu);">'+bondPct+'% grad</div>'+bondBar+'</td>'
       // Age
       +'<td style="color:var(--tx);font-size:11px;white-space:nowrap;">'+ageStr+'</td>'
@@ -2296,6 +2390,198 @@ function copySnipCA(ca){
 }
 
 // ── VERDICT + CONFIDENCE BAND ─────────────────────────
+// ── SPARK CHART — SVG line from MC history ──────────────────
+function drawSparkChart(t, width, height, color){
+  if(!t.mcHistory || t.mcHistory.length < 2){
+    return '<svg width="'+width+'" height="'+height+'" xmlns="http://www.w3.org/2000/svg">'
+      +'<line x1="0" y1="'+height/2+'" x2="'+width+'" y2="'+height/2+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>'
+      +'</svg>';
+  }
+  var pts = t.mcHistory.slice(-30); // last 30 snapshots
+  var minV = pts[0].mc, maxV = pts[0].mc;
+  for(var i=1;i<pts.length;i++){
+    if(pts[i].mc < minV) minV = pts[i].mc;
+    if(pts[i].mc > maxV) maxV = pts[i].mc;
+  }
+  var range = maxV - minV;
+  if(range === 0) range = 1;
+  var pad = 4;
+  var w = width - pad*2;
+  var h = height - pad*2;
+  var coords = pts.map(function(p, idx){
+    var x = pad + (idx / (pts.length-1)) * w;
+    var y = pad + h - ((p.mc - minV) / range) * h;
+    return x.toFixed(1)+','+y.toFixed(1);
+  });
+  // Fill area under curve
+  var fillCoords = coords[0].split(',')[0]+','+( height - pad)+' '+coords.join(' ')+' '+(pad+w)+','+(height-pad);
+  return '<svg width="'+width+'" height="'+height+'" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">'
+    +'<polygon points="'+fillCoords+'" fill="'+color+'" fill-opacity="0.15"/>'
+    +'<polyline points="'+coords.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<circle cx="'+coords[coords.length-1].split(',')[0]+'" cy="'+coords[coords.length-1].split(',')[1]+'" r="3" fill="'+color+'"/>'
+    +'</svg>';
+}
+
+// ── GOOD MOVERS — fresh + pumping + clean + scored ──────────
+function renderFastMovers(){
+  var nowMs = Date.now();
+  var panel = document.getElementById('fast-movers-panel');
+  var cards = document.getElementById('fast-movers-cards');
+  var badge = document.getElementById('gm-badge');
+  if(!panel || !cards) return;
+
+  // ── GOOD MOVER CRITERIA (all must pass) ──────────────────
+  var movers = liveTokenOrder
+    .map(function(ca){ return liveTokens[ca]; })
+    .filter(function(t){
+      if(!t) return false;
+      // Hard rules
+      var ageMin = (nowMs - t.ts) / 60000;
+      if(ageMin > 30)              return false; // max 30 min old
+      if(t.devSelling)             return false; // no dev dump
+      if(t.mcUSD > 60000)          return false; // still room to pump
+      if((t.initBuy||0) > 15)      return false; // no bot bundles
+      var total = t.buys + t.sells;
+      var bsr = total > 0 ? t.buys/total : 1;
+      if(total > 3 && bsr < 0.6)   return false; // mostly selling
+      // Must be actually pumping
+      var g1m = getMcGain(t, 60);
+      var g5m = getMcGain(t, 300);
+      if(g1m < 20 && g5m < 40)     return false; // not moving enough
+      // Must have minimum score
+      var sc = tokenScore(t);
+      if(sc < 45)                  return false; // too weak
+      return true;
+    })
+    .sort(function(a, b){
+      // Sort: weight recent gain heavily
+      var ga = getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3;
+      var gb = getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3;
+      return gb - ga;
+    })
+    .slice(0, 8);
+
+  if(!movers.length){
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  if(badge){
+    badge.style.display = 'inline';
+    badge.textContent = movers.length + ' NOW';
+  }
+
+  cards.innerHTML = movers.map(function(t){
+    var g1m    = getMcGain(t, 60);
+    var g5m    = getMcGain(t, 300);
+    var sc     = tokenScore(t);
+    var verd   = tokenVerdict(sc);
+    var isGold = sc >= 80;
+    var cardCls = isGold ? 'gm-card' : 'gm-card silver';
+    var color   = isGold ? '#f59e0b' : '#818cf8';
+    var ageMin  = Math.floor((nowMs - t.ts) / 60000);
+    var ageSec  = Math.floor((nowMs - t.ts) / 1000);
+    var ageStr  = ageMin < 1 ? ageSec+'s ago' : ageMin+'m ago';
+    var total   = t.buys + t.sells;
+    var bsr     = total > 0 ? Math.round(t.buys/total*100) : 100;
+    var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
+    var photonUrl = 'https://photon-sol.tinyastro.io/en/r/@gmgnsol/'+t.ca;
+
+    // Token image — from pump.fun IPFS if available
+    var imgHtml = t.img
+      ? '<img src="'+safeStr(t.img)+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
+      : '<div style="width:32px;height:32px;border-radius:6px;background:var(--a1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎯</div>';
+
+    // Spark chart
+    var spark = drawSparkChart(t, 185, 52, color);
+
+    // Gain display
+    var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
+    var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
+
+    return '<div class="'+cardCls+'" onclick="copySnipCA(\''+t.ca+'\')" title="Click to copy CA">'
+      // Spark chart at top
+      + spark
+      // Body
+      +'<div class="gm-body">'
+        // Header row: image + name
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'
+          + imgHtml
+          +'<div style="overflow:hidden;flex:1;">'
+            +'<div class="gm-tick">$'+safeStr(t.tick)+'</div>'
+            +'<div class="gm-name">'+safeStr(t.name).slice(0,18)+'</div>'
+          +'</div>'
+          // Score badge
+          +'<div style="text-align:right;">'
+            +'<div style="font-size:14px;font-weight:900;color:'+color+';">'+sc+'</div>'
+            +'<div style="font-size:7px;color:var(--mu);">'+verd.band+'</div>'
+          +'</div>'
+        +'</div>'
+        // Gain + age
+        +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">'
+          +'<div class="gm-gain" style="color:'+color+';">'+gainDisp+'</div>'
+          +'<div style="font-size:9px;color:var(--mu);">/1min · '+ageStr+'</div>'
+        +'</div>'
+        // Stats grid
+        +'<div class="gm-stats">'
+          +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong></div>'
+          +'<div>5m <strong style="color:'+color+';">'+gain5Disp+'</strong></div>'
+          +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
+          +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
+        +'</div>'
+        // Verdict
+        +'<div style="font-size:9px;color:'+color+';font-weight:700;margin-bottom:6px;">'+verd.verdict+'</div>'
+        // Action buttons
+        +'<div class="gm-actions">'
+          +'<button class="gm-btn gm-btn-copy" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
+          +'<a href="'+trojanUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">BUY↗</a>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+// ── APPLY GOOD MOVERS FILTER to main table ──────────────────
+function applyGoodMoversFilter(){
+  var els = {
+    'sn-minmc':'0','sn-mc':'60000','sn-age':'0.5',
+    'sn-buyrate':'3','sn-minbuys':'0','sn-minvol':'0.5',
+    'sn-initbuy':'0','sn-maxinitbuy':'15',
+    'sn-bsratio':'0.6','sn-minbond':'0','sn-maxbond':'100',
+    'sn-sort':'gain','sn-minscore':'45','sn-mingain':'20'
+  };
+  Object.keys(els).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = els[id];
+  });
+  var chks = {'sn-nodev':true,'sn-nobots':true,'sn-whaleonly':false,'sn-cleanonly':false,'sn-dexonly':false,'sn-momentum':false};
+  Object.keys(chks).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.checked = chks[id];
+  });
+  updateSniperTable();
+}
+
+function getMcGain(t, secs){
+  if(!t.mcHistory || t.mcHistory.length < 2) return 0;
+  var cutoff = Date.now() - (secs * 1000);
+  // Find oldest snapshot within the window
+  var old = null;
+  for(var i=0; i<t.mcHistory.length; i++){
+    if(t.mcHistory[i].ts >= cutoff){ old = t.mcHistory[i]; break; }
+  }
+  if(!old || old.mc <= 0) return 0;
+  return ((t.mcUSD - old.mc) / old.mc) * 100;
+}
+
+// ── IS FAST MOVER — pumping hard right now ─────────────────
+function isFastMover(t){
+  var gain1m  = getMcGain(t, 60);
+  var gain5m  = getMcGain(t, 300);
+  return gain1m >= 30 || gain5m >= 100; // 30% in 1min OR 100% in 5min
+}
+
 function tokenVerdict(sc){
   if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
   if(sc >= 65) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
