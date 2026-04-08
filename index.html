@@ -996,6 +996,72 @@ textarea.mfld{resize:vertical;}
       <div class="etxt">SNIPER READY</div>
       <div class="esub">Click SCAN NOW to find live tokens matching your criteria</div>
     </div>
+    <!-- ══ AUTO BOT PANEL ══ -->
+    <div class="ibox" style="margin-top:14px;border:1px solid #a78bfa;background:rgba(167,139,250,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Cinzel','Georgia',serif;font-size:10px;font-weight:900;color:#a78bfa;letter-spacing:.15em;">🤖 REVIVAL AUTO-BOT</span>
+          <span id="bot-status-badge" style="font-size:9px;background:rgba(100,100,100,.2);color:var(--mu);border:1px solid var(--bd);border-radius:10px;padding:1px 8px;">OFF</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span style="font-size:10px;color:var(--mu);">Auto-signal</span>
+          <div style="position:relative;width:36px;height:20px;">
+            <input type="checkbox" id="bot-toggle" onchange="toggleBot()" style="opacity:0;width:0;height:0;position:absolute;"/>
+            <div id="bot-toggle-track" style="position:absolute;inset:0;background:var(--bd);border-radius:10px;transition:.3s;"></div>
+            <div id="bot-toggle-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.3s;"></div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Config row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">BOT PLATFORM</div>
+          <select id="bot-platform" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;">
+            <option value="trojan">🗡 Trojan Bot</option>
+            <option value="bonk">⚡ BonkBot</option>
+            <option value="photon">💡 Photon</option>
+            <option value="maestro">🎻 Maestro</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">BUY AMOUNT (SOL)</div>
+          <input id="bot-sol" type="number" value="0.1" min="0.01" step="0.01" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">STOP LOSS %</div>
+          <input id="bot-sl" type="number" value="10" min="1" max="90" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN SCORE (BAND)</div>
+          <select id="bot-minscore" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;">
+            <option value="45">🥉 Bronze (45+)</option>
+            <option value="65">🥈 Silver (65+)</option>
+            <option value="80">🥇 Gold (80+)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">TAKE PROFIT %</div>
+          <input id="bot-tp" type="number" value="50" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">COOLDOWN (mins)</div>
+          <input id="bot-cooldown" type="number" value="5" min="1" max="60" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
+        </div>
+      </div>
+
+      <!-- How it works note -->
+      <div style="font-size:10px;color:var(--mu);background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:5px;padding:7px 10px;margin-bottom:10px;line-height:1.6;">
+        <strong style="color:#a78bfa;">How it works:</strong> When a Revival token scores ≥ your min band, a pre-filled deep-link opens your chosen bot with CA + SOL amount + stop-loss pre-configured. <strong style="color:var(--tx);">You confirm the trade in the bot — nothing executes automatically.</strong>
+      </div>
+
+      <!-- Signal log -->
+      <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:#a78bfa;letter-spacing:.12em;margin-bottom:6px;">📡 SIGNAL LOG</div>
+      <div id="bot-signal-log" style="max-height:160px;overflow-y:auto;font-size:10px;color:var(--mu);">
+        <div style="color:var(--mu);font-style:italic;">No signals yet — enable Auto-signal and switch to REVIVAL mode</div>
+      </div>
+    </div>
+
     <!-- ══ DAY TRADING DASHBOARD ══ -->
     <div class="ibox gt" style="margin-top:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
@@ -2867,6 +2933,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">🎯 PUMP.FUN↗</a>'
       +'</div>'
+      +(mode==='revival' ? '<button style="width:100%;margin-top:5px;font-size:9px;font-weight:700;background:rgba(167,139,250,.15);border:1px solid #a78bfa;color:#a78bfa;border-radius:4px;padding:4px 0;cursor:pointer;letter-spacing:.05em;" onclick="event.stopPropagation();fireBotSignalManual(\''+t.ca+'\','+sc+');">🤖 BOT SIGNAL</button>' : '')
     +'</div>'
   +'</div>';
 }
@@ -2958,6 +3025,8 @@ function renderFastMovers(){
       var g1m = getMcGain(t, 60);
       var g5m = getMcGain(t, 300);
       var sc  = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
+      // Fire auto-bot signal if enabled and token qualifies
+      fireBotSignal(t, sc, 'revival');
       return buildMoverCard(t, sc, g1m, g5m, '#a78bfa', 'revival');
     }).join('');
   }
@@ -3025,6 +3094,233 @@ function isFastMover(t){
   var gain5m  = getMcGain(t, 300);
   return gain1m >= 30 || gain5m >= 100; // 30% in 1min OR 100% in 5min
 }
+
+
+/* ══════════════════════════════════════════════════════
+   REVIVAL AUTO-BOT — Semi-auto signal system
+   Fires pre-filled deep-links to trading bots when
+   revival tokens score above configured threshold.
+   No private keys. No auto-execution. You confirm.
+══════════════════════════════════════════════════════ */
+
+var _botEnabled    = false;
+var _botSignalled  = {};   // CA → timestamp, prevents duplicate signals
+var _botWatched    = {};   // CA → { entryMC, sl, tp, tick, signalledAt }
+var _botSignalLog  = [];   // log entries
+
+// ── Deep-link URL builders per platform ────────────────
+function buildBotUrl(platform, ca, solAmount, slPct, tpPct){
+  var sl = slPct / 100;
+  var tp = tpPct / 100;
+  switch(platform){
+    case 'trojan':
+      // Trojan Bot: /start=buy-<CA>-<SOL>-<slippage>
+      return 'https://t.me/solana_trojanbot?start=buy-'+ca;
+    case 'bonk':
+      // BonkBot: pre-fill CA
+      return 'https://t.me/bonkbot_bot?start=ref_revival_'+ca;
+    case 'photon':
+      // Photon: direct token page — user sets amount in UI
+      return 'https://photon-sol.tinyastro.io/en/r/@revival/'+ca;
+    case 'maestro':
+      return 'https://t.me/MaestroSniperBot?start='+ca;
+    default:
+      return 'https://pump.fun/'+ca;
+  }
+}
+
+// ── Toggle bot on/off ───────────────────────────────────
+function toggleBot(){
+  _botEnabled = document.getElementById('bot-toggle').checked;
+  var track = document.getElementById('bot-toggle-track');
+  var thumb = document.getElementById('bot-toggle-thumb');
+  var badge = document.getElementById('bot-status-badge');
+  if(_botEnabled){
+    if(track){ track.style.background = '#a78bfa'; }
+    if(thumb){ thumb.style.left = '19px'; }
+    if(badge){ badge.textContent = 'ON'; badge.style.background = 'rgba(167,139,250,.2)'; badge.style.color = '#a78bfa'; badge.style.borderColor = '#a78bfa'; }
+    addBotLog('🤖 Auto-Bot enabled — watching Revival tokens', '#a78bfa');
+    saveBotConfig();
+  } else {
+    if(track){ track.style.background = 'var(--bd)'; }
+    if(thumb){ thumb.style.left = '3px'; }
+    if(badge){ badge.textContent = 'OFF'; badge.style.background = 'rgba(100,100,100,.2)'; badge.style.color = 'var(--mu)'; badge.style.borderColor = 'var(--bd)'; }
+    addBotLog('⏹ Auto-Bot disabled', 'var(--mu)');
+    saveBotConfig();
+  }
+}
+
+// ── Read config ─────────────────────────────────────────
+function getBotConfig(){
+  return {
+    platform:  (document.getElementById('bot-platform')  || {value:'trojan'}).value  || 'trojan',
+    sol:       parseFloat((document.getElementById('bot-sol')     || {value:'0.1'}).value) || 0.1,
+    sl:        parseFloat((document.getElementById('bot-sl')      || {value:'10'}).value)  || 10,
+    tp:        parseFloat((document.getElementById('bot-tp')      || {value:'50'}).value)  || 50,
+    minScore:  parseInt((document.getElementById('bot-minscore')  || {value:'45'}).value)  || 45,
+    cooldown:  parseInt((document.getElementById('bot-cooldown')  || {value:'5'}).value)   || 5
+  };
+}
+
+// ── Save/load config to localStorage ───────────────────
+function saveBotConfig(){
+  try {
+    var cfg = getBotConfig();
+    cfg.enabled = _botEnabled;
+    localStorage.setItem('gsx-bot-cfg', JSON.stringify(cfg));
+  } catch(e){}
+}
+
+function loadBotConfig(){
+  try {
+    var raw = localStorage.getItem('gsx-bot-cfg');
+    if(!raw) return;
+    var cfg = JSON.parse(raw);
+    var set = function(id, val){ var el = document.getElementById(id); if(el && val !== undefined) el.value = val; };
+    set('bot-platform', cfg.platform);
+    set('bot-sol',      cfg.sol);
+    set('bot-sl',       cfg.sl);
+    set('bot-tp',       cfg.tp);
+    set('bot-minscore', cfg.minScore);
+    set('bot-cooldown', cfg.cooldown);
+    if(cfg.enabled){
+      var tog = document.getElementById('bot-toggle');
+      if(tog){ tog.checked = true; toggleBot(); }
+    }
+  } catch(e){}
+}
+
+// ── Add entry to signal log ─────────────────────────────
+function addBotLog(msg, color){
+  var now = new Date();
+  var ts  = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+':'+(now.getSeconds()<10?'0':'')+now.getSeconds();
+  _botSignalLog.unshift({ ts: ts, msg: msg, color: color || 'var(--tx)' });
+  if(_botSignalLog.length > 50) _botSignalLog = _botSignalLog.slice(0, 50);
+  renderBotLog();
+}
+
+function renderBotLog(){
+  var el = document.getElementById('bot-signal-log');
+  if(!el) return;
+  if(!_botSignalLog.length){
+    el.innerHTML = '<div style="color:var(--mu);font-style:italic;">No signals yet</div>';
+    return;
+  }
+  el.innerHTML = _botSignalLog.map(function(e){
+    return '<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);">'      +'<span style="color:var(--mu);flex-shrink:0;">'+e.ts+'</span>'      +'<span style="color:'+e.color+';">'+e.msg+'</span>'      +'</div>';
+  }).join('');
+}
+
+// ── Fire signal for a token ─────────────────────────────
+function fireBotSignal(t, sc, mode){
+  if(!_botEnabled) return;
+  var cfg = getBotConfig();
+  if(sc < cfg.minScore) return;
+
+  // Cooldown check — don't signal same token twice within cooldown window
+  var now = Date.now();
+  var lastSignal = _botSignalled[t.ca] || 0;
+  if(now - lastSignal < cfg.cooldown * 60000) return;
+  _botSignalled[t.ca] = now;
+
+  // Build deep-link
+  var url = buildBotUrl(cfg.platform, t.ca, cfg.sol, cfg.sl, cfg.tp);
+  var band = sc >= 80 ? '🥇 GOLD' : sc >= 65 ? '🥈 SILVER' : '🥉 BRONZE';
+  var platformName = { trojan:'Trojan', bonk:'BonkBot', photon:'Photon', maestro:'Maestro' }[cfg.platform] || cfg.platform;
+
+  // Log the signal
+  addBotLog(
+    '🚨 BUY SIGNAL: $'+safeStr(t.tick)+' · Score '+sc+' ('+band+') · '+cfg.sol+' SOL · SL '+cfg.sl+'% · TP '+cfg.tp+'% → '+platformName,
+    sc >= 80 ? '#f59e0b' : sc >= 65 ? 'var(--ac)' : '#a78bfa'
+  );
+
+  // Track for stop-loss monitoring
+  _botWatched[t.ca] = {
+    ca:          t.ca,
+    tick:        safeStr(t.tick),
+    entryMC:     t.mcUSD,
+    entryPrice:  t.mcUSD,
+    sl:          cfg.sl,
+    tp:          cfg.tp,
+    signalledAt: now,
+    slFired:     false,
+    tpFired:     false
+  };
+
+  // Open bot deep-link
+  window.open(url, '_blank');
+
+  // Show toast notification
+  showBotToast('🚨 BUY SIGNAL: $'+safeStr(t.tick)+' → '+platformName, sc >= 80 ? '#f59e0b' : '#a78bfa');
+}
+
+// ── Toast notification ──────────────────────────────────
+function showBotToast(msg, color){
+  var toast = document.getElementById('bot-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'bot-toast';
+    toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;'+
+      'font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;'+
+      'box-shadow:0 4px 20px rgba(0,0,0,.5);transition:opacity .4s;pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.style.background = (color || '#a78bfa');
+  toast.style.color = '#000';
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(window._botToastTimer);
+  window._botToastTimer = setTimeout(function(){ toast.style.opacity = '0'; }, 4000);
+}
+
+// ── Stop-loss / take-profit monitor ────────────────────
+function checkBotWatched(){
+  if(!Object.keys(_botWatched).length) return;
+  var cfg = getBotConfig();
+  Object.keys(_botWatched).forEach(function(ca){
+    var w = _botWatched[ca];
+    if(w.slFired && w.tpFired) return;
+    var t = liveTokens[ca] || dexRevivalTokens[ca];
+    if(!t || !t.mcUSD || !w.entryMC) return;
+    var changePct = ((t.mcUSD - w.entryMC) / w.entryMC) * 100;
+
+    // Stop-loss triggered
+    if(!w.slFired && changePct <= -w.sl){
+      w.slFired = true;
+      var url = buildBotUrl(cfg.platform, ca, cfg.sol, w.sl, w.tp);
+      addBotLog('🛑 STOP-LOSS: $'+w.tick+' down '+Math.abs(changePct).toFixed(1)+'% from entry → SELL via '+cfg.platform, 'var(--dn)');
+      showBotToast('🛑 STOP-LOSS: $'+w.tick+' -'+Math.abs(changePct).toFixed(1)+'%', '#ef4444');
+      window.open(url, '_blank');
+    }
+
+    // Take-profit triggered
+    if(!w.tpFired && changePct >= w.tp){
+      w.tpFired = true;
+      var url2 = buildBotUrl(cfg.platform, ca, cfg.sol, w.sl, w.tp);
+      addBotLog('🎯 TAKE-PROFIT: $'+w.tick+' up +'+changePct.toFixed(1)+'% from entry → SELL via '+cfg.platform, '#4ade80');
+      showBotToast('🎯 TAKE-PROFIT: $'+w.tick+' +'+changePct.toFixed(1)+'%', '#4ade80');
+      window.open(url2, '_blank');
+    }
+  });
+}
+
+// Manual signal — bypasses cooldown, enables bot temporarily
+function fireBotSignalManual(ca, sc){
+  var t = dexRevivalTokens[ca] || liveTokens[ca];
+  if(!t){ showBotToast('⚠ Token data not found', '#ef4444'); return; }
+  // Force-clear cooldown for this CA so it fires
+  delete _botSignalled[ca];
+  var wasBotEnabled = _botEnabled;
+  _botEnabled = true;
+  fireBotSignal(t, sc, 'revival');
+  _botEnabled = wasBotEnabled;
+}
+
+// Start SL/TP monitor on 10s interval
+setInterval(checkBotWatched, 10000);
+
+// Load saved config on startup
+setTimeout(loadBotConfig, 500);
 
 function tokenVerdict(sc){
   if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
@@ -3516,8 +3812,12 @@ function massAddFromSniper(){
 
 function massAddFromRevival(){
   // Import exactly the tokens currently rendered on REVIVAL cards
+  // Applies bot minScore filter if bot config is available
   var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
   if(!cards.length){ showMassStatus('⚠ No REVIVAL cards visible — switch to REVIVAL mode first'); return; }
+
+  var cfg = getBotConfig();
+  var minScore = cfg.minScore || 45; // Bronze default
 
   var eligible = [];
   cards.forEach(function(card){
@@ -3526,23 +3826,44 @@ function massAddFromRevival(){
     if(!match) return;
     var ca = match[1];
     var t = dexRevivalTokens[ca] || liveTokens[ca];
-    if(t) eligible.push(t);
+    if(!t) return;
+    // Apply bot min score filter
+    var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
+    if(sc < minScore) return;
+    eligible.push(t);
   });
 
-  if(!eligible.length){ showMassStatus('⚠ Could not read tokens from REVIVAL cards'); return; }
+  if(!eligible.length){
+    var bandName = minScore >= 80 ? 'Gold (80+)' : minScore >= 65 ? 'Silver (65+)' : 'Bronze (45+)';
+    showMassStatus('⚠ No Revival tokens meet min score: ' + bandName + ' — adjust Bot Min Score or lower threshold');
+    return;
+  }
 
   var newOnes = eligible.filter(function(t){
     return !basket.find(function(b){ return b.ca === t.ca; });
   }).slice(0, 16);
 
-  if(!newOnes.length){ showMassStatus('⚠ All visible REVIVAL tokens already in basket'); return; }
+  if(!newOnes.length){ showMassStatus('⚠ All qualifying Revival tokens already in basket'); return; }
 
-  showMassStatus('⏳ Importing ' + newOnes.length + ' from Revival...');
+  showMassStatus('⏳ Importing ' + newOnes.length + ' from Revival (score ≥ ' + minScore + ')...');
   newOnes.forEach(function(t, i){
     setTimeout(function(){
       addBasketCA(t.ca, t.tick, 0, 'open');
+      // Register in bot watch for auto stop-loss
+      _botWatched[t.ca] = {
+        ca:          t.ca,
+        tick:        safeStr(t.tick),
+        entryMC:     t.mcUSD,
+        entryPrice:  0, // will fill once price fetched
+        sl:          cfg.sl || 10,
+        tp:          cfg.tp || 50,
+        signalledAt: Date.now(),
+        slFired:     false,
+        tpFired:     false,
+        fromImport:  true
+      };
       if(i === newOnes.length - 1){
-        showMassStatus('✅ Imported ' + newOnes.length + ' tokens from Revival');
+        showMassStatus('✅ Imported ' + newOnes.length + ' tokens · Auto stop-loss ' + (cfg.sl||10) + '% active');
       }
     }, i * 300);
   });
@@ -3603,10 +3924,45 @@ function massCloseAll(closeStatus, askPrice){
   });
 }
 
+function checkBasketStopLoss(b){
+  // Auto stop-loss: fire sell deep-link + close position if loss >= threshold
+  if(!b || b.status !== 'open' || b.entry <= 0 || b.current <= 0) return;
+  if(b._slFired) return; // already triggered
+  var cfg = getBotConfig();
+  var slPct = cfg.sl || 10;
+  var lossPct = (b.current - b.entry) / b.entry * 100;
+  if(lossPct <= -slPct){
+    b._slFired = true;
+    var platform = cfg.platform || 'trojan';
+    var url = buildBotUrl(platform, b.ca, cfg.sol || 0.1, slPct, cfg.tp || 50);
+    // Log to bot signal log
+    addBotLog(
+      '🛑 AUTO STOP-LOSS: $'+safeStr(b.tick)+' down '+Math.abs(lossPct).toFixed(1)+'% — SELL signal fired → '+platform,
+      'var(--dn)'
+    );
+    // Toast alert
+    showBotToast('🛑 STOP-LOSS: $'+safeStr(b.tick)+' -'+Math.abs(lossPct).toFixed(1)+'%', '#ef4444');
+    // Open sell deep-link
+    window.open(url, '_blank');
+    // Auto-close position in dashboard at current price
+    b.status  = 'stopped';
+    b.exitPrice = b.current;
+    b.exitAt  = Date.now();
+    renderBasket();
+    renderDaySummary();
+  }
+}
+
 function refreshBasketPrices(){
   basket.filter(function(b){ return b.status==='open'; }).forEach(function(b){
     fetchTokenPrice(b.ca, function(price){
-      if(price > 0) b.current = price;
+      if(price > 0){
+        // Set entry price from first successful fetch if missing
+        if(b.entry <= 0 && price > 0) b.entry = price;
+        b.current = price;
+        // Check stop-loss on every price update
+        checkBasketStopLoss(b);
+      }
       renderBasket(); renderDaySummary();
     });
   });
@@ -3623,6 +3979,7 @@ function refreshSinglePrice(ca){
       b.current    = price;
       b.priceError = false;
       b.loading    = false;
+      checkBasketStopLoss(b); // auto stop-loss check
     } else {
       b.priceError = true;
       b.loading    = false;
