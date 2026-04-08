@@ -2511,7 +2511,7 @@ function ingestDexRevivalPairs(pairs){
   pairs.forEach(function(p){
     var ca = p.baseToken && p.baseToken.address;
     if(!ca) return;
-    if(liveTokens[ca]) return;
+    // Don't skip liveTokens — graduated tokens stop getting WS trades, need DexScreener refresh
     var mcUSD  = p.fdv || p.marketCap || 0;
     var volH1  = (p.volume && p.volume.h1) || 0;
     var volH6  = (p.volume && p.volume.h6) || 0;
@@ -2537,7 +2537,7 @@ function ingestDexRevivalPairs(pairs){
       buyTimes.push(now - Math.random()*60000);
     }
     buyTimes = buyTimes.filter(function(ts){ return ts > now - 60000; });
-    dexRevivalTokens[ca] = {
+    var freshData = {
       ca: ca,
       name: safeStr((p.baseToken && p.baseToken.name) || 'UNKNOWN'),
       tick: safeStr((p.baseToken && p.baseToken.symbol) || '???'),
@@ -2550,6 +2550,25 @@ function ingestDexRevivalPairs(pairs){
       _priceChg1h: p1, _priceChg6h: p6, _priceChg24h: p24,
       _volSpikeRatio: spk, _isDexRevival: true
     };
+    dexRevivalTokens[ca] = freshData;
+    // Also refresh liveTokens if present — graduated tokens stop WS trades
+    // so their MC freezes without this update
+    if(liveTokens[ca] && mcUSD > 0) {
+      liveTokens[ca].mcUSD  = mcUSD;
+      liveTokens[ca].mcSol  = mcUSD / solPrice;
+      liveTokens[ca].vol    = volSol > liveTokens[ca].vol ? volSol : liveTokens[ca].vol;
+      liveTokens[ca].buys   = buys > liveTokens[ca].buys ? buys : liveTokens[ca].buys;
+      liveTokens[ca].sells  = sells > liveTokens[ca].sells ? sells : liveTokens[ca].sells;
+      liveTokens[ca].liq    = ((p.liquidity && p.liquidity.usd) || 0) / solPrice;
+      liveTokens[ca]._priceChg1h  = p1;
+      liveTokens[ca]._priceChg6h  = p6;
+      liveTokens[ca]._priceChg24h = p24;
+      liveTokens[ca]._volSpikeRatio = spk;
+      // Push fresh MC into history for gain calculation
+      if(!liveTokens[ca].mcHistory) liveTokens[ca].mcHistory = [];
+      liveTokens[ca].mcHistory.push({ ts: now, mc: mcUSD });
+      liveTokens[ca].mcHistory = liveTokens[ca].mcHistory.filter(function(s){ return s.ts > now - 600000; });
+    }
   });
   if(_gmMode === 'revival') renderFastMovers();
 }
@@ -2599,6 +2618,19 @@ function pollDexRevival(){
       if(!d || !d.pairs) return;
       ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
     });
+  // 4. Directly refresh CAs currently visible on revival cards
+  var visibleCAs = Object.keys(dexRevivalTokens).concat(liveTokenOrder).filter(function(ca, i, arr){
+    return arr.indexOf(ca) === i;
+  }).slice(0, 30);
+  if(visibleCAs.length){
+    fetch('https://api.dexscreener.com/latest/dex/tokens/'+visibleCAs.join(','))
+      .then(function(r){ return r.json(); })
+      .catch(function(){ return null; })
+      .then(function(d){
+        if(!d || !d.pairs) return;
+        ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
+      });
+  }
 }
 
 function startRevivalPoll(){
@@ -2767,7 +2799,15 @@ function renderFastMovers(){
       if(liveTokens[ca]) revivalCandidates[ca] = liveTokens[ca];
     });
     Object.keys(dexRevivalTokens).forEach(function(ca){
-      if(!revivalCandidates[ca]) revivalCandidates[ca] = dexRevivalTokens[ca];
+      if(!revivalCandidates[ca]){
+        revivalCandidates[ca] = dexRevivalTokens[ca];
+      } else {
+        // Prefer dexRevivalTokens MC if it's higher (graduated token moved past WS data)
+        var dex = dexRevivalTokens[ca];
+        if(dex.mcUSD > revivalCandidates[ca].mcUSD){
+          revivalCandidates[ca] = dex;
+        }
+      }
     });
     movers = Object.keys(revivalCandidates)
       .map(function(ca){ return revivalCandidates[ca]; })
