@@ -516,7 +516,7 @@ textarea.mfld{resize:vertical;}
     <label class="flbl">MIN LIQUIDITY ($)</label>
     <input id="cmliq" class="fld" value="500"/>
 
-    <label class="flbl">MAX AGE (hours)</label>
+    <label class="flbl">MAX AGE (hours) <span style="font-weight:400;color:var(--mu);">— info only</span></label>
     <input id="cmage" class="fld" value="48"/>
 
     <label class="flbl">MIN 5MIN BUYS</label>
@@ -1480,31 +1480,24 @@ async function summon(){
     var json  = await resp.json();
     var pairs = (json.pairs || []);
 
-    // Filter to Solana + pump.fun only
+    // Filter to Solana only — accept pump.fun + graduated (raydium) pairs
     var nowMs = Date.now();
-    pairs = pairs.filter(function(p){
-      if(p.chainId !== 'solana') return false;
-      if(p.dexId !== 'pumpfun' && !(p.dexId||'').includes('pump') && !(p.labels||[]).join('').toLowerCase().includes('pump')) return false;
-      return true;
+    var allSolana = (json.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
+    // Prefer pumpfun pairs, fall back to all solana if none found
+    var pumpPairs = allSolana.filter(function(p){
+      return p.dexId === 'pumpfun' || (p.dexId||'').includes('pump') || (p.labels||[]).join('').toLowerCase().includes('pump');
     });
+    pairs = pumpPairs.length ? pumpPairs : allSolana;
 
-    // If no results with pump filter, try all solana pairs
-    if(!pairs.length){
-      pairs = (json.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
-    }
-
-    // Apply criteria filters
-    var nowMins = Date.now();
+    // Apply criteria filters — age is shown on card but NOT a hard filter
     pairs = pairs.filter(function(p){
       var mc  = p.marketCap || p.fdv || 0;
       var liq = (p.liquidity||{}).usd || 0;
-      var age = p.pairCreatedAt ? (nowMins - p.pairCreatedAt) / 3600000 : 9999;
       var buys5m = ((p.txns||{}).m5||{}).buys || 0;
 
       if(mc > 0 && mc < minMC) return false;
       if(mc > 0 && mc > maxMC) return false;
       if(liq < minLiq) return false;
-      if(age > maxAge) return false;
       if(buys5m < minBuys) return false;
       return true;
     });
@@ -1847,6 +1840,7 @@ function connectPumpPortal(){
     ppConnected = true;
     ppWS.send(JSON.stringify({ method:'subscribeNewToken' }));
     startAutoRefresh();
+    startRevivalPoll();
     setStatus('🟢 LIVE — Receiving new tokens from pump.fun','var(--ac)');
     document.getElementById('sniper-status').textContent='🟢 CONNECTED';
     document.getElementById('sniper-load').style.display='none';
@@ -1928,6 +1922,11 @@ function connectPumpPortal(){
         t.mcSol = d.marketCapSol || t.mcSol;
         t.mcUSD = t.mcSol * getSolPrice();
         t.vol  += (d.solAmount || 0);
+        // Update bonding curve liquidity in real-time (no DexScreener wait)
+        if(d.vSolInBondingCurve) {
+          t.vSol = d.vSolInBondingCurve;
+          t.liq  = t.vSol * getSolPrice();
+        }
 
         // ── VOL SNAPSHOT — for revival spike detection ────────
         var nowSnap = Date.now();
@@ -2008,11 +2007,16 @@ function enrichFromDex(ca){
       if(!pairs.length || !liveTokens[ca]) return;
       var p = pairs[0];
       var t = liveTokens[ca];
-      t.mcUSD  = p.fdv || p.marketCap || t.mcUSD;
-      t.liq    = (p.liquidity&&p.liquidity.usd)||0;
-      t.vol    = (p.volume&&p.volume.h1)||t.vol;
-      t.buys   = (p.txns&&p.txns.h1&&p.txns.h1.buys)||t.buys;
-      t.sells  = (p.txns&&p.txns.h1&&p.txns.h1.sells)||t.sells;
+      // Only fill liq if we don't have it from bonding curve yet
+      if(!t.liq || t.liq === 0){
+        t.liq = (p.liquidity&&p.liquidity.usd)||0;
+      }
+      // Only fill img if missing
+      if(!t.img && p.info && p.info.imageUrl){
+        t.img = p.info.imageUrl;
+      }
+      // Do NOT overwrite mcUSD/vol/buys/sells — PumpPortal trade events
+      // are real-time and more accurate than DexScreener's 30-60s cache
       t.dexData = true;
       updateSniperTable();
     })
@@ -2378,7 +2382,7 @@ function updateSniperTable(){
     else if(bsRatio>=75 && total_txns>=5) signals += '<span class="sig sig-ok">📈 BULLISH</span>';
     if(buyRate>=15) signals += '<span class="sig sig-fire">🔥 VIRAL</span>';
     else if(buyRate>=8) signals += '<span class="sig sig-ok">⚡ HOT</span>';
-    if(t.dexData && t.liq>1000) signals += '<span class="sig sig-liq">💧 LIQ ✓</span>';
+    if(t.liq>1000) signals += '<span class="sig sig-liq">💧 LIQ ✓</span>';
     if(bondPct>=50) signals += '<span class="sig sig-ok">'+bondPct+'% GRAD</span>';
 
     // Fast mover badge
@@ -2490,6 +2494,146 @@ function drawSparkChart(t, width, height, color){
 }
 
 // ── GOOD MOVERS — fresh + pumping + clean + scored ──────────
+
+// ── DEX REVIVAL — external tokens from DexScreener ─────────
+var dexRevivalTokens = {};
+var _revivalPollTimer = null;
+
+function ingestDexRevivalPairs(pairs){
+  if(!pairs || !pairs.length) return;
+  var now = Date.now();
+  var solPrice = getSolPrice() || 140;
+  pairs.forEach(function(p){
+    var ca = p.baseToken && p.baseToken.address;
+    if(!ca) return;
+    if(liveTokens[ca]) return;
+    var mcUSD  = p.fdv || p.marketCap || 0;
+    var volH1  = (p.volume && p.volume.h1) || 0;
+    var volH6  = (p.volume && p.volume.h6) || 0;
+    var buys   = (p.txns && p.txns.h1 && p.txns.h1.buys)  || 0;
+    var sells  = (p.txns && p.txns.h1 && p.txns.h1.sells) || 0;
+    var p1     = parseFloat((p.priceChange && p.priceChange.h1)  || 0);
+    var p6     = parseFloat((p.priceChange && p.priceChange.h6)  || 0);
+    var p24    = parseFloat((p.priceChange && p.priceChange.h24) || 0);
+    var avgH6perH = volH6 > 0 ? volH6 / 6 : 0;
+    var spk    = avgH6perH > 0 ? (volH1 / avgH6perH) : (volH1 > 0 ? 10 : 0);
+    var volSol = volH1 / solPrice;
+    var existing = dexRevivalTokens[ca];
+    var createdMs = p.pairCreatedAt ? parseInt(p.pairCreatedAt) : (existing ? existing.ts : now - 3600000);
+    var volSnap = existing ? existing.volSnap : [];
+    volSnap.push({ ts: now, vol: volSol > 0 ? volSol / 12 : 0 });
+    if(volSnap.length > 30) volSnap = volSnap.slice(-30);
+    var mcHistory = existing ? existing.mcHistory : [];
+    mcHistory.push({ ts: now, mc: mcUSD });
+    if(mcHistory.length > 30) mcHistory = mcHistory.slice(-30);
+    var buyTimes = existing ? existing.buyTimes : [];
+    var bpm = Math.round(buys / 60);
+    for(var i = 0; i < Math.min(bpm, 10); i++){
+      buyTimes.push(now - Math.random()*60000);
+    }
+    buyTimes = buyTimes.filter(function(ts){ return ts > now - 60000; });
+    dexRevivalTokens[ca] = {
+      ca: ca,
+      name: safeStr((p.baseToken && p.baseToken.name) || 'UNKNOWN'),
+      tick: safeStr((p.baseToken && p.baseToken.symbol) || '???'),
+      mcUSD: mcUSD, mcSol: mcUSD / solPrice,
+      vol: volSol, liq: ((p.liquidity && p.liquidity.usd) || 0) / solPrice,
+      buys: buys, sells: sells, ts: createdMs,
+      img: (p.info && p.info.imageUrl) || '',
+      dexData: true, devSelling: false, whaleFlag: false, bundled: false, initBuy: 0,
+      volSnap: volSnap, mcHistory: mcHistory, buyTimes: buyTimes, volTimes: [],
+      _priceChg1h: p1, _priceChg6h: p6, _priceChg24h: p24,
+      _volSpikeRatio: spk, _isDexRevival: true
+    };
+  });
+  if(_gmMode === 'revival') renderFastMovers();
+}
+
+function pollDexRevival(){
+  // 1. Trending Solana pairs — catches movers of any age
+  fetch('https://api.dexscreener.com/token-profiles/latest/v1')
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; })
+    .then(function(d){
+      if(!d || !Array.isArray(d)) return;
+      var cas = d.filter(function(x){ return x.chainId === 'solana' && x.tokenAddress; })
+                 .slice(0, 20)
+                 .map(function(x){ return x.tokenAddress; });
+      if(!cas.length) return;
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))
+        .then(function(r){ return r.json(); })
+        .catch(function(){ return null; })
+        .then(function(d2){
+          if(!d2 || !d2.pairs) return;
+          ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId === 'solana'; }));
+        });
+    });
+  // 2. Boosted tokens — paid/trending, always active
+  fetch('https://api.dexscreener.com/token-boosts/top/v1')
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; })
+    .then(function(d){
+      if(!d || !Array.isArray(d)) return;
+      var cas = d.filter(function(x){ return x.chainId === 'solana' && x.tokenAddress; })
+                 .slice(0, 20)
+                 .map(function(x){ return x.tokenAddress; });
+      if(!cas.length) return;
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))
+        .then(function(r){ return r.json(); })
+        .catch(function(){ return null; })
+        .then(function(d2){
+          if(!d2 || !d2.pairs) return;
+          ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId === 'solana'; }));
+        });
+    });
+  // 3. Search broad pump.fun — fills in any gaps
+  fetch('https://api.dexscreener.com/latest/dex/search?q=pump+sol')
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; })
+    .then(function(d){
+      if(!d || !d.pairs) return;
+      ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
+    });
+}
+
+function startRevivalPoll(){
+  if(_revivalPollTimer) clearInterval(_revivalPollTimer);
+  pollDexRevival();
+  _revivalPollTimer = setInterval(pollDexRevival, 45000);
+}
+
+function getDexRevivalScore(t){
+  var sc  = 0;
+  var p1  = t._priceChg1h  || 0;
+  var p24 = t._priceChg24h || 0;
+  var spk = t._volSpikeRatio || 0;
+  var total = t.buys + t.sells;
+  var bsr   = total > 0 ? t.buys / total : 0.5;
+  var ageHrs = (Date.now() - t.ts) / 3600000;
+  if(p1 >= 100)      sc += 35;
+  else if(p1 >= 50)  sc += 28;
+  else if(p1 >= 20)  sc += 18;
+  else if(p1 >= 10)  sc += 10;
+  else if(p1 >= 5)   sc += 5;
+  else if(p1 < -20)  sc -= 15;
+  if(spk >= 10)      sc += 30;
+  else if(spk >= 5)  sc += 22;
+  else if(spk >= 3)  sc += 14;
+  else if(spk >= 2)  sc += 8;
+  else if(spk >= 1.2) sc += 3;
+  if(p24 < -30 && p1 > 20)  sc += 15;
+  else if(p24 < -10 && p1 > 10) sc += 8;
+  if(bsr >= 0.85)       sc += 15;
+  else if(bsr >= 0.70)  sc += 10;
+  else if(bsr >= 0.55)  sc += 5;
+  else                  sc -= 10;
+  if(ageHrs > 720)       sc += 10;
+  else if(ageHrs > 168)  sc += 7;
+  else if(ageHrs > 24)   sc += 4;
+  if(t.mcUSD > 500000) sc -= 10;
+  if(t.vol < 0.5)      sc -= 10;
+  return Math.max(0, Math.min(sc, 99));
+}
 
 // ── GM MODE STATE + TOGGLE ──────────────────────────────────
 var _gmMode = 'snipe';
@@ -2611,27 +2755,37 @@ function renderFastMovers(){
     }).join('');
 
   } else {
-    // ── REVIVAL MODE — old tokens suddenly waking up ────────
-    movers = liveTokenOrder
-      .map(function(ca){ return liveTokens[ca]; })
+    // ── REVIVAL MODE — any token any age with sudden move ───
+    // Merge live WebSocket tokens + DexScreener polled tokens
+    var revivalCandidates = {};
+    liveTokenOrder.forEach(function(ca){
+      if(liveTokens[ca]) revivalCandidates[ca] = liveTokens[ca];
+    });
+    Object.keys(dexRevivalTokens).forEach(function(ca){
+      if(!revivalCandidates[ca]) revivalCandidates[ca] = dexRevivalTokens[ca];
+    });
+    movers = Object.keys(revivalCandidates)
+      .map(function(ca){ return revivalCandidates[ca]; })
       .filter(function(t){
         if(!t || t.devSelling) return false;
-        var ageHrs = (Date.now() - t.ts) / 3600000;
-        if(ageHrs < 0.5) return false; // must be at least 30 min old
-        // Any token older than 30min with buying activity
+        // No age cap — any token (2min or 2yr) can revive
         var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > Date.now()-60000; }).length : 0;
-        if(buyRate < 1 && t.buys < 5) return false; // nothing happening
-        return getRevivalScore(t) >= 20;
+        var hasActivity = buyRate >= 1 || t.buys >= 3 || (t._priceChg1h && t._priceChg1h > 5) || (t._volSpikeRatio && t._volSpikeRatio >= 1.2);
+        if(!hasActivity) return false;
+        var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
+        return sc >= 20;
       })
       .sort(function(a, b){
-        return getRevivalScore(b) - getRevivalScore(a);
+        var sa = a._isDexRevival ? getDexRevivalScore(a) : getRevivalScore(a);
+        var sb = b._isDexRevival ? getDexRevivalScore(b) : getRevivalScore(b);
+        return sb - sa;
       })
       .slice(0, 8);
 
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60);
       var g5m = getMcGain(t, 300);
-      var sc  = getRevivalScore(t);
+      var sc  = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
       return buildMoverCard(t, sc, g1m, g5m, '#a78bfa', 'revival');
     }).join('');
   }
@@ -2837,8 +2991,8 @@ function tokenScore(t){
   // ── BONUSES ────────────────────────────────────────────────
   if(t.whaleFlag)                      sc += 6;  // whale buy detected
   if(t.buys > 0 && t.sells === 0)      sc += 5;  // zero sells = pristine
-  if(t.dexData && t.liq > 2000)        sc += 5;  // strong liquidity
-  else if(t.dexData && t.liq > 1000)   sc += 3;
+  if(t.liq > 2000)        sc += 5;  // strong liquidity
+  else if(t.liq > 1000)   sc += 3;
   if(total >= 10 && bsRatio >= 0.90)   sc += 4;  // volume + clean ratio
 
   // ── PENALTIES (risk guard) ─────────────────────────────────
