@@ -1134,6 +1134,11 @@ function sw(i){
     window._sniperRan=true;
     presetSniper('hot'); // HOT is default — catch fast movers
     runSniper();
+    // Start revival poll + GM card refresh immediately, independent of WS connection
+    startRevivalPoll();
+    if(!window._gmRefreshTimer){
+      window._gmRefreshTimer = setInterval(function(){ renderFastMovers(); }, 5000);
+    }
   }
 }
 
@@ -3005,11 +3010,76 @@ function tokenScore(t){
 
 // ── AUTO-REFRESH table every 30s ──────────────────────────
 var _refreshTimer = null;
+var _gmRefreshTimer = null;
+var _revivalEnrichTimer = null;
+
+// Targeted re-enrichment of currently displayed revival tokens — keeps MC/vol live
+function refreshRevivalTokens(){
+  var cas = Object.keys(dexRevivalTokens);
+  // Also grab liveTokens that may have graduated (no more WS trades)
+  Object.keys(liveTokens).forEach(function(ca){
+    if(cas.indexOf(ca) === -1) cas.push(ca);
+  });
+  if(!cas.length) return;
+  var batch = cas.slice(0, 30).join(',');
+  fetch('https://api.dexscreener.com/latest/dex/tokens/' + batch)
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; })
+    .then(function(d){
+      if(!d || !d.pairs) return;
+      var solPrice = getSolPrice() || 140;
+      d.pairs.filter(function(p){ return p.chainId === 'solana'; }).forEach(function(p){
+        var ca = p.baseToken && p.baseToken.address;
+        if(!ca) return;
+        var mcUSD = p.fdv || p.marketCap || 0;
+        var volH1 = (p.volume && p.volume.h1) || 0;
+        var volH6 = (p.volume && p.volume.h6) || 0;
+        var buys  = (p.txns && p.txns.h1 && p.txns.h1.buys)  || 0;
+        var sells = (p.txns && p.txns.h1 && p.txns.h1.sells) || 0;
+        var p1    = parseFloat((p.priceChange && p.priceChange.h1)  || 0);
+        var p24   = parseFloat((p.priceChange && p.priceChange.h24) || 0);
+        var avgH6 = volH6 > 0 ? volH6 / 6 : 0;
+        var spk   = avgH6 > 0 ? (volH1 / avgH6) : (volH1 > 0 ? 10 : 0);
+        var now   = Date.now();
+        if(dexRevivalTokens[ca]){
+          var t = dexRevivalTokens[ca];
+          if(mcUSD > 0) t.mcUSD = mcUSD;
+          t.mcSol = t.mcUSD / solPrice;
+          t.vol   = volH1 / solPrice;
+          t.buys  = buys || t.buys;
+          t.sells = sells || t.sells;
+          t.liq   = ((p.liquidity && p.liquidity.usd) || 0) / solPrice;
+          t._priceChg1h    = p1;
+          t._priceChg24h   = p24;
+          t._volSpikeRatio = spk;
+          if(!t.mcHistory) t.mcHistory = [];
+          t.mcHistory.push({ ts: now, mc: t.mcUSD });
+          if(t.mcHistory.length > 30) t.mcHistory = t.mcHistory.slice(-30);
+        }
+        // Graduated liveTokens — update MC from DexScreener since WS trades stopped
+        if(liveTokens[ca] && mcUSD > 0){
+          liveTokens[ca].mcUSD = mcUSD;
+          liveTokens[ca].mcSol = mcUSD / solPrice;
+        }
+      });
+    });
+}
+
 function startAutoRefresh(){
   if(_refreshTimer) clearInterval(_refreshTimer);
   _refreshTimer = setInterval(function(){
     if(ppConnected) updateSniperTable();
-  }, 30000);
+  }, 5000);
+  // Revival/Snipe cards refresh independently — works even without WS connected
+  if(_gmRefreshTimer) clearInterval(_gmRefreshTimer);
+  _gmRefreshTimer = setInterval(function(){
+    renderFastMovers();
+  }, 5000);
+  // Re-enrich revival token data from DexScreener every 20s
+  if(_revivalEnrichTimer) clearInterval(_revivalEnrichTimer);
+  _revivalEnrichTimer = setInterval(function(){
+    if(_gmMode === 'revival') refreshRevivalTokens();
+  }, 20000);
 }
 
 function runSniper(){
