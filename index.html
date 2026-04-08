@@ -76,7 +76,6 @@ select option{background:var(--s1);color:var(--tx);}
 .tl-brand{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--ac);letter-spacing:.05em;white-space:nowrap;}
 .tl-sub{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:1px;display:none;}
 @media(min-width:480px){.tl-sub{display:block;}}
-/* ── LOGO ANIMATIONS ── */
 @keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 4px #818cf8) drop-shadow(0 0 8px rgba(99,102,241,.4));}50%{filter:drop-shadow(0 0 8px #a78bfa) drop-shadow(0 0 16px rgba(167,139,250,.6));}}
 @keyframes scanLine{0%{transform:translateY(-18px);opacity:0;}20%{opacity:1;}80%{opacity:1;}100%{transform:translateY(18px);opacity:0;}}
 @keyframes crossPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
@@ -357,54 +356,33 @@ textarea.mfld{resize:vertical;}
 <!-- ══ TOPBAR ══ -->
 <div id="topbar">
   <div class="tl">
-    <!-- ── DYNAMIC LOGO ── -->
     <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="scopeGrad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.15"/>
-          <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#818cf8"/>
-          <stop offset="50%" stop-color="#a78bfa"/>
-          <stop offset="100%" stop-color="#6366f1"/>
-        </linearGradient>
-        <clipPath id="scopeClip">
-          <circle cx="18" cy="18" r="15"/>
-        </clipPath>
+        <radialGradient id="scopeGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.15"/><stop offset="100%" stop-color="#6366f1" stop-opacity="0"/></radialGradient>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#818cf8"/><stop offset="50%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+        <clipPath id="scopeClip"><circle cx="18" cy="18" r="15"/></clipPath>
       </defs>
-      <!-- Outer glow fill -->
       <circle cx="18" cy="18" r="15" fill="url(#scopeGrad)"/>
-      <!-- Outer ring -->
       <circle cx="18" cy="18" r="15" stroke="url(#ringGrad)" stroke-width="1.5" fill="none" opacity="0.9"/>
-      <!-- Inner ring -->
       <circle cx="18" cy="18" r="9" stroke="#818cf8" stroke-width="1" fill="none" opacity="0.5" class="logo-cross"/>
-      <!-- Center dot -->
       <circle cx="18" cy="18" r="2.5" fill="#00d474" opacity="0.95"/>
       <circle cx="18" cy="18" r="1.2" fill="#fff" opacity="0.9"/>
-      <!-- Crosshair lines -->
       <line x1="18" y1="3" x2="18" y2="12" stroke="#a78bfa" stroke-width="1.2" opacity="0.8" class="logo-cross"/>
       <line x1="18" y1="24" x2="18" y2="33" stroke="#a78bfa" stroke-width="1.2" opacity="0.8" class="logo-cross"/>
       <line x1="3" y1="18" x2="12" y2="18" stroke="#a78bfa" stroke-width="1.2" opacity="0.8" class="logo-cross"/>
       <line x1="24" y1="18" x2="33" y2="18" stroke="#a78bfa" stroke-width="1.2" opacity="0.8" class="logo-cross"/>
-      <!-- Tick marks on outer ring -->
       <line x1="18" y1="3.5" x2="18" y2="6" stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
       <line x1="18" y1="30" x2="18" y2="32.5" stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
       <line x1="3.5" y1="18" x2="6" y2="18" stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
       <line x1="30" y1="18" x2="32.5" y2="18" stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
-      <!-- Animated scan line -->
       <line x1="4" y1="18" x2="32" y2="18" stroke="#00d474" stroke-width="0.8" opacity="0.7" clip-path="url(#scopeClip)" class="logo-scan"/>
-      <!-- Corner brackets -->
       <path d="M6 10 L6 6 L10 6" stroke="#818cf8" stroke-width="1" fill="none" opacity="0.7"/>
       <path d="M26 6 L30 6 L30 10" stroke="#818cf8" stroke-width="1" fill="none" opacity="0.7"/>
       <path d="M6 26 L6 30 L10 30" stroke="#818cf8" stroke-width="1" fill="none" opacity="0.7"/>
       <path d="M30 26 L30 30 L26 30" stroke="#818cf8" stroke-width="1" fill="none" opacity="0.7"/>
     </svg>
     <div>
-      <div style="display:flex;align-items:center;gap:4px;">
-        <span class="brand-text">GHOSTSNIPERX</span>
-        <span class="brand-dot"></span>
-      </div>
+      <div style="display:flex;align-items:center;gap:4px;"><span class="brand-text">GHOSTSNIPERX</span><span class="brand-dot"></span></div>
       <div class="tl-sub-new">DEAD COINS · SECOND CHANCES · v3.1</div>
     </div>
   </div>
@@ -574,7 +552,7 @@ textarea.mfld{resize:vertical;}
     <label class="flbl">MIN LIQUIDITY ($)</label>
     <input id="cmliq" class="fld" value="500"/>
 
-    <label class="flbl">MAX AGE (hours) <span style="font-weight:400;color:var(--mu);">— info only</span></label>
+    <label class="flbl">MAX AGE (hours)</label>
     <input id="cmage" class="fld" value="48"/>
 
     <label class="flbl">MIN 5MIN BUYS</label>
@@ -981,7 +959,7 @@ textarea.mfld{resize:vertical;}
           <button id="gm-mode-revival" onclick="setGmMode('revival')" style="font-size:10px;background:none;color:var(--mu);border:1px solid var(--bd);padding:4px 12px;border-radius:4px;cursor:pointer;">🌙 REVIVAL</button>
         </div>
         <span id="gm-desc" style="font-size:9px;color:var(--mu);">Connect Sniper to see live movers</span>
-        <button id="gm-refresh-btn" onclick="refreshRevivalNow()" style="display:none;font-size:9px;border:1px solid #a78bfa;background:rgba(167,139,250,.12);color:#a78bfa;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;" title="Force-refresh all revival card data now">🔄 Refresh</button>
+        <button id="gm-refresh-btn" onclick="refreshRevivalNow()" style="display:none;font-size:9px;border:1px solid #a78bfa;background:rgba(167,139,250,.12);color:#a78bfa;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;" title="Force-refresh revival data">&#x1f504; Refresh</button>
         <button onclick="applyGoodMoversFilter()" id="gm-showall" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Show All ▸</button>
       </div>
       <!-- Cards — hidden until tokens qualify -->
@@ -1012,50 +990,28 @@ textarea.mfld{resize:vertical;}
           </div>
         </label>
       </div>
-
-      <!-- Config row -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px;">
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">BOT PLATFORM</div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">BOT PLATFORM</div>
           <select id="bot-platform" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;">
-            <option value="trojan">🗡 Trojan Bot</option>
-            <option value="bonk">⚡ BonkBot</option>
-            <option value="photon">💡 Photon</option>
-            <option value="maestro">🎻 Maestro</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">BUY AMOUNT (SOL)</div>
-          <input id="bot-sol" type="number" value="0.1" min="0.01" step="0.01" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">STOP LOSS %</div>
-          <input id="bot-sl" type="number" value="10" min="1" max="90" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">MIN SCORE (BAND)</div>
+            <option value="trojan">🗡 Trojan Bot</option><option value="bonk">⚡ BonkBot</option>
+            <option value="photon">💡 Photon</option><option value="maestro">🎻 Maestro</option>
+          </select></div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">BUY AMOUNT (SOL)</div>
+          <input id="bot-sol" type="number" value="0.1" min="0.01" step="0.01" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/></div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">STOP LOSS %</div>
+          <input id="bot-sl" type="number" value="10" min="1" max="90" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/></div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">TAKE PROFIT %</div>
+          <input id="bot-tp" type="number" value="50" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/></div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">MIN SCORE (BAND)</div>
           <select id="bot-minscore" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;">
-            <option value="45">🥉 Bronze (45+)</option>
-            <option value="65">🥈 Silver (65+)</option>
-            <option value="80">🥇 Gold (80+)</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">TAKE PROFIT %</div>
-          <input id="bot-tp" type="number" value="50" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;letter-spacing:.08em;">COOLDOWN (mins)</div>
-          <input id="bot-cooldown" type="number" value="5" min="1" max="60" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/>
-        </div>
+            <option value="45">🥉 Bronze (45+)</option><option value="65">🥈 Silver (65+)</option><option value="80">🥇 Gold (80+)</option>
+          </select></div>
+        <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">COOLDOWN (mins)</div>
+          <input id="bot-cooldown" type="number" value="5" min="1" max="60" step="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px 6px;font-size:11px;box-sizing:border-box;"/></div>
       </div>
-
-      <!-- How it works note -->
       <div style="font-size:10px;color:var(--mu);background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:5px;padding:7px 10px;margin-bottom:10px;line-height:1.6;">
-        <strong style="color:#a78bfa;">How it works:</strong> When a Revival token scores ≥ your min band, a pre-filled deep-link opens your chosen bot with CA + SOL amount + stop-loss pre-configured. <strong style="color:var(--tx);">You confirm the trade in the bot — nothing executes automatically.</strong>
+        <strong style="color:#a78bfa;">How it works:</strong> When a Revival token scores above your min band, a pre-filled deep-link opens your chosen bot. <strong style="color:var(--tx);">You confirm — nothing executes automatically.</strong>
       </div>
-
-      <!-- Signal log -->
       <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:#a78bfa;letter-spacing:.12em;margin-bottom:6px;">📡 SIGNAL LOG</div>
       <div id="bot-signal-log" style="max-height:160px;overflow-y:auto;font-size:10px;color:var(--mu);">
         <div style="color:var(--mu);font-style:italic;">No signals yet — enable Auto-signal and switch to REVIVAL mode</div>
@@ -1118,6 +1074,34 @@ textarea.mfld{resize:vertical;}
           <button onclick="massAddFromSniper()" style="font-size:11px;background:rgba(0,212,184,.1);border:1px solid var(--ac);color:var(--ac);padding:7px 14px;border-radius:5px;cursor:pointer;">📋 Import from Sniper</button>
           <button onclick="massAddFromRevival()" style="font-size:11px;background:rgba(167,139,250,.1);border:1px solid #a78bfa;color:#a78bfa;padding:7px 14px;border-radius:5px;cursor:pointer;">🌙 Import from Revival</button>
           <span id="mass-status" style="font-size:10px;color:var(--go);opacity:0;transition:opacity .4s;"></span>
+        </div>
+        <!-- Auto-import SNIPE -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);">
+          <div style="font-size:10px;color:var(--mu);">&#x1f916; <strong style="color:#f59e0b;">Auto-import SNIPE</strong> &mdash; qualifying tokens auto-added to basket</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="auto-import-status" style="font-size:9px;color:#f59e0b;display:none;">ON &ge; <span id="ai-score-label">45</span></span>
+            <label style="display:flex;align-items:center;cursor:pointer;">
+              <div style="position:relative;width:36px;height:20px;">
+                <input type="checkbox" id="auto-import-toggle" onchange="toggleAutoImport()" style="opacity:0;width:0;height:0;position:absolute;"/>
+                <div id="ai-track" style="position:absolute;inset:0;background:var(--bd);border-radius:10px;transition:.3s;"></div>
+                <div id="ai-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.3s;"></div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <!-- Auto-import REVIVAL -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid var(--bd);">
+          <div style="font-size:10px;color:var(--mu);">&#x1f319; <strong style="color:#a78bfa;">Auto-import REVIVAL</strong> &mdash; qualifying revival tokens auto-added to basket</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="auto-import-revival-status" style="font-size:9px;color:#a78bfa;display:none;">ON &ge; <span id="air-score-label">45</span></span>
+            <label style="display:flex;align-items:center;cursor:pointer;">
+              <div style="position:relative;width:36px;height:20px;">
+                <input type="checkbox" id="auto-import-revival-toggle" onchange="toggleAutoImportRevival()" style="opacity:0;width:0;height:0;position:absolute;"/>
+                <div id="air-track" style="position:absolute;inset:0;background:var(--bd);border-radius:10px;transition:.3s;"></div>
+                <div id="air-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.3s;"></div>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -1263,9 +1247,8 @@ function sw(i){
 
   if(i===0 && !window._sniperRan){
     window._sniperRan=true;
-    presetSniper('hot'); // HOT is default — catch fast movers
+    presetSniper('hot');
     runSniper();
-    // Start revival poll + GM card refresh immediately, independent of WS connection
     startRevivalPoll();
     if(!window._gmRefreshTimer){
       window._gmRefreshTimer = setInterval(function(){ renderFastMovers(); }, 5000);
@@ -1616,21 +1599,14 @@ async function summon(){
     var json  = await resp.json();
     var pairs = (json.pairs || []);
 
-    // Filter to Solana only — accept pump.fun + graduated (raydium) pairs
     var nowMs = Date.now();
     var allSolana = (json.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
-    // Prefer pumpfun pairs, fall back to all solana if none found
-    var pumpPairs = allSolana.filter(function(p){
-      return p.dexId === 'pumpfun' || (p.dexId||'').includes('pump') || (p.labels||[]).join('').toLowerCase().includes('pump');
-    });
+    var pumpPairs = allSolana.filter(function(p){ return p.dexId==='pumpfun'||(p.dexId||'').includes('pump')||(p.labels||[]).join('').toLowerCase().includes('pump'); });
     pairs = pumpPairs.length ? pumpPairs : allSolana;
-
-    // Apply criteria filters — age is shown on card but NOT a hard filter
     pairs = pairs.filter(function(p){
       var mc  = p.marketCap || p.fdv || 0;
       var liq = (p.liquidity||{}).usd || 0;
       var buys5m = ((p.txns||{}).m5||{}).buys || 0;
-
       if(mc > 0 && mc < minMC) return false;
       if(mc > 0 && mc > maxMC) return false;
       if(liq < minLiq) return false;
@@ -2058,11 +2034,7 @@ function connectPumpPortal(){
         t.mcSol = d.marketCapSol || t.mcSol;
         t.mcUSD = t.mcSol * getSolPrice();
         t.vol  += (d.solAmount || 0);
-        // Update bonding curve liquidity in real-time (no DexScreener wait)
-        if(d.vSolInBondingCurve) {
-          t.vSol = d.vSolInBondingCurve;
-          t.liq  = t.vSol * getSolPrice();
-        }
+        if(d.vSolInBondingCurve) { t.vSol = d.vSolInBondingCurve; t.liq = t.vSol * getSolPrice(); }
 
         // ── VOL SNAPSHOT — for revival spike detection ────────
         var nowSnap = Date.now();
@@ -2141,18 +2113,9 @@ function enrichFromDex(ca){
     .then(function(d){
       var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
       if(!pairs.length || !liveTokens[ca]) return;
-      var p = pairs[0];
-      var t = liveTokens[ca];
-      // Only fill liq if we don't have it from bonding curve yet
-      if(!t.liq || t.liq === 0){
-        t.liq = (p.liquidity&&p.liquidity.usd)||0;
-      }
-      // Only fill img if missing
-      if(!t.img && p.info && p.info.imageUrl){
-        t.img = p.info.imageUrl;
-      }
-      // Do NOT overwrite mcUSD/vol/buys/sells — PumpPortal trade events
-      // are real-time and more accurate than DexScreener's 30-60s cache
+      var p = pairs[0]; var t = liveTokens[ca];
+      if(!t.liq || t.liq === 0){ t.liq = (p.liquidity&&p.liquidity.usd)||0; }
+      if(!t.img && p.info && p.info.imageUrl){ t.img = p.info.imageUrl; }
       t.dexData = true;
       updateSniperTable();
     })
@@ -2629,7 +2592,6 @@ function drawSparkChart(t, width, height, color){
     +'</svg>';
 }
 
-// ── GOOD MOVERS — fresh + pumping + clean + scored ──────────
 
 // ── DEX REVIVAL — external tokens from DexScreener ─────────
 var dexRevivalTokens = {};
@@ -2642,7 +2604,6 @@ function ingestDexRevivalPairs(pairs){
   pairs.forEach(function(p){
     var ca = p.baseToken && p.baseToken.address;
     if(!ca) return;
-    // Don't skip liveTokens — graduated tokens stop getting WS trades, need DexScreener refresh
     var mcUSD  = p.fdv || p.marketCap || 0;
     var volH1  = (p.volume && p.volume.h1) || 0;
     var volH6  = (p.volume && p.volume.h6) || 0;
@@ -2652,7 +2613,8 @@ function ingestDexRevivalPairs(pairs){
     var p6     = parseFloat((p.priceChange && p.priceChange.h6)  || 0);
     var p24    = parseFloat((p.priceChange && p.priceChange.h24) || 0);
     var avgH6perH = volH6 > 0 ? volH6 / 6 : 0;
-    var spk    = avgH6perH > 0 ? (volH1 / avgH6perH) : (volH1 > 0 ? 10 : 0);
+    var rawSpk = avgH6perH > 0 ? (volH1 / avgH6perH) : (volH1 > 0 ? 10 : 0);
+    var spk    = rawSpk > 50 ? 0 : rawSpk;
     var volSol = volH1 / solPrice;
     var existing = dexRevivalTokens[ca];
     var createdMs = p.pairCreatedAt ? parseInt(p.pairCreatedAt) : (existing ? existing.ts : now - 3600000);
@@ -2664,9 +2626,7 @@ function ingestDexRevivalPairs(pairs){
     if(mcHistory.length > 30) mcHistory = mcHistory.slice(-30);
     var buyTimes = existing ? existing.buyTimes : [];
     var bpm = Math.round(buys / 60);
-    for(var i = 0; i < Math.min(bpm, 10); i++){
-      buyTimes.push(now - Math.random()*60000);
-    }
+    for(var i = 0; i < Math.min(bpm, 10); i++){ buyTimes.push(now - Math.random()*60000); }
     buyTimes = buyTimes.filter(function(ts){ return ts > now - 60000; });
     var freshData = {
       ca: ca,
@@ -2682,20 +2642,15 @@ function ingestDexRevivalPairs(pairs){
       _volSpikeRatio: spk, _isDexRevival: true
     };
     dexRevivalTokens[ca] = freshData;
-    // Also refresh liveTokens if present — graduated tokens stop WS trades
-    // so their MC freezes without this update
-    if(liveTokens[ca] && mcUSD > 0) {
+    if(liveTokens[ca] && mcUSD > 0){
       liveTokens[ca].mcUSD  = mcUSD;
       liveTokens[ca].mcSol  = mcUSD / solPrice;
       liveTokens[ca].vol    = volSol > liveTokens[ca].vol ? volSol : liveTokens[ca].vol;
       liveTokens[ca].buys   = buys > liveTokens[ca].buys ? buys : liveTokens[ca].buys;
       liveTokens[ca].sells  = sells > liveTokens[ca].sells ? sells : liveTokens[ca].sells;
       liveTokens[ca].liq    = ((p.liquidity && p.liquidity.usd) || 0) / solPrice;
-      liveTokens[ca]._priceChg1h  = p1;
-      liveTokens[ca]._priceChg6h  = p6;
-      liveTokens[ca]._priceChg24h = p24;
+      liveTokens[ca]._priceChg1h = p1; liveTokens[ca]._priceChg6h = p6; liveTokens[ca]._priceChg24h = p24;
       liveTokens[ca]._volSpikeRatio = spk;
-      // Push fresh MC into history for gain calculation
       if(!liveTokens[ca].mcHistory) liveTokens[ca].mcHistory = [];
       liveTokens[ca].mcHistory.push({ ts: now, mc: mcUSD });
       liveTokens[ca].mcHistory = liveTokens[ca].mcHistory.filter(function(s){ return s.ts > now - 600000; });
@@ -2705,62 +2660,34 @@ function ingestDexRevivalPairs(pairs){
 }
 
 function pollDexRevival(){
-  // 1. Trending Solana pairs — catches movers of any age
   fetch('https://api.dexscreener.com/token-profiles/latest/v1')
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return null; })
+    .then(function(r){ return r.json(); }).catch(function(){ return null; })
     .then(function(d){
       if(!d || !Array.isArray(d)) return;
-      var cas = d.filter(function(x){ return x.chainId === 'solana' && x.tokenAddress; })
-                 .slice(0, 20)
-                 .map(function(x){ return x.tokenAddress; });
+      var cas = d.filter(function(x){ return x.chainId==='solana'&&x.tokenAddress; }).slice(0,20).map(function(x){ return x.tokenAddress; });
       if(!cas.length) return;
       fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))
-        .then(function(r){ return r.json(); })
-        .catch(function(){ return null; })
-        .then(function(d2){
-          if(!d2 || !d2.pairs) return;
-          ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId === 'solana'; }));
-        });
+        .then(function(r){ return r.json(); }).catch(function(){ return null; })
+        .then(function(d2){ if(!d2||!d2.pairs) return; ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId==='solana'; })); });
     });
-  // 2. Boosted tokens — paid/trending, always active
   fetch('https://api.dexscreener.com/token-boosts/top/v1')
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return null; })
+    .then(function(r){ return r.json(); }).catch(function(){ return null; })
     .then(function(d){
       if(!d || !Array.isArray(d)) return;
-      var cas = d.filter(function(x){ return x.chainId === 'solana' && x.tokenAddress; })
-                 .slice(0, 20)
-                 .map(function(x){ return x.tokenAddress; });
+      var cas = d.filter(function(x){ return x.chainId==='solana'&&x.tokenAddress; }).slice(0,20).map(function(x){ return x.tokenAddress; });
       if(!cas.length) return;
       fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))
-        .then(function(r){ return r.json(); })
-        .catch(function(){ return null; })
-        .then(function(d2){
-          if(!d2 || !d2.pairs) return;
-          ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId === 'solana'; }));
-        });
+        .then(function(r){ return r.json(); }).catch(function(){ return null; })
+        .then(function(d2){ if(!d2||!d2.pairs) return; ingestDexRevivalPairs(d2.pairs.filter(function(p){ return p.chainId==='solana'; })); });
     });
-  // 3. Search broad pump.fun — fills in any gaps
   fetch('https://api.dexscreener.com/latest/dex/search?q=pump+sol')
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return null; })
-    .then(function(d){
-      if(!d || !d.pairs) return;
-      ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
-    });
-  // 4. Directly refresh CAs currently visible on revival cards
-  var visibleCAs = Object.keys(dexRevivalTokens).concat(liveTokenOrder).filter(function(ca, i, arr){
-    return arr.indexOf(ca) === i;
-  }).slice(0, 30);
+    .then(function(r){ return r.json(); }).catch(function(){ return null; })
+    .then(function(d){ if(!d||!d.pairs) return; ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId==='solana'; })); });
+  var visibleCAs = Object.keys(dexRevivalTokens).concat(liveTokenOrder).filter(function(ca,i,arr){ return arr.indexOf(ca)===i; }).slice(0,30);
   if(visibleCAs.length){
     fetch('https://api.dexscreener.com/latest/dex/tokens/'+visibleCAs.join(','))
-      .then(function(r){ return r.json(); })
-      .catch(function(){ return null; })
-      .then(function(d){
-        if(!d || !d.pairs) return;
-        ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
-      });
+      .then(function(r){ return r.json(); }).catch(function(){ return null; })
+      .then(function(d){ if(!d||!d.pairs) return; ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId==='solana'; })); });
   }
 }
 
@@ -2772,59 +2699,39 @@ function startRevivalPoll(){
 
 function refreshRevivalNow(){
   var btn = document.getElementById('gm-refresh-btn');
-  if(btn){ btn.textContent = '⏳ Refreshing...'; btn.style.opacity = '0.6'; btn.disabled = true; }
-  // Force-fetch all currently visible revival CAs directly from DexScreener
+  if(btn){ btn.textContent = '...'; btn.disabled = true; }
   var visibleCAs = [];
   var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
   cards.forEach(function(card){
     var onclick = card.getAttribute('onclick') || '';
-    var match = onclick.match(/copySnipCA\('([^']+)'\)/);
-    if(match) visibleCAs.push(match[1]);
+    var m = onclick.match(/copySnipCA\('([^']+)'\)/);
+    if(m) visibleCAs.push(m[1]);
   });
-  // Also add all known revival CAs
-  Object.keys(dexRevivalTokens).forEach(function(ca){
-    if(visibleCAs.indexOf(ca) === -1) visibleCAs.push(ca);
-  });
-  if(!visibleCAs.length){
-    pollDexRevival();
-  } else {
-    // Batch into groups of 30 (DexScreener limit)
-    var batches = [];
-    for(var i = 0; i < visibleCAs.length; i += 30){
-      batches.push(visibleCAs.slice(i, i + 30));
-    }
-    var done = 0;
+  Object.keys(dexRevivalTokens).forEach(function(ca){ if(visibleCAs.indexOf(ca)===-1) visibleCAs.push(ca); });
+  if(!visibleCAs.length){ pollDexRevival(); }
+  else {
+    var batches = []; for(var i=0;i<visibleCAs.length;i+=30) batches.push(visibleCAs.slice(i,i+30));
+    var done=0;
     batches.forEach(function(batch){
-      fetch('https://api.dexscreener.com/latest/dex/tokens/' + batch.join(','))
-        .then(function(r){ return r.json(); })
-        .catch(function(){ return null; })
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+batch.join(','))
+        .then(function(r){ return r.json(); }).catch(function(){ return null; })
         .then(function(d){
-          if(d && d.pairs){
-            ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId === 'solana'; }));
-          }
+          if(d&&d.pairs) ingestDexRevivalPairs(d.pairs.filter(function(p){ return p.chainId==='solana'; }));
           done++;
-          if(done === batches.length){
-            renderFastMovers();
-            if(btn){ btn.textContent = '🔄 Refresh'; btn.style.opacity = '1'; btn.disabled = false; }
-          }
+          if(done===batches.length){ renderFastMovers(); if(btn){ btn.textContent='Refresh'; btn.disabled=false; } }
         });
     });
   }
-  // Reset poll timer so next auto-refresh is 45s from now
   if(_revivalPollTimer) clearInterval(_revivalPollTimer);
   _revivalPollTimer = setInterval(pollDexRevival, 45000);
-  setTimeout(function(){
-    if(btn){ btn.textContent = '🔄 Refresh'; btn.style.opacity = '1'; btn.disabled = false; }
-  }, 8000); // safety reset
+  setTimeout(function(){ if(btn){ btn.textContent='Refresh'; btn.disabled=false; } }, 8000);
 }
 
 function getDexRevivalScore(t){
-  var sc  = 0;
+  var sc = 0;
   var p1  = t._priceChg1h  || 0;
   var p24 = t._priceChg24h || 0;
-  // Cap spike at 50x — anything above is a data artifact (div by zero volH6)
-  var rawSpk = t._volSpikeRatio || 0;
-  var spk = rawSpk > 50 ? 0 : rawSpk; // treat 999% spike as unreliable
+  var spk = t._volSpikeRatio || 0;
   var total = t.buys + t.sells;
   var bsr   = total > 0 ? t.buys / total : 0.5;
   var ageHrs = (Date.now() - t.ts) / 3600000;
@@ -2833,7 +2740,7 @@ function getDexRevivalScore(t){
   else if(p1 >= 20)  sc += 18;
   else if(p1 >= 10)  sc += 10;
   else if(p1 >= 5)   sc += 5;
-  else if(p1 < -50)  sc -= 40; // heavy dump penalty
+  else if(p1 < -50)  sc -= 40;
   else if(p1 < -20)  sc -= 20;
   else if(p1 < -10)  sc -= 8;
   if(spk >= 10)      sc += 30;
@@ -2855,8 +2762,14 @@ function getDexRevivalScore(t){
   return Math.max(0, Math.min(sc, 99));
 }
 
+function getRevivalScore(t){
+  return getDexRevivalScore(t);
+}
+
+// ── GOOD MOVERS — fresh + pumping + clean + scored ──────────
+
 // ── GM MODE STATE + TOGGLE ──────────────────────────────────
-var _gmMode = 'snipe';
+var _gmMode = 'snipe'; // already set below
 
 function setGmMode(mode){
   _gmMode = mode;
@@ -2871,8 +2784,6 @@ function setGmMode(mode){
   if(tr) tr.style.display = !isSnipe ? 'inline' : 'none';
   var btn = document.getElementById('gm-showall');
   if(btn){ btn.style.borderColor = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.color = isSnipe ? '#f59e0b' : '#a78bfa'; btn.style.background = isSnipe ? 'rgba(245,158,11,.1)' : 'rgba(167,139,250,.1)'; }
-  var rbtn = document.getElementById('gm-refresh-btn');
-  if(rbtn) rbtn.style.display = isSnipe ? 'none' : 'inline-block';
   var badge = document.getElementById('gm-badge');
   if(badge) badge.style.background = isSnipe ? '#f59e0b' : '#a78bfa';
   renderFastMovers();
@@ -2933,7 +2844,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">🎯 PUMP.FUN↗</a>'
       +'</div>'
-      +(mode==='revival' ? '<button style="width:100%;margin-top:5px;font-size:9px;font-weight:700;background:rgba(167,139,250,.15);border:1px solid #a78bfa;color:#a78bfa;border-radius:4px;padding:4px 0;cursor:pointer;letter-spacing:.05em;" onclick="event.stopPropagation();fireBotSignalManual(\''+t.ca+'\','+sc+');">🤖 BOT SIGNAL</button>' : '')
+      +(mode===\'revival\' ? \'<button style="width:100%;margin-top:5px;font-size:9px;font-weight:700;background:rgba(167,139,250,.15);border:1px solid #a78bfa;color:#a78bfa;border-radius:4px;padding:4px 0;cursor:pointer;" onclick="event.stopPropagation();fireBotSignalManual(\\\''+t.ca+\'\\\','+sc+\');">🤖 BOT SIGNAL</button>\' : \'\')'
     +'</div>'
   +'</div>';
 }
@@ -2967,66 +2878,41 @@ function renderFastMovers(){
       .sort(function(a, b){
         return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
       })
-      .slice(0, 16);
+      .slice(0, 8);
 
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60);
       var g5m = getMcGain(t, 300);
       var sc  = tokenScore(t);
       var col = sc >= 80 ? '#f59e0b' : '#818cf8';
+      autoImportSnipeToken(t, sc);
       return buildMoverCard(t, sc, g1m, g5m, col, 'snipe');
     }).join('');
 
   } else {
-    // ── REVIVAL MODE — any token any age with sudden move ───
-    // Merge live WebSocket tokens + DexScreener polled tokens
-    var revivalCandidates = {};
-    liveTokenOrder.forEach(function(ca){
-      if(liveTokens[ca]) revivalCandidates[ca] = liveTokens[ca];
-    });
-    Object.keys(dexRevivalTokens).forEach(function(ca){
-      if(!revivalCandidates[ca]){
-        revivalCandidates[ca] = dexRevivalTokens[ca];
-      } else {
-        // Prefer dexRevivalTokens MC if it's higher (graduated token moved past WS data)
-        var dex = dexRevivalTokens[ca];
-        if(dex.mcUSD > revivalCandidates[ca].mcUSD){
-          revivalCandidates[ca] = dex;
-        }
-      }
-    });
-    movers = Object.keys(revivalCandidates)
-      .map(function(ca){ return revivalCandidates[ca]; })
+    // ── REVIVAL MODE — old tokens suddenly waking up ────────
+    movers = liveTokenOrder
+      .map(function(ca){ return liveTokens[ca]; })
       .filter(function(t){
         if(!t || t.devSelling) return false;
-        var nowMs = Date.now();
-        var p1 = t._priceChg1h || 0;
-        // Hard reject: down >20% in 1h with no recent buys = dump, not revival
-        var recentBuys = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs - 300000; }).length : 0;
-        if(p1 < -20 && recentBuys < 2) return false;
-        // Must have some activity signal
-        var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs - 60000; }).length : 0;
-        var hasActivity = buyRate >= 1 || t.buys >= 3 || (t._priceChg1h && t._priceChg1h > 5) || (t._volSpikeRatio && t._volSpikeRatio >= 1.2);
-        if(!hasActivity) return false;
-        // Reject 999% fake spike — only trust spike if we have real vol data
-        var realSpike = t._volSpikeRatio && t._volSpikeRatio < 500;
-        if(!realSpike && p1 <= 0 && recentBuys < 1) return false;
-        var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
-        return sc >= 20;
+        var ageHrs = (Date.now() - t.ts) / 3600000;
+        if(ageHrs < 0.5) return false; // must be at least 30 min old
+        // Any token older than 30min with buying activity
+        var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > Date.now()-60000; }).length : 0;
+        if(buyRate < 1 && t.buys < 5) return false; // nothing happening
+        return getRevivalScore(t) >= 20;
       })
       .sort(function(a, b){
-        var sa = a._isDexRevival ? getDexRevivalScore(a) : getRevivalScore(a);
-        var sb = b._isDexRevival ? getDexRevivalScore(b) : getRevivalScore(b);
-        return sb - sa;
+        return getRevivalScore(b) - getRevivalScore(a);
       })
-      .slice(0, 16);
+      .slice(0, 8);
 
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60);
       var g5m = getMcGain(t, 300);
       var sc  = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
-      // Fire auto-bot signal if enabled and token qualifies
       fireBotSignal(t, sc, 'revival');
+      autoImportRevivalToken(t, sc);
       return buildMoverCard(t, sc, g1m, g5m, '#a78bfa', 'revival');
     }).join('');
   }
@@ -3096,231 +2982,288 @@ function isFastMover(t){
 }
 
 
-/* ══════════════════════════════════════════════════════
-   REVIVAL AUTO-BOT — Semi-auto signal system
-   Fires pre-filled deep-links to trading bots when
-   revival tokens score above configured threshold.
-   No private keys. No auto-execution. You confirm.
-══════════════════════════════════════════════════════ */
-
+/* ══ AUTO-BOT SYSTEM ══════════════════════════════════════════ */
 var _botEnabled    = false;
-var _botSignalled  = {};   // CA → timestamp, prevents duplicate signals
-var _botWatched    = {};   // CA → { entryMC, sl, tp, tick, signalledAt }
-var _botSignalLog  = [];   // log entries
+var _botSignalled  = {};
+var _botWatched    = {};
+var _botSignalLog  = [];
 
-// ── Deep-link URL builders per platform ────────────────
 function buildBotUrl(platform, ca, solAmount, slPct, tpPct){
-  var sl = slPct / 100;
-  var tp = tpPct / 100;
   switch(platform){
-    case 'trojan':
-      // Trojan Bot: /start=buy-<CA>-<SOL>-<slippage>
-      return 'https://t.me/solana_trojanbot?start=buy-'+ca;
-    case 'bonk':
-      // BonkBot: pre-fill CA
-      return 'https://t.me/bonkbot_bot?start=ref_revival_'+ca;
-    case 'photon':
-      // Photon: direct token page — user sets amount in UI
-      return 'https://photon-sol.tinyastro.io/en/r/@revival/'+ca;
-    case 'maestro':
-      return 'https://t.me/MaestroSniperBot?start='+ca;
-    default:
-      return 'https://pump.fun/'+ca;
+    case 'trojan':  return 'https://t.me/solana_trojanbot?start=buy-'+ca;
+    case 'bonk':    return 'https://t.me/bonkbot_bot?start=ref_revival_'+ca;
+    case 'photon':  return 'https://photon-sol.tinyastro.io/en/r/@revival/'+ca;
+    case 'maestro': return 'https://t.me/MaestroSniperBot?start='+ca;
+    default:        return 'https://pump.fun/'+ca;
   }
 }
 
-// ── Toggle bot on/off ───────────────────────────────────
 function toggleBot(){
   _botEnabled = document.getElementById('bot-toggle').checked;
   var track = document.getElementById('bot-toggle-track');
   var thumb = document.getElementById('bot-toggle-thumb');
   var badge = document.getElementById('bot-status-badge');
   if(_botEnabled){
-    if(track){ track.style.background = '#a78bfa'; }
-    if(thumb){ thumb.style.left = '19px'; }
-    if(badge){ badge.textContent = 'ON'; badge.style.background = 'rgba(167,139,250,.2)'; badge.style.color = '#a78bfa'; badge.style.borderColor = '#a78bfa'; }
-    addBotLog('🤖 Auto-Bot enabled — watching Revival tokens', '#a78bfa');
-    saveBotConfig();
+    if(track) track.style.background='#a78bfa'; if(thumb) thumb.style.left='19px';
+    if(badge){ badge.textContent='ON'; badge.style.background='rgba(167,139,250,.2)'; badge.style.color='#a78bfa'; badge.style.borderColor='#a78bfa'; }
+    addBotLog('🤖 Auto-Bot enabled','#a78bfa'); saveBotConfig();
   } else {
-    if(track){ track.style.background = 'var(--bd)'; }
-    if(thumb){ thumb.style.left = '3px'; }
-    if(badge){ badge.textContent = 'OFF'; badge.style.background = 'rgba(100,100,100,.2)'; badge.style.color = 'var(--mu)'; badge.style.borderColor = 'var(--bd)'; }
-    addBotLog('⏹ Auto-Bot disabled', 'var(--mu)');
-    saveBotConfig();
+    if(track) track.style.background='var(--bd)'; if(thumb) thumb.style.left='3px';
+    if(badge){ badge.textContent='OFF'; badge.style.background='rgba(100,100,100,.2)'; badge.style.color='var(--mu)'; badge.style.borderColor='var(--bd)'; }
+    addBotLog('Bot disabled','var(--mu)'); saveBotConfig();
   }
 }
 
-// ── Read config ─────────────────────────────────────────
 function getBotConfig(){
   return {
-    platform:  (document.getElementById('bot-platform')  || {value:'trojan'}).value  || 'trojan',
-    sol:       parseFloat((document.getElementById('bot-sol')     || {value:'0.1'}).value) || 0.1,
-    sl:        parseFloat((document.getElementById('bot-sl')      || {value:'10'}).value)  || 10,
-    tp:        parseFloat((document.getElementById('bot-tp')      || {value:'50'}).value)  || 50,
-    minScore:  parseInt((document.getElementById('bot-minscore')  || {value:'45'}).value)  || 45,
-    cooldown:  parseInt((document.getElementById('bot-cooldown')  || {value:'5'}).value)   || 5
+    platform:  (document.getElementById('bot-platform')  ||{value:'trojan'}).value||'trojan',
+    sol:       parseFloat((document.getElementById('bot-sol')      ||{value:'0.1'}).value)||0.1,
+    sl:        parseFloat((document.getElementById('bot-sl')       ||{value:'10'}).value)||10,
+    tp:        parseFloat((document.getElementById('bot-tp')       ||{value:'50'}).value)||50,
+    minScore:  parseInt((document.getElementById('bot-minscore')   ||{value:'45'}).value)||45,
+    cooldown:  parseInt((document.getElementById('bot-cooldown')   ||{value:'5'}).value)||5
   };
 }
 
-// ── Save/load config to localStorage ───────────────────
 function saveBotConfig(){
-  try {
-    var cfg = getBotConfig();
-    cfg.enabled = _botEnabled;
-    localStorage.setItem('gsx-bot-cfg', JSON.stringify(cfg));
-  } catch(e){}
+  try{ var cfg=getBotConfig(); cfg.enabled=_botEnabled; localStorage.setItem('gsx-bot-cfg',JSON.stringify(cfg)); }catch(e){}
 }
 
 function loadBotConfig(){
-  try {
-    var raw = localStorage.getItem('gsx-bot-cfg');
-    if(!raw) return;
-    var cfg = JSON.parse(raw);
-    var set = function(id, val){ var el = document.getElementById(id); if(el && val !== undefined) el.value = val; };
-    set('bot-platform', cfg.platform);
-    set('bot-sol',      cfg.sol);
-    set('bot-sl',       cfg.sl);
-    set('bot-tp',       cfg.tp);
-    set('bot-minscore', cfg.minScore);
-    set('bot-cooldown', cfg.cooldown);
-    if(cfg.enabled){
-      var tog = document.getElementById('bot-toggle');
-      if(tog){ tog.checked = true; toggleBot(); }
-    }
-  } catch(e){}
+  try{
+    var raw=localStorage.getItem('gsx-bot-cfg'); if(!raw) return;
+    var cfg=JSON.parse(raw);
+    var set=function(id,val){ var el=document.getElementById(id); if(el&&val!==undefined) el.value=val; };
+    set('bot-platform',cfg.platform); set('bot-sol',cfg.sol); set('bot-sl',cfg.sl);
+    set('bot-tp',cfg.tp); set('bot-minscore',cfg.minScore); set('bot-cooldown',cfg.cooldown);
+    if(cfg.enabled){ var tog=document.getElementById('bot-toggle'); if(tog){ tog.checked=true; toggleBot(); } }
+  }catch(e){}
 }
 
-// ── Add entry to signal log ─────────────────────────────
 function addBotLog(msg, color){
-  var now = new Date();
-  var ts  = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+':'+(now.getSeconds()<10?'0':'')+now.getSeconds();
-  _botSignalLog.unshift({ ts: ts, msg: msg, color: color || 'var(--tx)' });
-  if(_botSignalLog.length > 50) _botSignalLog = _botSignalLog.slice(0, 50);
+  var now=new Date(); var ts=now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+':'+(now.getSeconds()<10?'0':'')+now.getSeconds();
+  _botSignalLog.unshift({ts:ts,msg:msg,color:color||'var(--tx)'});
+  if(_botSignalLog.length>50) _botSignalLog=_botSignalLog.slice(0,50);
   renderBotLog();
 }
 
 function renderBotLog(){
-  var el = document.getElementById('bot-signal-log');
-  if(!el) return;
-  if(!_botSignalLog.length){
-    el.innerHTML = '<div style="color:var(--mu);font-style:italic;">No signals yet</div>';
-    return;
-  }
-  el.innerHTML = _botSignalLog.map(function(e){
-    return '<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);">'      +'<span style="color:var(--mu);flex-shrink:0;">'+e.ts+'</span>'      +'<span style="color:'+e.color+';">'+e.msg+'</span>'      +'</div>';
+  var el=document.getElementById('bot-signal-log'); if(!el) return;
+  if(!_botSignalLog.length){ el.innerHTML='<div style="color:var(--mu);font-style:italic;">No signals yet</div>'; return; }
+  el.innerHTML=_botSignalLog.map(function(e){
+    return '<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);">'
+      +'<span style="color:var(--mu);flex-shrink:0;">'+e.ts+'</span>'
+      +'<span style="color:'+e.color+';">'+e.msg+'</span></div>';
   }).join('');
 }
 
-// ── Fire signal for a token ─────────────────────────────
+function showBotToast(msg, color){
+  var toast=document.getElementById('bot-toast');
+  if(!toast){ toast=document.createElement('div'); toast.id='bot-toast';
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:opacity .4s;pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(toast); }
+  toast.style.background=color||'#a78bfa'; toast.style.color='#000';
+  toast.textContent=msg; toast.style.opacity='1';
+  clearTimeout(window._botToastTimer);
+  window._botToastTimer=setTimeout(function(){ toast.style.opacity='0'; },4000);
+}
+
 function fireBotSignal(t, sc, mode){
   if(!_botEnabled) return;
-  var cfg = getBotConfig();
-  if(sc < cfg.minScore) return;
-
-  // Cooldown check — don't signal same token twice within cooldown window
-  var now = Date.now();
-  var lastSignal = _botSignalled[t.ca] || 0;
-  if(now - lastSignal < cfg.cooldown * 60000) return;
-  _botSignalled[t.ca] = now;
-
-  // Build deep-link
-  var url = buildBotUrl(cfg.platform, t.ca, cfg.sol, cfg.sl, cfg.tp);
-  var band = sc >= 80 ? '🥇 GOLD' : sc >= 65 ? '🥈 SILVER' : '🥉 BRONZE';
-  var platformName = { trojan:'Trojan', bonk:'BonkBot', photon:'Photon', maestro:'Maestro' }[cfg.platform] || cfg.platform;
-
-  // Log the signal
-  addBotLog(
-    '🚨 BUY SIGNAL: $'+safeStr(t.tick)+' · Score '+sc+' ('+band+') · '+cfg.sol+' SOL · SL '+cfg.sl+'% · TP '+cfg.tp+'% → '+platformName,
-    sc >= 80 ? '#f59e0b' : sc >= 65 ? 'var(--ac)' : '#a78bfa'
-  );
-
-  // Track for stop-loss monitoring
-  _botWatched[t.ca] = {
-    ca:          t.ca,
-    tick:        safeStr(t.tick),
-    entryMC:     t.mcUSD,
-    entryPrice:  t.mcUSD,
-    sl:          cfg.sl,
-    tp:          cfg.tp,
-    signalledAt: now,
-    slFired:     false,
-    tpFired:     false
-  };
-
-  // Open bot deep-link
-  window.open(url, '_blank');
-
-  // Show toast notification
-  showBotToast('🚨 BUY SIGNAL: $'+safeStr(t.tick)+' → '+platformName, sc >= 80 ? '#f59e0b' : '#a78bfa');
+  var cfg=getBotConfig(); if(sc<cfg.minScore) return;
+  var now=Date.now(); var last=_botSignalled[t.ca]||0;
+  if(now-last<cfg.cooldown*60000) return;
+  _botSignalled[t.ca]=now;
+  var url=buildBotUrl(cfg.platform,t.ca,cfg.sol,cfg.sl,cfg.tp);
+  var band=sc>=80?'GOLD':sc>=65?'SILVER':'BRONZE';
+  var pName={trojan:'Trojan',bonk:'BonkBot',photon:'Photon',maestro:'Maestro'}[cfg.platform]||cfg.platform;
+  addBotLog('BUY: $'+safeStr(t.tick)+' score '+sc+' ('+band+') '+cfg.sol+' SOL SL:'+cfg.sl+'% TP:'+cfg.tp+'% -> '+pName, sc>=80?'#f59e0b':sc>=65?'var(--ac)':'#a78bfa');
+  _botWatched[t.ca]={ ca:t.ca, tick:safeStr(t.tick), entryMC:t.mcUSD, entryPrice:0,
+    sl:cfg.sl, tp:cfg.tp, signalledAt:now, slFired:false, tpFired:false };
+  window.open(url,'_blank');
+  showBotToast('BUY SIGNAL: $'+safeStr(t.tick)+' -> '+pName, sc>=80?'#f59e0b':'#a78bfa');
 }
 
-// ── Toast notification ──────────────────────────────────
-function showBotToast(msg, color){
-  var toast = document.getElementById('bot-toast');
-  if(!toast){
-    toast = document.createElement('div');
-    toast.id = 'bot-toast';
-    toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;'+
-      'font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;'+
-      'box-shadow:0 4px 20px rgba(0,0,0,.5);transition:opacity .4s;pointer-events:none;white-space:nowrap;';
-    document.body.appendChild(toast);
-  }
-  toast.style.background = (color || '#a78bfa');
-  toast.style.color = '#000';
-  toast.textContent = msg;
-  toast.style.opacity = '1';
-  clearTimeout(window._botToastTimer);
-  window._botToastTimer = setTimeout(function(){ toast.style.opacity = '0'; }, 4000);
+function fireBotSignalManual(ca, sc){
+  var t=dexRevivalTokens[ca]||liveTokens[ca];
+  if(!t){ showBotToast('Token data not found','#ef4444'); return; }
+  delete _botSignalled[ca];
+  var was=_botEnabled; _botEnabled=true;
+  fireBotSignal(t,sc,'revival');
+  _botEnabled=was;
 }
 
-// ── Stop-loss / take-profit monitor ────────────────────
 function checkBotWatched(){
   if(!Object.keys(_botWatched).length) return;
-  var cfg = getBotConfig();
+  var cfg=getBotConfig();
   Object.keys(_botWatched).forEach(function(ca){
-    var w = _botWatched[ca];
-    if(w.slFired && w.tpFired) return;
-    var t = liveTokens[ca] || dexRevivalTokens[ca];
-    if(!t || !t.mcUSD || !w.entryMC) return;
-    var changePct = ((t.mcUSD - w.entryMC) / w.entryMC) * 100;
-
-    // Stop-loss triggered
-    if(!w.slFired && changePct <= -w.sl){
-      w.slFired = true;
-      var url = buildBotUrl(cfg.platform, ca, cfg.sol, w.sl, w.tp);
-      addBotLog('🛑 STOP-LOSS: $'+w.tick+' down '+Math.abs(changePct).toFixed(1)+'% from entry → SELL via '+cfg.platform, 'var(--dn)');
-      showBotToast('🛑 STOP-LOSS: $'+w.tick+' -'+Math.abs(changePct).toFixed(1)+'%', '#ef4444');
-      window.open(url, '_blank');
+    var w=_botWatched[ca]; if(w.slFired&&w.tpFired) return;
+    var t=liveTokens[ca]||dexRevivalTokens[ca]; if(!t||!t.mcUSD||!w.entryMC) return;
+    var chg=((t.mcUSD-w.entryMC)/w.entryMC)*100;
+    if(!w.slFired&&chg<=-w.sl){ w.slFired=true;
+      addBotLog('STOP-LOSS: $'+w.tick+' down '+Math.abs(chg).toFixed(1)+'%','var(--dn)');
+      showBotToast('STOP-LOSS: $'+w.tick+' -'+Math.abs(chg).toFixed(1)+'%','#ef4444');
+      window.open(buildBotUrl(cfg.platform,ca,cfg.sol,w.sl,w.tp),'_blank');
     }
-
-    // Take-profit triggered
-    if(!w.tpFired && changePct >= w.tp){
-      w.tpFired = true;
-      var url2 = buildBotUrl(cfg.platform, ca, cfg.sol, w.sl, w.tp);
-      addBotLog('🎯 TAKE-PROFIT: $'+w.tick+' up +'+changePct.toFixed(1)+'% from entry → SELL via '+cfg.platform, '#4ade80');
-      showBotToast('🎯 TAKE-PROFIT: $'+w.tick+' +'+changePct.toFixed(1)+'%', '#4ade80');
-      window.open(url2, '_blank');
+    if(!w.tpFired&&chg>=w.tp){ w.tpFired=true;
+      addBotLog('TAKE-PROFIT: $'+w.tick+' +'+chg.toFixed(1)+'%','#4ade80');
+      showBotToast('TAKE-PROFIT: $'+w.tick+' +'+chg.toFixed(1)+'%','#4ade80');
+      window.open(buildBotUrl(cfg.platform,ca,cfg.sol,w.sl,w.tp),'_blank');
     }
   });
 }
+setInterval(checkBotWatched,10000);
+setTimeout(loadBotConfig,500);
 
-// Manual signal — bypasses cooldown, enables bot temporarily
-function fireBotSignalManual(ca, sc){
-  var t = dexRevivalTokens[ca] || liveTokens[ca];
-  if(!t){ showBotToast('⚠ Token data not found', '#ef4444'); return; }
-  // Force-clear cooldown for this CA so it fires
-  delete _botSignalled[ca];
-  var wasBotEnabled = _botEnabled;
-  _botEnabled = true;
-  fireBotSignal(t, sc, 'revival');
-  _botEnabled = wasBotEnabled;
+/* ══ BASKET SL/TP ═══════════════════════════════════════════ */
+function checkBasketSLTP(b){
+  if(!b||b.status!=='open'||b.entry<=0||b.current<=0) return;
+  if(b._slFired) return;
+  var cfg=getBotConfig(); var slPct=cfg.sl||10; var tpPct=cfg.tp||50;
+  var chg=(b.current-b.entry)/b.entry*100;
+  var isSL=chg<=-slPct; var isTP=chg>=tpPct;
+  if(!isSL&&!isTP) return;
+  b._slFired=true;
+  var label=isSL?'STOP-LOSS':'TAKE-PROFIT';
+  var color=isSL?'#ef4444':'#4ade80';
+  addBotLog((isSL?'STOP-LOSS':'TAKE-PROFIT')+': $'+safeStr(b.tick)+' '+(chg>=0?'+':'')+chg.toFixed(1)+'%',isSL?'var(--dn)':'#4ade80');
+  showBotToast(label+': $'+safeStr(b.tick)+' '+(chg>=0?'+':'')+chg.toFixed(1)+'%',color);
+  window.open(buildBotUrl(cfg.platform,b.ca,cfg.sol||0.1,slPct,tpPct),'_blank');
+  b.status=isSL?'stopped':'sold'; b.exitPrice=b.current; b.exitAt=Date.now();
+  renderBasket(); renderDaySummary();
+}
+function checkBasketStopLoss(b){ checkBasketSLTP(b); }
+
+/* ══ BASKET FILTER ══════════════════════════════════════════ */
+var _bskFilter='all';
+function setBskFilter(f){
+  _bskFilter=f;
+  var btns={all:'bsk-filter-all',open:'bsk-filter-open',closed:'bsk-filter-closed'};
+  Object.keys(btns).forEach(function(k){
+    var btn=document.getElementById(btns[k]); if(!btn) return;
+    btn.style.background=k===f?'var(--ac)':'none';
+    btn.style.color=k===f?'#fff':'var(--mu)';
+    btn.style.fontWeight=k===f?'700':'normal';
+  });
+  renderBasket();
 }
 
-// Start SL/TP monitor on 10s interval
-setInterval(checkBotWatched, 10000);
+/* ══ MASS ADD FROM REVIVAL ══════════════════════════════════ */
+function massAddFromRevival(){
+  var cards=document.querySelectorAll('#fast-movers-cards .gm-card');
+  if(!cards.length){ showMassStatus('No REVIVAL cards visible'); return; }
+  var cfg=getBotConfig(); var minScore=cfg.minScore||45;
+  var eligible=[];
+  cards.forEach(function(card){
+    var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+    if(!m) return;
+    var t=dexRevivalTokens[m[1]]||liveTokens[m[1]]; if(!t) return;
+    var sc=t._isDexRevival?getDexRevivalScore(t):getRevivalScore(t);
+    if(sc>=minScore) eligible.push(t);
+  });
+  if(!eligible.length){ showMassStatus('No Revival tokens meet score >= '+minScore); return; }
+  var newOnes=eligible.filter(function(t){ return !basket.find(function(b){ return b.ca===t.ca; }); }).slice(0,16);
+  if(!newOnes.length){ showMassStatus('All qualifying Revival tokens already in basket'); return; }
+  showMassStatus('Importing '+newOnes.length+' from Revival (score >= '+minScore+')...');
+  newOnes.forEach(function(t,i){
+    setTimeout(function(){
+      addBasketCA(t.ca,t.tick,0,'open');
+      _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:Date.now(),slFired:false,tpFired:false,fromImport:true};
+      if(i===newOnes.length-1) showMassStatus('Imported '+newOnes.length+' tokens. Auto SL '+( cfg.sl||10)+'% active');
+    },i*300);
+  });
+}
 
-// Load saved config on startup
-setTimeout(loadBotConfig, 500);
+/* ══ MASS ADD FROM SNIPER (with score filter) ══════════════ */
+function massAddFromSniper(){
+  var cards=document.querySelectorAll('#fast-movers-cards .gm-card');
+  if(!cards.length){ showMassStatus('No SNIPE cards visible'); return; }
+  var cfg=getBotConfig(); var minScore=cfg.minScore||45;
+  var eligible=[];
+  cards.forEach(function(card){
+    var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+    if(!m) return;
+    var t=liveTokens[m[1]]||dexRevivalTokens[m[1]]; if(!t) return;
+    if(tokenScore(t)>=minScore) eligible.push(t);
+  });
+  if(!eligible.length){ showMassStatus('No SNIPE tokens meet score >= '+minScore); return; }
+  var newOnes=eligible.filter(function(t){ return !basket.find(function(b){ return b.ca===t.ca; }); }).slice(0,16);
+  if(!newOnes.length){ showMassStatus('All qualifying SNIPE tokens already in basket'); return; }
+  showMassStatus('Importing '+newOnes.length+' SNIPE tokens (score >= '+minScore+')...');
+  newOnes.forEach(function(t,i){
+    setTimeout(function(){
+      addBasketCA(t.ca,t.tick,0,'open');
+      _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:Date.now(),slFired:false,tpFired:false,fromImport:true};
+      if(i===newOnes.length-1) showMassStatus('Imported '+newOnes.length+' SNIPE tokens. Auto SL '+(cfg.sl||10)+'% active');
+    },i*300);
+  });
+}
+
+/* ══ AUTO-IMPORT SNIPE ══════════════════════════════════════ */
+var _autoImportEnabled=false;
+var _autoImported={};
+function toggleAutoImport(){
+  _autoImportEnabled=document.getElementById('auto-import-toggle').checked;
+  var track=document.getElementById('ai-track'); var thumb=document.getElementById('ai-thumb');
+  var status=document.getElementById('auto-import-status'); var cfg=getBotConfig();
+  if(_autoImportEnabled){
+    if(track) track.style.background='#f59e0b'; if(thumb) thumb.style.left='19px';
+    if(status) status.style.display='inline';
+    var lbl=document.getElementById('ai-score-label'); if(lbl) lbl.textContent=cfg.minScore||45;
+    showMassStatus('Auto-import SNIPE ON >= '+(cfg.minScore||45));
+  } else {
+    if(track) track.style.background='var(--bd)'; if(thumb) thumb.style.left='3px';
+    if(status) status.style.display='none'; showMassStatus('Auto-import SNIPE OFF');
+  }
+}
+function autoImportSnipeToken(t, sc){
+  if(!_autoImportEnabled||!t||!t.ca) return;
+  var cfg=getBotConfig(); if(sc<(cfg.minScore||45)) return;
+  var now=Date.now();
+  if(_autoImported[t.ca]&&now-_autoImported[t.ca]<600000) return;
+  if(basket.find(function(b){ return b.ca===t.ca; })) return;
+  _autoImported[t.ca]=now;
+  var ta=document.getElementById('bsk-mass');
+  if(ta){ var ex=ta.value.trim(); ta.value=ex?ex+'\n'+t.ca:t.ca; }
+  addBasketCA(t.ca,t.tick,0,'open');
+  _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:now,slFired:false,tpFired:false,fromImport:true};
+  showMassStatus('Auto-imported $'+safeStr(t.tick)+' score '+sc);
+  showBotToast('Auto-imported $'+safeStr(t.tick)+' score '+sc,'#f59e0b');
+  addBotLog('AUTO-IMPORT SNIPE: $'+safeStr(t.tick)+' score '+sc,'#f59e0b');
+}
+
+/* ══ AUTO-IMPORT REVIVAL ════════════════════════════════════ */
+var _autoImportRevivalEnabled=false;
+var _autoImportedRevival={};
+function toggleAutoImportRevival(){
+  _autoImportRevivalEnabled=document.getElementById('auto-import-revival-toggle').checked;
+  var track=document.getElementById('air-track'); var thumb=document.getElementById('air-thumb');
+  var status=document.getElementById('auto-import-revival-status'); var cfg=getBotConfig();
+  if(_autoImportRevivalEnabled){
+    if(track) track.style.background='#a78bfa'; if(thumb) thumb.style.left='19px';
+    if(status) status.style.display='inline';
+    var lbl=document.getElementById('air-score-label'); if(lbl) lbl.textContent=cfg.minScore||45;
+    showMassStatus('Auto-import REVIVAL ON >= '+(cfg.minScore||45));
+  } else {
+    if(track) track.style.background='var(--bd)'; if(thumb) thumb.style.left='3px';
+    if(status) status.style.display='none'; showMassStatus('Auto-import REVIVAL OFF');
+  }
+}
+function autoImportRevivalToken(t, sc){
+  if(!_autoImportRevivalEnabled||!t||!t.ca) return;
+  var cfg=getBotConfig(); if(sc<(cfg.minScore||45)) return;
+  var now=Date.now();
+  if(_autoImportedRevival[t.ca]&&now-_autoImportedRevival[t.ca]<600000) return;
+  if(basket.find(function(b){ return b.ca===t.ca; })) return;
+  _autoImportedRevival[t.ca]=now;
+  var ta=document.getElementById('bsk-mass');
+  if(ta){ var ex=ta.value.trim(); ta.value=ex?ex+'\n'+t.ca:t.ca; }
+  addBasketCA(t.ca,t.tick,0,'open');
+  _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:now,slFired:false,tpFired:false,fromImport:true};
+  showMassStatus('Auto-imported $'+safeStr(t.tick)+' revival score '+sc);
+  showBotToast('Auto-imported $'+safeStr(t.tick)+' score '+sc,'#a78bfa');
+  addBotLog('AUTO-IMPORT REVIVAL: $'+safeStr(t.tick)+' score '+sc,'#a78bfa');
+}
 
 function tokenVerdict(sc){
   if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
@@ -3459,7 +3402,7 @@ function tokenScore(t){
   // ── BONUSES ────────────────────────────────────────────────
   if(t.whaleFlag)                      sc += 6;  // whale buy detected
   if(t.buys > 0 && t.sells === 0)      sc += 5;  // zero sells = pristine
-  if(t.liq > 2000)        sc += 5;  // strong liquidity
+  if(t.liq > 2000)        sc += 5;
   else if(t.liq > 1000)   sc += 3;
   if(total >= 10 && bsRatio >= 0.90)   sc += 4;  // volume + clean ratio
 
@@ -3474,75 +3417,11 @@ function tokenScore(t){
 // ── AUTO-REFRESH table every 30s ──────────────────────────
 var _refreshTimer = null;
 var _gmRefreshTimer = null;
-var _revivalEnrichTimer = null;
-
-// Targeted re-enrichment of currently displayed revival tokens — keeps MC/vol live
-function refreshRevivalTokens(){
-  var cas = Object.keys(dexRevivalTokens);
-  // Also grab liveTokens that may have graduated (no more WS trades)
-  Object.keys(liveTokens).forEach(function(ca){
-    if(cas.indexOf(ca) === -1) cas.push(ca);
-  });
-  if(!cas.length) return;
-  var batch = cas.slice(0, 30).join(',');
-  fetch('https://api.dexscreener.com/latest/dex/tokens/' + batch)
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return null; })
-    .then(function(d){
-      if(!d || !d.pairs) return;
-      var solPrice = getSolPrice() || 140;
-      d.pairs.filter(function(p){ return p.chainId === 'solana'; }).forEach(function(p){
-        var ca = p.baseToken && p.baseToken.address;
-        if(!ca) return;
-        var mcUSD = p.fdv || p.marketCap || 0;
-        var volH1 = (p.volume && p.volume.h1) || 0;
-        var volH6 = (p.volume && p.volume.h6) || 0;
-        var buys  = (p.txns && p.txns.h1 && p.txns.h1.buys)  || 0;
-        var sells = (p.txns && p.txns.h1 && p.txns.h1.sells) || 0;
-        var p1    = parseFloat((p.priceChange && p.priceChange.h1)  || 0);
-        var p24   = parseFloat((p.priceChange && p.priceChange.h24) || 0);
-        var avgH6 = volH6 > 0 ? volH6 / 6 : 0;
-        var spk   = avgH6 > 0 ? (volH1 / avgH6) : (volH1 > 0 ? 10 : 0);
-        var now   = Date.now();
-        if(dexRevivalTokens[ca]){
-          var t = dexRevivalTokens[ca];
-          if(mcUSD > 0) t.mcUSD = mcUSD;
-          t.mcSol = t.mcUSD / solPrice;
-          t.vol   = volH1 / solPrice;
-          t.buys  = buys || t.buys;
-          t.sells = sells || t.sells;
-          t.liq   = ((p.liquidity && p.liquidity.usd) || 0) / solPrice;
-          t._priceChg1h    = p1;
-          t._priceChg24h   = p24;
-          t._volSpikeRatio = spk;
-          if(!t.mcHistory) t.mcHistory = [];
-          t.mcHistory.push({ ts: now, mc: t.mcUSD });
-          if(t.mcHistory.length > 30) t.mcHistory = t.mcHistory.slice(-30);
-        }
-        // Graduated liveTokens — update MC from DexScreener since WS trades stopped
-        if(liveTokens[ca] && mcUSD > 0){
-          liveTokens[ca].mcUSD = mcUSD;
-          liveTokens[ca].mcSol = mcUSD / solPrice;
-        }
-      });
-    });
-}
-
 function startAutoRefresh(){
   if(_refreshTimer) clearInterval(_refreshTimer);
-  _refreshTimer = setInterval(function(){
-    if(ppConnected) updateSniperTable();
-  }, 5000);
-  // Revival/Snipe cards refresh independently — works even without WS connected
+  _refreshTimer = setInterval(function(){ if(ppConnected) updateSniperTable(); }, 5000);
   if(_gmRefreshTimer) clearInterval(_gmRefreshTimer);
-  _gmRefreshTimer = setInterval(function(){
-    renderFastMovers();
-  }, 5000);
-  // Re-enrich revival token data from DexScreener every 20s
-  if(_revivalEnrichTimer) clearInterval(_revivalEnrichTimer);
-  _revivalEnrichTimer = setInterval(function(){
-    if(_gmMode === 'revival') refreshRevivalTokens();
-  }, 20000);
+  _gmRefreshTimer = setInterval(function(){ renderFastMovers(); }, 5000);
 }
 
 function runSniper(){
@@ -3776,28 +3655,36 @@ function massAddBasket(){
 
 // ── MASS ADD from Sniper table ────────────────────────────────
 function massAddFromSniper(){
-  // Import exactly the tokens currently rendered on SNIPE cards
-  var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
-  if(!cards.length){ showMassStatus('⚠ No SNIPE cards visible — switch to SNIPE mode or connect Sniper'); return; }
+  // Get all tokens currently showing in sniper table
+  var keys = Object.keys(liveTokens || {});
+  if(!keys.length){ showMassStatus('⚠ No tokens in Sniper — Connect Sniper first'); return; }
 
-  // Extract CAs from card onclick attributes — format: copySnipCA('CA')
-  var eligible = [];
-  cards.forEach(function(card){
-    var onclick = card.getAttribute('onclick') || '';
-    var match = onclick.match(/copySnipCA\('([^']+)'\)/);
-    if(!match) return;
-    var ca = match[1];
-    var t = liveTokens[ca] || dexRevivalTokens[ca];
-    if(t) eligible.push(t);
-  });
+  // Only add tokens that match current filters (visible ones)
+  var nowMs = Date.now();
+  var maxMC  = parseFloat((document.getElementById('sn-mc')||{value:'20000'}).value) || 20000;
+  var minMC  = parseFloat((document.getElementById('sn-minmc')||{value:'0'}).value) || 0;
+  var maxAge = parseFloat((document.getElementById('sn-age')||{value:'0.5'}).value) || 0.5;
+  var minSc  = parseFloat((document.getElementById('sn-minscore')||{value:'55'}).value) || 0;
 
-  if(!eligible.length){ showMassStatus('⚠ Could not read tokens from SNIPE cards'); return; }
+  var eligible = keys
+    .map(function(ca){ return liveTokens[ca]; })
+    .filter(function(t){
+      if(!t || t.devSelling) return false;
+      var ageHrs = (nowMs - t.ts) / 3600000;
+      if(ageHrs > maxAge) return false;
+      if(t.mcUSD < minMC || t.mcUSD > maxMC) return false;
+      if(minSc > 0 && tokenScore(t) < minSc) return false;
+      return true;
+    })
+    .slice(0, 10); // max 10 at once
+
+  if(!eligible.length){ showMassStatus('⚠ No matching tokens in Sniper table'); return; }
 
   var newOnes = eligible.filter(function(t){
     return !basket.find(function(b){ return b.ca === t.ca; });
-  }).slice(0, 16);
+  });
 
-  if(!newOnes.length){ showMassStatus('⚠ All visible SNIPE tokens already in basket'); return; }
+  if(!newOnes.length){ showMassStatus('⚠ All sniper tokens already in basket'); return; }
 
   showMassStatus('⏳ Importing ' + newOnes.length + ' from Sniper...');
   newOnes.forEach(function(t, i){
@@ -3805,65 +3692,6 @@ function massAddFromSniper(){
       addBasketCA(t.ca, t.tick, 0, 'open');
       if(i === newOnes.length - 1){
         showMassStatus('✅ Imported ' + newOnes.length + ' tokens from Sniper');
-      }
-    }, i * 300);
-  });
-}
-
-function massAddFromRevival(){
-  // Import exactly the tokens currently rendered on REVIVAL cards
-  // Applies bot minScore filter if bot config is available
-  var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
-  if(!cards.length){ showMassStatus('⚠ No REVIVAL cards visible — switch to REVIVAL mode first'); return; }
-
-  var cfg = getBotConfig();
-  var minScore = cfg.minScore || 45; // Bronze default
-
-  var eligible = [];
-  cards.forEach(function(card){
-    var onclick = card.getAttribute('onclick') || '';
-    var match = onclick.match(/copySnipCA\('([^']+)'\)/);
-    if(!match) return;
-    var ca = match[1];
-    var t = dexRevivalTokens[ca] || liveTokens[ca];
-    if(!t) return;
-    // Apply bot min score filter
-    var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
-    if(sc < minScore) return;
-    eligible.push(t);
-  });
-
-  if(!eligible.length){
-    var bandName = minScore >= 80 ? 'Gold (80+)' : minScore >= 65 ? 'Silver (65+)' : 'Bronze (45+)';
-    showMassStatus('⚠ No Revival tokens meet min score: ' + bandName + ' — adjust Bot Min Score or lower threshold');
-    return;
-  }
-
-  var newOnes = eligible.filter(function(t){
-    return !basket.find(function(b){ return b.ca === t.ca; });
-  }).slice(0, 16);
-
-  if(!newOnes.length){ showMassStatus('⚠ All qualifying Revival tokens already in basket'); return; }
-
-  showMassStatus('⏳ Importing ' + newOnes.length + ' from Revival (score ≥ ' + minScore + ')...');
-  newOnes.forEach(function(t, i){
-    setTimeout(function(){
-      addBasketCA(t.ca, t.tick, 0, 'open');
-      // Register in bot watch for auto stop-loss
-      _botWatched[t.ca] = {
-        ca:          t.ca,
-        tick:        safeStr(t.tick),
-        entryMC:     t.mcUSD,
-        entryPrice:  0, // will fill once price fetched
-        sl:          cfg.sl || 10,
-        tp:          cfg.tp || 50,
-        signalledAt: Date.now(),
-        slFired:     false,
-        tpFired:     false,
-        fromImport:  true
-      };
-      if(i === newOnes.length - 1){
-        showMassStatus('✅ Imported ' + newOnes.length + ' tokens · Auto stop-loss ' + (cfg.sl||10) + '% active');
       }
     }, i * 300);
   });
@@ -3924,44 +3752,12 @@ function massCloseAll(closeStatus, askPrice){
   });
 }
 
-function checkBasketStopLoss(b){
-  // Auto stop-loss: fire sell deep-link + close position if loss >= threshold
-  if(!b || b.status !== 'open' || b.entry <= 0 || b.current <= 0) return;
-  if(b._slFired) return; // already triggered
-  var cfg = getBotConfig();
-  var slPct = cfg.sl || 10;
-  var lossPct = (b.current - b.entry) / b.entry * 100;
-  if(lossPct <= -slPct){
-    b._slFired = true;
-    var platform = cfg.platform || 'trojan';
-    var url = buildBotUrl(platform, b.ca, cfg.sol || 0.1, slPct, cfg.tp || 50);
-    // Log to bot signal log
-    addBotLog(
-      '🛑 AUTO STOP-LOSS: $'+safeStr(b.tick)+' down '+Math.abs(lossPct).toFixed(1)+'% — SELL signal fired → '+platform,
-      'var(--dn)'
-    );
-    // Toast alert
-    showBotToast('🛑 STOP-LOSS: $'+safeStr(b.tick)+' -'+Math.abs(lossPct).toFixed(1)+'%', '#ef4444');
-    // Open sell deep-link
-    window.open(url, '_blank');
-    // Auto-close position in dashboard at current price
-    b.status  = 'stopped';
-    b.exitPrice = b.current;
-    b.exitAt  = Date.now();
-    renderBasket();
-    renderDaySummary();
-  }
-}
-
 function refreshBasketPrices(){
   basket.filter(function(b){ return b.status==='open'; }).forEach(function(b){
     fetchTokenPrice(b.ca, function(price){
-      if(price > 0){
-        // Set entry price from first successful fetch if missing
-        if(b.entry <= 0 && price > 0) b.entry = price;
-        b.current = price;
-        // Check stop-loss on every price update
-        checkBasketStopLoss(b);
+      if(price>0){
+        if((b.entry<=0||b.priceError)&&!b._entryLocked){ b.entry=price; b._entryLocked=true; }
+        b.current=price; checkBasketSLTP(b);
       }
       renderBasket(); renderDaySummary();
     });
@@ -3979,7 +3775,6 @@ function refreshSinglePrice(ca){
       b.current    = price;
       b.priceError = false;
       b.loading    = false;
-      checkBasketStopLoss(b); // auto stop-loss check
     } else {
       b.priceError = true;
       b.loading    = false;
@@ -4001,17 +3796,15 @@ function startBasketRefresh(){
       setTimeout(function(){
         fetchTokenPrice(b.ca, function(price){
           if(price > 0){
-            if(b.entry === 0 || b.priceError) b.entry = price; // set entry if missing
-            b.current    = price;
-            b.priceError = false;
-            b.loading    = false;
+            if((b.entry===0||b.priceError)&&!b._entryLocked){ b.entry=price; b._entryLocked=true; }
+            b.current=price; b.priceError=false; b.loading=false;
+            checkBasketSLTP(b);
           }
-          renderBasket();
-          renderDaySummary();
+          renderBasket(); renderDaySummary();
         });
       }, i * 400); // stagger 400ms each
     });
-  }, 15000); // every 15 seconds
+  }, 10000); // every 10 seconds
 }
 startBasketRefresh();
 
@@ -4164,48 +3957,22 @@ function updateFeeCalc(n, exitMult){
 }
 
 // ── Render individual position rows ────────────────────────────
-var _bskFilter = 'all'; // 'all' | 'open' | 'closed'
-
-function setBskFilter(f){
-  _bskFilter = f;
-  var btns = { all:'bsk-filter-all', open:'bsk-filter-open', closed:'bsk-filter-closed' };
-  Object.keys(btns).forEach(function(k){
-    var btn = document.getElementById(btns[k]);
-    if(!btn) return;
-    var active = k === f;
-    btn.style.background = active ? 'var(--ac)' : 'none';
-    btn.style.color = active ? '#fff' : 'var(--mu)';
-    btn.style.fontWeight = active ? '700' : 'normal';
-  });
-  renderBasket();
-}
-
 function renderBasket(){
   var el    = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
   renderDaySummary();
   updateOpenCount();
 
-  var filtered = basket.filter(function(b){
-    if(_bskFilter === 'open')   return b.status === 'open';
-    if(_bskFilter === 'closed') return b.status !== 'open';
-    return true;
-  });
-
   if(!basket.length){
     el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No trades yet — click +$10 on any live token.</div>';
     if(pnlEl) pnlEl.innerHTML = '';
     return;
   }
-  if(!filtered.length){
-    el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No ' + _bskFilter + ' positions.</div>';
-    if(pnlEl) pnlEl.innerHTML = '';
-    return;
-  }
 
+  var filtered=basket.filter(function(b){ if(_bskFilter==='open') return b.status==='open'; if(_bskFilter==='closed') return b.status!=='open'; return true; });
+  if(!filtered.length&&basket.length){ el.innerHTML='<div style="font-size:12px;color:var(--mu);padding:8px 0;">No '+_bskFilter+' positions.</div>'; return; }
   var now = Date.now();
-  el.innerHTML = filtered.map(function(b, i){
-    var i = basket.indexOf(b);
+  el.innerHTML = filtered.map(function(b, i){ var i=basket.indexOf(b);
     var dexUrl  = 'https://dexscreener.com/solana/'+b.ca;
     var pumpUrl = 'https://pump.fun/'+b.ca;
     var isOpen  = b.status === 'open';
@@ -4340,12 +4107,9 @@ function renderGrim(){
 <script>
 // ── Show splash screen ONLY when running as installed PWA (standalone) ──
 window.addEventListener('load', function(){
-  // Ensure sidebar is hidden on initial load since SNIPER is default tab
-  var sidebar = document.getElementById('sidebar');
-  var layout  = document.getElementById('layout');
+  var sidebar=document.getElementById('sidebar'); var layout=document.getElementById('layout');
   if(sidebar) sidebar.classList.add('collapsed');
-  if(layout)  layout.classList.add('sidebar-hidden');
-
+  if(layout) layout.classList.add('sidebar-hidden');
   var isStandalone = window.navigator.standalone === true;
   var splash = document.getElementById('pwa-splash');
   if(isStandalone && splash){
