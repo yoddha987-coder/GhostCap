@@ -405,17 +405,17 @@ textarea.mfld{resize:vertical;}
         <span class="brand-text">GHOSTSNIPERX</span>
         <span class="brand-dot"></span>
       </div>
-      <div class="tl-sub-new">DEAD COINS · SECOND CHANCES · v3.0</div>
+      <div class="tl-sub-new">DEAD COINS · SECOND CHANCES · v3.1</div>
     </div>
   </div>
   <div class="tb-div"></div>
   <div id="tabs">
-    <button class="tab on" onclick="sw(0)">🔍 SEARCH</button>
-    <button class="tab" onclick="sw(1)">👁 CHECK</button>
-    <button class="tab" onclick="sw(2)">⚔️ DUEL</button>
-    <button class="tab" onclick="sw(3)">🔮 ORACLE</button>
-    <button class="tab" onclick="sw(4)">📜 GRIMOIRE<span id="gbadge" class="tbadge" style="display:none;"></span></button>
-    <button class="tab" onclick="sw(5)" style="color:#00d474;">🟢 SNIPER</button>
+    <button class="tab on" onclick="sw(0)" style="color:#00d474;">🟢 SNIPER</button>
+    <button class="tab" onclick="sw(1)">🔍 SEARCH</button>
+    <button class="tab" onclick="sw(2)">👁 CHECK</button>
+    <button class="tab" onclick="sw(3)">⚔️ DUEL</button>
+    <button class="tab" onclick="sw(4)">🔮 ORACLE</button>
+    <button class="tab" onclick="sw(5)">📜 GRIMOIRE<span id="gbadge" class="tbadge" style="display:none;"></span></button>
   </div>
   <div class="tb-right">
     <div class="prov-pill">
@@ -609,7 +609,7 @@ textarea.mfld{resize:vertical;}
 <!-- ══ MAIN ══ -->
 <div id="main">
 
-  <div class="pnl on" id="p0">
+  <div class="pnl" id="p1">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
       <div class="wbar" style="flex:1;min-width:200px;">⚠ Not financial advice · 98% of pump.fun tokens go to zero · DYOR</div>
       <div class="vtog">
@@ -640,7 +640,7 @@ textarea.mfld{resize:vertical;}
     </div>
   </div>
 
-  <div class="pnl" id="p1">
+  <div class="pnl" id="p2">
     <div class="two">
       <div class="ibox at">
         <div class="ibox-ttl">👁 SINGLE TOKEN CHECK</div>
@@ -665,7 +665,7 @@ textarea.mfld{resize:vertical;}
     </div>
   </div>
 
-  <div class="pnl" id="p2">
+  <div class="pnl" id="p3">
     <div class="ibox rt">
       <div class="ibox-ttl red">⚔️ HEAD-TO-HEAD DUEL</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -686,7 +686,7 @@ textarea.mfld{resize:vertical;}
     </div>
   </div>
 
-  <div class="pnl" id="p3">
+  <div class="pnl" id="p4">
     <div class="olay">
       <div class="ibox gt" style="margin-bottom:0;">
         <div class="ibox-ttl gld">📜 QUICK INSIGHTS</div>
@@ -713,7 +713,7 @@ textarea.mfld{resize:vertical;}
     </div>
   </div>
 
-  <div class="pnl" id="p4">
+  <div class="pnl" id="p5">
     <div style="font-family:'Cinzel','Georgia',serif;font-size:10px;color:var(--ac);letter-spacing:.2em;margin-bottom:13px;" id="gtitle">📜 YOUR GRIMOIRE</div>
     <div id="gemp" class="gemp">
       <span style="font-size:42px;display:block;animation:bob 3s ease infinite;">📜</span>
@@ -724,7 +724,7 @@ textarea.mfld{resize:vertical;}
   </div>
 
   <!-- TAB 5 — LIVE SNIPER -->
-  <div class="pnl" id="p5">
+  <div class="pnl on" id="p0">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="pdot ok" id="sniper-dot"></div>
@@ -1001,6 +1001,11 @@ textarea.mfld{resize:vertical;}
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <div class="ibox-ttl gld" style="margin:0;">📊 DAY TRADING DASHBOARD</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="display:flex;gap:4px;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:2px;">
+            <button id="bsk-filter-all" onclick="setBskFilter('all')" style="font-size:10px;font-weight:700;background:var(--ac);color:#fff;border:none;padding:3px 10px;border-radius:3px;cursor:pointer;">All</button>
+            <button id="bsk-filter-open" onclick="setBskFilter('open')" style="font-size:10px;background:none;color:var(--mu);border:none;padding:3px 10px;border-radius:3px;cursor:pointer;">🟢 Open</button>
+            <button id="bsk-filter-closed" onclick="setBskFilter('closed')" style="font-size:10px;background:none;color:var(--mu);border:none;padding:3px 10px;border-radius:3px;cursor:pointer;">✅ Closed</button>
+          </div>
           <button onclick="refreshBasketPrices()" style="font-size:10px;border:1px solid var(--bd);background:none;color:var(--mu);padding:3px 10px;border-radius:4px;cursor:pointer;">🔄 Refresh All</button>
           <button onclick="resetDayTrade()" style="font-size:10px;border:1px solid var(--dn);background:none;color:var(--dn);padding:3px 10px;border-radius:4px;cursor:pointer;">🗑 Reset Day</button>
         </div>
@@ -1177,12 +1182,12 @@ function setTheme(t){
 function sw(i){
   document.querySelectorAll('.tab').forEach(function(b,j){b.classList.toggle('on',i===j);});
   document.querySelectorAll('.pnl').forEach(function(p,j){p.classList.toggle('on',i===j);});
-  document.getElementById('sb-crit').style.display=i===0?'block':'none';
+  document.getElementById('sb-crit').style.display=i===1?'block':'none';
 
   // Auto-collapse sidebar on Sniper tab, restore on others
   var sidebar = document.getElementById('sidebar');
   var layout  = document.getElementById('layout');
-  if(i===5){
+  if(i===0){
     sidebar.classList.add('collapsed');
     if(layout) layout.classList.add('sidebar-hidden');
   } else {
@@ -1190,7 +1195,7 @@ function sw(i){
     if(layout) layout.classList.remove('sidebar-hidden');
   }
 
-  if(i===5 && !window._sniperRan){
+  if(i===0 && !window._sniperRan){
     window._sniperRan=true;
     presetSniper('hot'); // HOT is default — catch fast movers
     runSniper();
@@ -1312,7 +1317,7 @@ function doConnect(v){
   if(kbtn) kbtn.after(db);
   else document.getElementById('key-box-inner').appendChild(db);
   // Show search tab criteria - but do NOT auto-summon
-  sw(0);
+  sw(1);
   document.getElementById('sb-crit').style.display='block';
   // Show ready message instead of auto-searching
   showStatus('✓ '+PROVS[PROV].name+' connected — click SUMMON SPIRITS to search', 'ok');
@@ -3802,20 +3807,48 @@ function updateFeeCalc(n, exitMult){
 }
 
 // ── Render individual position rows ────────────────────────────
+var _bskFilter = 'all'; // 'all' | 'open' | 'closed'
+
+function setBskFilter(f){
+  _bskFilter = f;
+  var btns = { all:'bsk-filter-all', open:'bsk-filter-open', closed:'bsk-filter-closed' };
+  Object.keys(btns).forEach(function(k){
+    var btn = document.getElementById(btns[k]);
+    if(!btn) return;
+    var active = k === f;
+    btn.style.background = active ? 'var(--ac)' : 'none';
+    btn.style.color = active ? '#fff' : 'var(--mu)';
+    btn.style.fontWeight = active ? '700' : 'normal';
+  });
+  renderBasket();
+}
+
 function renderBasket(){
   var el    = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
   renderDaySummary();
   updateOpenCount();
 
+  var filtered = basket.filter(function(b){
+    if(_bskFilter === 'open')   return b.status === 'open';
+    if(_bskFilter === 'closed') return b.status !== 'open';
+    return true;
+  });
+
   if(!basket.length){
     el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No trades yet — click +$10 on any live token.</div>';
     if(pnlEl) pnlEl.innerHTML = '';
     return;
   }
+  if(!filtered.length){
+    el.innerHTML = '<div style="font-size:12px;color:var(--mu);padding:8px 0;">No ' + _bskFilter + ' positions.</div>';
+    if(pnlEl) pnlEl.innerHTML = '';
+    return;
+  }
 
   var now = Date.now();
-  el.innerHTML = basket.map(function(b, i){
+  el.innerHTML = filtered.map(function(b, i){
+    var i = basket.indexOf(b);
     var dexUrl  = 'https://dexscreener.com/solana/'+b.ca;
     var pumpUrl = 'https://pump.fun/'+b.ca;
     var isOpen  = b.status === 'open';
@@ -3950,6 +3983,12 @@ function renderGrim(){
 <script>
 // ── Show splash screen ONLY when running as installed PWA (standalone) ──
 window.addEventListener('load', function(){
+  // Ensure sidebar is hidden on initial load since SNIPER is default tab
+  var sidebar = document.getElementById('sidebar');
+  var layout  = document.getElementById('layout');
+  if(sidebar) sidebar.classList.add('collapsed');
+  if(layout)  layout.classList.add('sidebar-hidden');
+
   var isStandalone = window.navigator.standalone === true;
   var splash = document.getElementById('pwa-splash');
   if(isStandalone && splash){
