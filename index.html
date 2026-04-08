@@ -2643,7 +2643,9 @@ function getDexRevivalScore(t){
   var sc  = 0;
   var p1  = t._priceChg1h  || 0;
   var p24 = t._priceChg24h || 0;
-  var spk = t._volSpikeRatio || 0;
+  // Cap spike at 50x — anything above is a data artifact (div by zero volH6)
+  var rawSpk = t._volSpikeRatio || 0;
+  var spk = rawSpk > 50 ? 0 : rawSpk; // treat 999% spike as unreliable
   var total = t.buys + t.sells;
   var bsr   = total > 0 ? t.buys / total : 0.5;
   var ageHrs = (Date.now() - t.ts) / 3600000;
@@ -2652,7 +2654,9 @@ function getDexRevivalScore(t){
   else if(p1 >= 20)  sc += 18;
   else if(p1 >= 10)  sc += 10;
   else if(p1 >= 5)   sc += 5;
-  else if(p1 < -20)  sc -= 15;
+  else if(p1 < -50)  sc -= 40; // heavy dump penalty
+  else if(p1 < -20)  sc -= 20;
+  else if(p1 < -10)  sc -= 8;
   if(spk >= 10)      sc += 30;
   else if(spk >= 5)  sc += 22;
   else if(spk >= 3)  sc += 14;
@@ -2781,7 +2785,7 @@ function renderFastMovers(){
       .sort(function(a, b){
         return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
       })
-      .slice(0, 8);
+      .slice(0, 16);
 
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60);
@@ -2813,10 +2817,18 @@ function renderFastMovers(){
       .map(function(ca){ return revivalCandidates[ca]; })
       .filter(function(t){
         if(!t || t.devSelling) return false;
-        // No age cap — any token (2min or 2yr) can revive
-        var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > Date.now()-60000; }).length : 0;
+        var nowMs = Date.now();
+        var p1 = t._priceChg1h || 0;
+        // Hard reject: down >20% in 1h with no recent buys = dump, not revival
+        var recentBuys = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs - 300000; }).length : 0;
+        if(p1 < -20 && recentBuys < 2) return false;
+        // Must have some activity signal
+        var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs - 60000; }).length : 0;
         var hasActivity = buyRate >= 1 || t.buys >= 3 || (t._priceChg1h && t._priceChg1h > 5) || (t._volSpikeRatio && t._volSpikeRatio >= 1.2);
         if(!hasActivity) return false;
+        // Reject 999% fake spike — only trust spike if we have real vol data
+        var realSpike = t._volSpikeRatio && t._volSpikeRatio < 500;
+        if(!realSpike && p1 <= 0 && recentBuys < 1) return false;
         var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
         return sc >= 20;
       })
@@ -2825,7 +2837,7 @@ function renderFastMovers(){
         var sb = b._isDexRevival ? getDexRevivalScore(b) : getRevivalScore(b);
         return sb - sa;
       })
-      .slice(0, 8);
+      .slice(0, 16);
 
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60);
