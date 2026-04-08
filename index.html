@@ -2844,7 +2844,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">🎯 PUMP.FUN↗</a>'
       +'</div>'
-      +(mode===\'revival\' ? \'<button style="width:100%;margin-top:5px;font-size:9px;font-weight:700;background:rgba(167,139,250,.15);border:1px solid #a78bfa;color:#a78bfa;border-radius:4px;padding:4px 0;cursor:pointer;" onclick="event.stopPropagation();fireBotSignalManual(\\\''+t.ca+\'\\\','+sc+\');">🤖 BOT SIGNAL</button>\' : \'\')'
+      +(mode==='revival' ? '<button style="width:100%;margin-top:5px;font-size:9px;font-weight:700;background:rgba(167,139,250,.15);border:1px solid #a78bfa;color:#a78bfa;border-radius:4px;padding:4px 0;cursor:pointer;" onclick="event.stopPropagation();fireBotSignalManual(\''+t.ca+'\','+sc+');">🤖 BOT SIGNAL</button>' : '')
     +'</div>'
   +'</div>';
 }
@@ -3206,11 +3206,30 @@ function toggleAutoImport(){
   _autoImportEnabled=document.getElementById('auto-import-toggle').checked;
   var track=document.getElementById('ai-track'); var thumb=document.getElementById('ai-thumb');
   var status=document.getElementById('auto-import-status'); var cfg=getBotConfig();
+  var minScore=cfg.minScore||45;
   if(_autoImportEnabled){
     if(track) track.style.background='#f59e0b'; if(thumb) thumb.style.left='19px';
     if(status) status.style.display='inline';
-    var lbl=document.getElementById('ai-score-label'); if(lbl) lbl.textContent=cfg.minScore||45;
-    showMassStatus('Auto-import SNIPE ON >= '+(cfg.minScore||45));
+    var lbl=document.getElementById('ai-score-label'); if(lbl) lbl.textContent=minScore;
+    // Immediately import all qualifying SNIPE cards currently visible
+    var cards=document.querySelectorAll('#fast-movers-cards .gm-card');
+    var imported=0;
+    cards.forEach(function(card){
+      var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+      if(!m) return;
+      var t=liveTokens[m[1]]||dexRevivalTokens[m[1]]; if(!t) return;
+      var sc=tokenScore(t); if(sc<minScore) return;
+      if(basket.find(function(b){ return b.ca===t.ca; })) return;
+      var now=Date.now(); _autoImported[t.ca]=now;
+      var ta=document.getElementById('bsk-mass');
+      if(ta){ var ex=ta.value.trim(); ta.value=ex?ex+'\n'+t.ca:t.ca; }
+      addBasketCA(t.ca,t.tick,0,'open');
+      _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:now,slFired:false,tpFired:false,fromImport:true};
+      imported++;
+    });
+    var msg = imported>0 ? 'Auto-import SNIPE ON — imported '+imported+' tokens now (score >= '+minScore+')' : 'Auto-import SNIPE ON — watching for score >= '+minScore;
+    showMassStatus(msg);
+    if(imported>0){ addBotLog('AUTO-IMPORT SNIPE: imported '+imported+' tokens on enable','#f59e0b'); }
   } else {
     if(track) track.style.background='var(--bd)'; if(thumb) thumb.style.left='3px';
     if(status) status.style.display='none'; showMassStatus('Auto-import SNIPE OFF');
@@ -3239,11 +3258,31 @@ function toggleAutoImportRevival(){
   _autoImportRevivalEnabled=document.getElementById('auto-import-revival-toggle').checked;
   var track=document.getElementById('air-track'); var thumb=document.getElementById('air-thumb');
   var status=document.getElementById('auto-import-revival-status'); var cfg=getBotConfig();
+  var minScore=cfg.minScore||45;
   if(_autoImportRevivalEnabled){
     if(track) track.style.background='#a78bfa'; if(thumb) thumb.style.left='19px';
     if(status) status.style.display='inline';
-    var lbl=document.getElementById('air-score-label'); if(lbl) lbl.textContent=cfg.minScore||45;
-    showMassStatus('Auto-import REVIVAL ON >= '+(cfg.minScore||45));
+    var lbl=document.getElementById('air-score-label'); if(lbl) lbl.textContent=minScore;
+    // Immediately import all qualifying REVIVAL cards currently visible
+    var cards=document.querySelectorAll('#fast-movers-cards .gm-card');
+    var imported=0;
+    cards.forEach(function(card){
+      var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+      if(!m) return;
+      var t=dexRevivalTokens[m[1]]||liveTokens[m[1]]; if(!t) return;
+      var sc=t._isDexRevival?getDexRevivalScore(t):getRevivalScore(t);
+      if(sc<minScore) return;
+      if(basket.find(function(b){ return b.ca===t.ca; })) return;
+      var now=Date.now(); _autoImportedRevival[t.ca]=now;
+      var ta=document.getElementById('bsk-mass');
+      if(ta){ var ex=ta.value.trim(); ta.value=ex?ex+'\n'+t.ca:t.ca; }
+      addBasketCA(t.ca,t.tick,0,'open');
+      _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,entryPrice:0,sl:cfg.sl||10,tp:cfg.tp||50,signalledAt:now,slFired:false,tpFired:false,fromImport:true};
+      imported++;
+    });
+    var msg = imported>0 ? 'Auto-import REVIVAL ON — imported '+imported+' tokens now (score >= '+minScore+')' : 'Auto-import REVIVAL ON — watching for score >= '+minScore;
+    showMassStatus(msg);
+    if(imported>0){ addBotLog('AUTO-IMPORT REVIVAL: imported '+imported+' tokens on enable','#a78bfa'); }
   } else {
     if(track) track.style.background='var(--bd)'; if(thumb) thumb.style.left='3px';
     if(status) status.style.display='none'; showMassStatus('Auto-import REVIVAL OFF');
