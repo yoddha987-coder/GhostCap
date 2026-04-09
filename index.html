@@ -2948,19 +2948,33 @@ function checkBotWatched(){
 setInterval(checkBotWatched,10000);
 
 function checkBasketSLTP(b){
-  if(!b||b.status!=='open'||b.entry<=0||b.current<=0||b._slFired) return;
-  var cfg=getBotConfig(),chg=(b.current-b.entry)/b.entry*100;
-  var isSL=chg<=-(cfg.sl||10),isTP=chg>=(cfg.tp||50);
-  if(!isSL&&!isTP) return;
-  b._slFired=true;
-  var label=isSL?'STOP-LOSS':'TAKE-PROFIT',color=isSL?'#ef4444':'#4ade80';
-  addBotLog(label+' $'+safeStr(b.tick)+' '+(chg>=0?'+':'')+chg.toFixed(1)+'%',isSL?'var(--dn)':'#4ade80');
-  showBotToast(label+' $'+safeStr(b.tick)+' '+(chg>=0?'+':'')+chg.toFixed(1)+'%',color);
-  window.open(buildBotUrl(cfg.platform,b.ca),'_blank');
-  b.status=isSL?'stopped':'sold'; b.exitPrice=b.current; b.exitAt=Date.now();
-  renderBasket(); renderDaySummary();
+  if(!b || b.status !== 'open' || b.entry <= 0 || b.current <= 0 || b._slFired) return;
+  // Read SL directly from input — fallback to 10 if panel not visible
+  var slEl = document.getElementById('bot-sl');
+  var tpEl = document.getElementById('bot-tp');
+  var slPct = slEl ? (parseFloat(slEl.value) || 10) : 10;
+  var tpPct = tpEl ? (parseFloat(tpEl.value) || 50) : 50;
+  var chg = (b.current - b.entry) / b.entry * 100;
+  var isSL = chg <= -slPct;
+  var isTP = chg >= tpPct;
+  if(!isSL && !isTP) return;
+  b._slFired = true; // lock immediately — prevents double-fire
+  var label = isSL ? 'STOP-LOSS' : 'TAKE-PROFIT';
+  var color  = isSL ? '#ef4444' : '#4ade80';
+  var sign   = chg >= 0 ? '+' : '';
+  // 1. Close position in dashboard RIGHT NOW at current price
+  b.status    = isSL ? 'stopped' : 'sold';
+  b.exitPrice = b.current;
+  b.exitAt    = Date.now();
+  renderBasket();
+  renderDaySummary();
+  // 2. Log + toast
+  addBotLog(label + ' $' + safeStr(b.tick) + ' ' + sign + chg.toFixed(1) + '%', isSL ? 'var(--dn)' : '#4ade80');
+  showBotToast(label + ': $' + safeStr(b.tick) + ' ' + sign + chg.toFixed(1) + '%', color);
+  // 3. Try bot deep-link (browser may block popup — position already closed above)
+  try { window.open(buildBotUrl((document.getElementById('bot-platform')||{value:'trojan'}).value || 'trojan', b.ca), '_blank'); } catch(e){}
 }
-function checkBasketStopLoss(b){checkBasketSLTP(b);}
+function checkBasketStopLoss(b){ checkBasketSLTP(b); }
 
 function setBskFilter(f){
   _bskFilter=f;
@@ -3477,10 +3491,13 @@ function refreshSinglePrice(ca){
   renderBasket();
   fetchTokenPrice(ca, function(price){
     if(price > 0){
-      if(b.entry === 0 || b.priceError) b.entry = price; // fix missing entry
+      if((b.entry === 0 || b.priceError) && !b._entryLocked){
+        b.entry = price; b._entryLocked = true; // lock entry once
+      }
       b.current    = price;
       b.priceError = false;
       b.loading    = false;
+      checkBasketSLTP(b); // check SL/TP on every refresh
     } else {
       b.priceError = true;
       b.loading    = false;
@@ -3510,7 +3527,7 @@ function startBasketRefresh(){
         });
       }, i * 400); // stagger 400ms each
     });
-  }, 10000); // every 10s
+  }, 5000); // every 5s — faster SL reaction
 }
 startBasketRefresh();
 
