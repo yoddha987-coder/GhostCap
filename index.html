@@ -1037,10 +1037,22 @@ textarea.mfld{resize:vertical;}
         <div style="font-size:10px;color:var(--mu);margin-bottom:8px;">Paste multiple CAs — one per line OR comma-separated. Each gets $10 entry at live price.</div>
         <textarea id="bsk-mass" class="mfld" rows="3" placeholder="Paste CAs here, one per line:&#10;7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU&#10;9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump&#10;..." style="width:100%;font-size:11px;font-family:monospace;resize:vertical;margin-bottom:8px;box-sizing:border-box;"></textarea>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <button onclick="massAddBasket()" style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:700;letter-spacing:.08em;background:rgba(79,70,229,.15);border:1px solid var(--ac);color:var(--ac);padding:7px 18px;border-radius:5px;cursor:pointer;">🚀 ADD ALL $10 EACH</button>
-          <button onclick="massAddFromSniper()" style="font-size:11px;background:rgba(0,212,184,.1);border:1px solid var(--ac);color:var(--ac);padding:7px 14px;border-radius:5px;cursor:pointer;">📋 Import from Sniper</button>
-          <button onclick="massAddFromRevival()" style="font-size:11px;background:rgba(167,139,250,.1);border:1px solid #a78bfa;color:#a78bfa;padding:7px 14px;border-radius:5px;cursor:pointer;">🌙 Import from Revival</button>
-          <span id="mass-status" style="font-size:10px;color:var(--go);opacity:0;transition:opacity .4s;"></span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button onclick="massAddBasket()" style="font-family:'Cinzel','Georgia',serif;font-size:11px;font-weight:700;letter-spacing:.08em;background:rgba(79,70,229,.15);border:1px solid var(--ac);color:var(--ac);padding:7px 18px;border-radius:5px;cursor:pointer;">&#x1f680; ADD ALL $10 EACH</button>
+        </div>
+        <!-- Sniper import row -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);flex-wrap:wrap;">
+          <span style="font-size:10px;color:var(--mu);flex:1;">&#x1f4cb; <strong style="color:var(--ac);">Sniper</strong> — import tokens from SNIPE cards</span>
+          <button onclick="massAddFromSniper()" style="font-size:11px;background:rgba(0,212,184,.1);border:1px solid var(--ac);color:var(--ac);padding:5px 12px;border-radius:5px;cursor:pointer;">&#x1f4cb; Import Now</button>
+          <button id="auto-sniper-btn" onclick="toggleAutoSniper()" style="font-size:11px;font-weight:700;background:rgba(0,212,184,.05);border:1px solid var(--ac);color:var(--mu);padding:5px 12px;border-radius:5px;cursor:pointer;">&#x23f8; Auto: OFF</button>
+        </div>
+        <!-- Revival import row -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <span style="font-size:10px;color:var(--mu);flex:1;">&#x1f319; <strong style="color:#a78bfa;">Revival</strong> — import tokens from REVIVAL cards</span>
+          <button onclick="massAddFromRevival()" style="font-size:11px;background:rgba(167,139,250,.1);border:1px solid #a78bfa;color:#a78bfa;padding:5px 12px;border-radius:5px;cursor:pointer;">&#x1f319; Import Now</button>
+          <button id="auto-revival-btn" onclick="toggleAutoRevival()" style="font-size:11px;font-weight:700;background:rgba(167,139,250,.05);border:1px solid #a78bfa;color:var(--mu);padding:5px 12px;border-radius:5px;cursor:pointer;">&#x23f8; Auto: OFF</button>
+        </div>
+        <span id="mass-status" style="font-size:10px;color:var(--go);opacity:0;transition:opacity .4s;display:block;margin-top:6px;"></span>
         </div>
       </div>
 
@@ -3037,6 +3049,124 @@ function massAddFromSniper(){
       if(i===newOnes.length-1) showMassStatus('Imported '+newOnes.length+' SNIPE tokens \u00b7 Auto SL '+(cfg.sl||10)+'% active');
     },i*300);
   });
+}
+
+
+/* ══ AUTO-IMPORT SNIPER + REVIVAL ═════════════════════════════
+   When Auto is ON, qualifying tokens are imported to basket
+   automatically every 10s without any manual click.
+   Cooldown per token = 10 minutes to prevent re-adding.
+══════════════════════════════════════════════════════════════ */
+var _autoSniperOn = false;
+var _autoRevivalOn = false;
+var _autoSniperSeen = {};   // ca -> timestamp
+var _autoRevivalSeen = {};  // ca -> timestamp
+var _autoImportTimer = null;
+
+function toggleAutoSniper(){
+  _autoSniperOn = !_autoSniperOn;
+  var btn = document.getElementById('auto-sniper-btn');
+  if(_autoSniperOn){
+    if(btn){ btn.textContent = '\u25b6 Auto: ON'; btn.style.color = 'var(--ac)'; btn.style.background = 'rgba(0,212,184,.15)'; btn.style.fontWeight = '700'; }
+    showMassStatus('\u2699 Auto Sniper ON \u2014 importing qualifying SNIPE tokens every 10s');
+    addBotLog('Auto Sniper ON', 'var(--ac)');
+    // Run once immediately
+    runAutoSniperImport();
+    startAutoImportTimer();
+  } else {
+    if(btn){ btn.textContent = '\u23f8 Auto: OFF'; btn.style.color = 'var(--mu)'; btn.style.background = 'rgba(0,212,184,.05)'; btn.style.fontWeight = 'normal'; }
+    showMassStatus('Auto Sniper OFF');
+    addBotLog('Auto Sniper OFF', 'var(--mu)');
+    stopAutoImportTimer();
+  }
+}
+
+function toggleAutoRevival(){
+  _autoRevivalOn = !_autoRevivalOn;
+  var btn = document.getElementById('auto-revival-btn');
+  if(_autoRevivalOn){
+    if(btn){ btn.textContent = '\u25b6 Auto: ON'; btn.style.color = '#a78bfa'; btn.style.background = 'rgba(167,139,250,.15)'; btn.style.fontWeight = '700'; }
+    showMassStatus('\u2699 Auto Revival ON \u2014 importing qualifying REVIVAL tokens every 10s');
+    addBotLog('Auto Revival ON', '#a78bfa');
+    runAutoRevivalImport();
+    startAutoImportTimer();
+  } else {
+    if(btn){ btn.textContent = '\u23f8 Auto: OFF'; btn.style.color = 'var(--mu)'; btn.style.background = 'rgba(167,139,250,.05)'; btn.style.fontWeight = 'normal'; }
+    showMassStatus('Auto Revival OFF');
+    addBotLog('Auto Revival OFF', 'var(--mu)');
+    stopAutoImportTimer();
+  }
+}
+
+function startAutoImportTimer(){
+  if(_autoImportTimer) return; // already running
+  _autoImportTimer = setInterval(function(){
+    if(_autoSniperOn) runAutoSniperImport();
+    if(_autoRevivalOn) runAutoRevivalImport();
+    if(!_autoSniperOn && !_autoRevivalOn) stopAutoImportTimer();
+  }, 10000);
+}
+
+function stopAutoImportTimer(){
+  if(!_autoSniperOn && !_autoRevivalOn){
+    if(_autoImportTimer){ clearInterval(_autoImportTimer); _autoImportTimer = null; }
+  }
+}
+
+function runAutoSniperImport(){
+  var cfg = getBotConfig();
+  var minScore = cfg.minScore || 45;
+  var now = Date.now();
+  var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
+  var imported = 0;
+  cards.forEach(function(card){
+    var m = (card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+    if(!m) return;
+    var ca = m[1];
+    // Skip if recently auto-imported (10 min cooldown)
+    if(_autoSniperSeen[ca] && now - _autoSniperSeen[ca] < 600000) return;
+    var t = liveTokens[ca] || dexRevivalTokens[ca]; if(!t) return;
+    if(tokenScore(t) < minScore) return;
+    if(basket.find(function(b){ return b.ca === ca; })) return;
+    _autoSniperSeen[ca] = now;
+    addBasketCA(ca, t.tick, 0, 'open');
+    _botWatched[ca] = {ca:ca, tick:safeStr(t.tick), entryMC:t.mcUSD, sl:cfg.sl||10, tp:cfg.tp||50, signalledAt:now, slFired:false, tpFired:false, fromImport:true};
+    var ta = document.getElementById('bsk-mass');
+    if(ta){ var ex = ta.value.trim(); ta.value = ex ? ex + '\n' + ca : ca; }
+    imported++;
+  });
+  if(imported > 0){
+    showMassStatus('\u26a1 Auto Sniper: imported ' + imported + ' token' + (imported>1?'s':''));
+    addBotLog('Auto Sniper: imported ' + imported + ' SNIPE token' + (imported>1?'s':''), 'var(--ac)');
+  }
+}
+
+function runAutoRevivalImport(){
+  var cfg = getBotConfig();
+  var minScore = cfg.minScore || 45;
+  var now = Date.now();
+  var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
+  var imported = 0;
+  cards.forEach(function(card){
+    var m = (card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
+    if(!m) return;
+    var ca = m[1];
+    if(_autoRevivalSeen[ca] && now - _autoRevivalSeen[ca] < 600000) return;
+    var t = dexRevivalTokens[ca] || liveTokens[ca]; if(!t) return;
+    var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
+    if(sc < minScore) return;
+    if(basket.find(function(b){ return b.ca === ca; })) return;
+    _autoRevivalSeen[ca] = now;
+    addBasketCA(ca, t.tick, 0, 'open');
+    _botWatched[ca] = {ca:ca, tick:safeStr(t.tick), entryMC:t.mcUSD, sl:cfg.sl||10, tp:cfg.tp||50, signalledAt:now, slFired:false, tpFired:false, fromImport:true};
+    var ta = document.getElementById('bsk-mass');
+    if(ta){ var ex = ta.value.trim(); ta.value = ex ? ex + '\n' + ca : ca; }
+    imported++;
+  });
+  if(imported > 0){
+    showMassStatus('\u26a1 Auto Revival: imported ' + imported + ' token' + (imported>1?'s':''));
+    addBotLog('Auto Revival: imported ' + imported + ' REVIVAL token' + (imported>1?'s':''), '#a78bfa');
+  }
 }
 
 function tokenVerdict(sc){
