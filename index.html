@@ -928,7 +928,7 @@ textarea.mfld{resize:vertical;}
         <span id="gm-badge" style="font-size:9px;font-weight:700;background:#f59e0b;color:#000;padding:1px 7px;border-radius:10px;display:none;"></span>
         <!-- Mode toggle buttons — always visible -->
         <div style="display:flex;gap:4px;">
-          <button id="gm-mode-snipe" onclick="setGmMode('snipe')" style="font-size:10px;font-weight:700;background:#f59e0b;color:#000;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">🎯 SNIPE</button>
+          <button id="gm-mode-snipe" onclick="setGmMode('snipe')" style="font-size:10px;font-weight:700;background:#f59e0b;color:#000;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">🎯 SNIPER</button>
           <button id="gm-mode-revival" onclick="setGmMode('revival')" style="font-size:10px;background:none;color:var(--mu);border:1px solid var(--bd);padding:4px 12px;border-radius:4px;cursor:pointer;">🌙 REVIVAL</button>
         </div>
         <span id="gm-desc" style="font-size:9px;color:var(--mu);">Connect Sniper to see live movers</span>
@@ -945,7 +945,7 @@ textarea.mfld{resize:vertical;}
     <div id="sniper-emp" class="empty">
       <span class="eico" style="font-size:36px;">🟢</span>
       <div class="etxt">SNIPER READY</div>
-      <div class="esub">Click SCAN NOW to find live tokens matching your criteria</div>
+      <div class="esub">Click CONNECT to start live feed · Cards appear automatically</div>
     </div>
     <!-- AUTO BOT PANEL -->
     <div class="ibox" style="margin-top:14px;border:1px solid #a78bfa;background:rgba(167,139,250,.06);">
@@ -2621,6 +2621,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">PUMP.FUN↗</a>'
       +'</div>'
+      +(mode==='revival' ? '<a href="https://gmgn.ai/sol/token/'+t.ca+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:4px;font-size:9px;font-weight:700;background:rgba(0,212,116,.12);border:1px solid #00d474;color:#00d474;border-radius:4px;padding:4px 0;text-align:center;text-decoration:none;">GMGN.AI↗</a>' : '')
     +'</div>'
   +'</div>';
 }
@@ -2636,28 +2637,34 @@ function renderFastMovers(){
   var movers = [];
 
   if(_gmMode === 'snipe'){
-    // ── SNIPE MODE — fresh tokens pumping hard ──────────────
-    movers = liveTokenOrder
-      .map(function(ca){ return liveTokens[ca]; })
+    // ── SNIPE MODE — WS tokens + fresh DexScreener tokens ──
+    var snipeCand = {};
+    liveTokenOrder.forEach(function(ca){ if(liveTokens[ca]) snipeCand[ca] = liveTokens[ca]; });
+    // Also include fresh DexScreener tokens (< 2h old) when WS not connected
+    Object.keys(dexRevivalTokens).forEach(function(ca){
+      var t = dexRevivalTokens[ca];
+      if(!t || snipeCand[ca]) return;
+      var ageHrs = (Date.now() - t.ts) / 3600000;
+      if(ageHrs <= 2) snipeCand[ca] = t; // only fresh ones for SNIPE
+    });
+    movers = Object.keys(snipeCand).map(function(ca){ return snipeCand[ca]; })
       .filter(function(t){
         if(!t || t.devSelling) return false;
         var ageMin = (Date.now() - t.ts) / 60000;
-        if(ageMin > 120)          return false; // max 2 hours
-        if(t.mcUSD > 60000)       return false; // still has room
-        // initBuy filter removed — not restrictive here
+        if(ageMin > 120) return false;
+        if(t.mcUSD > 60000) return false;
         var total = t.buys + t.sells;
         var bsr = total > 0 ? t.buys/total : 1;
-        if(total > 10 && bsr < 0.5) return false; // only filter heavy selling
-        // Show by score + activity — gain is bonus not requirement
+        if(total > 10 && bsr < 0.5) return false;
         return tokenScore(t) >= 35;
       })
       .sort(function(a, b){
         return (getMcGain(b,60)*0.7 + getMcGain(b,300)*0.3) - (getMcGain(a,60)*0.7 + getMcGain(a,300)*0.3);
       })
-      .slice(0,16);
-    cards.innerHTML=movers.map(function(t){
-      var g1m=getMcGain(t,60),g5m=getMcGain(t,300),sc=tokenScore(t),col=sc>=80?'#f59e0b':'#818cf8';
-      return buildMoverCard(t,sc,g1m,g5m,col,'snipe');
+      .slice(0, 16);
+    cards.innerHTML = movers.map(function(t){
+      var g1m=getMcGain(t,60), g5m=getMcGain(t,300), sc=tokenScore(t), col=sc>=80?'#f59e0b':'#818cf8';
+      return buildMoverCard(t, sc, g1m, g5m, col, 'snipe');
     }).join('');
 
   } else {
@@ -2697,6 +2704,7 @@ function renderFastMovers(){
   // Show/hide cards panel
   if(!movers.length){
     if(panel) panel.style.display = 'none';
+    if(badge){ badge.style.display = 'none'; badge.textContent = ''; }
     if(desc) desc.textContent = _gmMode === 'snipe' ? (liveTokenOrder.length > 0 ? 'No tokens score 35+ yet — more coming soon' : 'Connect Sniper to see live movers') : (Object.keys(dexRevivalTokens).length > 0 ? 'No revival tokens meet score threshold yet' : 'Loading revival data...');
     return;
   }
@@ -3298,12 +3306,18 @@ function addBasketCA(ca, tick, entryPrice, status){
   renderBasket();
 
   if(entryPrice && entryPrice > 0){
-    entry.entry = entryPrice; entry.current = entryPrice; entry.loading = false;
+    entry.entry = entryPrice; entry.current = entryPrice;
+    entry.loading = false; entry._entryLocked = true;
     showToast('✅ $'+safeStr(tick)+' added at $'+entryPrice.toFixed(8), 'ok');
     renderBasket(); return;
   }
   fetchTokenPrice(ca, function(price){
-    entry.entry = price; entry.current = price; entry.loading = false;
+    if(price > 0){
+      entry.entry        = price;
+      entry.current      = price;
+      entry._entryLocked = true; // lock permanently — timer must not overwrite
+    }
+    entry.loading     = false;
     if(price === 0) entry.priceError = true;
     renderBasket();
     if(price > 0){
