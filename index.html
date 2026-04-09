@@ -2690,12 +2690,32 @@ function renderFastMovers(){
     movers = Object.keys(revCand).map(function(ca){ return revCand[ca]; })
       .filter(function(t){
         if(!t || t.devSelling) return false;
-        var nowMs = Date.now(), p1 = t._priceChg1h || 0;
+        var nowMs = Date.now(), p1 = t._priceChg1h || 0, p24 = t._priceChg24h || 0;
+
+        // ── Eject stale data: if not refreshed in last 3 minutes, skip ──
+        if(t._lastRefreshed && nowMs - t._lastRefreshed > 180000) return false;
+
+        // ── Hard reject: clearly dead/dumping ───────────────────────────
+        // Down > 30% in 24h AND no positive 1h move = dead, not reviving
+        if(p24 < -30 && p1 <= 0) return false;
+        // Down > 15% in 1h = actively dumping right now
+        if(p1 < -15) return false;
+        // MC below $1K = essentially zero liquidity
+        if(t.mcUSD > 0 && t.mcUSD < 1000) return false;
+
         var recentBuys = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-300000; }).length : 0;
-        if(p1 < -20 && recentBuys < 2) return false;
+        if(p1 < -10 && recentBuys < 1) return false;
+
+        // ── Must have CURRENT activity (not just historical buys count) ──
         var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-60000; }).length : 0;
-        var hasActivity = buyRate >= 1 || t.buys >= 3 || (t._priceChg1h && t._priceChg1h > 5) || (t._volSpikeRatio && t._volSpikeRatio >= 1.2);
+        // For DexScreener tokens: require positive 1h move OR meaningful spike
+        var realSpike = t._volSpikeRatio && t._volSpikeRatio > 0 && t._volSpikeRatio < 500;
+        var hasActivity = buyRate >= 1
+          || (p1 > 3 && realSpike)
+          || (t._priceChg1h && t._priceChg1h >= 5)
+          || (realSpike && t._volSpikeRatio >= 2);
         if(!hasActivity) return false;
+
         var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
         return sc >= 20;
       })
@@ -2806,7 +2826,8 @@ function ingestDexRevivalPairs(pairs){
       buys:buys,sells:sells,ts:createdMs,img:(p.info&&p.info.imageUrl)||'',
       dexData:true,devSelling:false,whaleFlag:false,bundled:false,initBuy:0,
       volSnap:volSnap,mcHistory:mcHistory,buyTimes:buyTimes,volTimes:[],
-      _priceChg1h:p1,_priceChg6h:p6,_priceChg24h:p24,_volSpikeRatio:spk,_isDexRevival:true};
+      _priceChg1h:p1,_priceChg6h:p6,_priceChg24h:p24,_volSpikeRatio:spk,_isDexRevival:true,
+      _lastRefreshed:now};
     dexRevivalTokens[ca]=fd;
     if(liveTokens[ca]&&mcUSD>0){
       liveTokens[ca].mcUSD=mcUSD; liveTokens[ca].mcSol=mcUSD/solPrice;
@@ -2838,6 +2859,12 @@ function pollDexRevival(){
   if(vis.length) fetch('https://api.dexscreener.com/latest/dex/tokens/'+vis.join(','))
     .then(function(r){return r.json();}).catch(function(){return null;})
     .then(function(d){if(!d||!d.pairs) return; ingestDexRevivalPairs(d.pairs.filter(function(p){return p.chainId==='solana';}));});
+  // Purge stale entries not refreshed in last 5 minutes
+  var staleThreshold = Date.now() - 300000;
+  Object.keys(dexRevivalTokens).forEach(function(ca){
+    var t = dexRevivalTokens[ca];
+    if(t._lastRefreshed && t._lastRefreshed < staleThreshold) delete dexRevivalTokens[ca];
+  });
 }
 
 function startRevivalPoll(){
