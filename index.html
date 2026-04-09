@@ -3788,7 +3788,8 @@ function renderDaySummary(){
   if(!histEl) return;
   if(!closed.length){ histEl.innerHTML='<div style="font-size:11px;color:var(--mu);padding:6px 0;">No closed trades yet. Click "Mark Sold" or "Stop Loss" to close a position.</div>'; return; }
 
-  var rows = closed.map(function(b){
+  // Sort closed trades: newest first (by exitAt timestamp)
+  var rows = closed.slice().sort(function(a,b){ return (b.exitAt||0)-(a.exitAt||0); }).map(function(b){
     if(!b.entry || b.entry === 0) return '';
     var rawPnl  = b.amount * (b.current - b.entry) / b.entry;
     var buyFee  = b.amount * PUMP_FEE;
