@@ -2624,7 +2624,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
       +'</div>'
       +'<div class="gm-stats">'
         +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong></div>'
-        +'<div>'+(mode==='revival' ? 'Spike <strong style="color:'+color+';">'+(volSpike>999?'∞':volSpike)+'%</strong>' : '5m <strong style="color:'+color+';">'+gain5Disp+'</strong>')+'</div>'
+        +'<div>'+(mode==='revival' ? 'Spike <strong style="color:'+color+';">'+(volSpike>500?'N/A':volSpike+'%')+'</strong>' : '5m <strong style="color:'+color+';">'+gain5Disp+'</strong>')+'</div>'
         +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
         +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
       +'</div>'
@@ -2813,7 +2813,7 @@ function ingestDexRevivalPairs(pairs){
     var mcUSD=p.fdv||p.marketCap||0, volH1=(p.volume&&p.volume.h1)||0, volH6=(p.volume&&p.volume.h6)||0;
     var buys=(p.txns&&p.txns.h1&&p.txns.h1.buys)||0, sells=(p.txns&&p.txns.h1&&p.txns.h1.sells)||0;
     var p1=parseFloat((p.priceChange&&p.priceChange.h1)||0), p6=parseFloat((p.priceChange&&p.priceChange.h6)||0), p24=parseFloat((p.priceChange&&p.priceChange.h24)||0);
-    var avgH6=volH6>0?volH6/6:0, rawSpk=avgH6>0?(volH1/avgH6):(volH1>0?10:0), spk=rawSpk>50?0:rawSpk;
+    var avgH6=volH6>0?volH6/6:0, rawSpk=avgH6>0?(volH1/avgH6):0, spk=rawSpk>50?0:rawSpk; // 0 when no h6 data — not 10
     var volSol=volH1/solPrice, existing=dexRevivalTokens[ca];
     var createdMs=p.pairCreatedAt?parseInt(p.pairCreatedAt):(existing?existing.ts:now-3600000);
     var volSnap=existing?existing.volSnap:[], mcHistory=existing?existing.mcHistory:[], buyTimes=existing?existing.buyTimes:[];
@@ -2896,7 +2896,7 @@ function refreshRevivalNow(){
     });
   }
   if(_revivalPollTimer) clearInterval(_revivalPollTimer);
-  _revivalPollTimer=setInterval(pollDexRevival,45000);
+  _revivalPollTimer=setInterval(pollDexRevival,20000);
   setTimeout(function(){if(btn){btn.textContent='Refresh';btn.disabled=false;}},8000);
 }
 
@@ -2974,10 +2974,10 @@ function fireBotSignal(t,sc,mode){
   _botSignalled[t.ca]=now;
   var pName={trojan:'Trojan',bonk:'BonkBot',photon:'Photon',maestro:'Maestro'}[cfg.platform]||cfg.platform;
   var band=sc>=80?'GOLD':sc>=65?'SILVER':'BRONZE';
-  addBotLog('BUY $'+safeStr(t.tick)+' score '+sc+' ('+band+') SL:'+cfg.sl+'% TP:'+cfg.tp+'% > '+pName, sc>=80?'#f59e0b':sc>=65?'var(--ac)':'#a78bfa');
+  // Log signal only — do NOT auto-open browser tab (user must click BOT SIGNAL manually)
+  addBotLog('SIGNAL $'+safeStr(t.tick)+' score '+sc+' ('+band+') SL:'+cfg.sl+'% TP:'+cfg.tp+'% > '+pName, sc>=80?'#f59e0b':sc>=65?'var(--ac)':'#a78bfa');
   _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,sl:cfg.sl,tp:cfg.tp,signalledAt:now,slFired:false,tpFired:false};
-  window.open(buildBotUrl(cfg.platform,t.ca),'_blank');
-  showBotToast('BUY: $'+safeStr(t.tick)+' > '+pName,sc>=80?'#f59e0b':'#a78bfa');
+  showBotToast('SIGNAL: $'+safeStr(t.tick)+' ('+band+') > '+pName,sc>=80?'#f59e0b':'#a78bfa');
 }
 function fireBotSignalManual(ca,sc){
   var t=dexRevivalTokens[ca]||liveTokens[ca]; if(!t){showBotToast('Token not found','#ef4444');return;}
