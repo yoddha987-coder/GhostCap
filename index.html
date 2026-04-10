@@ -89,10 +89,7 @@ select option{background:var(--s1);color:var(--tx);}
 .tl-sub-new{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:2px;display:none;}
 @media(min-width:480px){.tl-sub-new{display:block;}}
 /* Grid columns — responsive defaults, overridden by applyGmCols() */
-/* Grid auto-fills based on screen — JS overrides with repeat(N,1fr) on user +/- */
-#fast-movers-cards{
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-}
+/* Card layout: flex-wrap — cards are min 160px, max 220px, fill row */
 .gm-col-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--bd);color:var(--mu);width:22px;height:22px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .gm-col-btn:hover{border-color:var(--ac);color:var(--ac);}
 
@@ -280,7 +277,7 @@ select.fld{cursor:pointer;}
 .sig-liq{background:rgba(0,150,255,.1);color:#60a5fa;border:1px solid rgba(0,150,255,.25);}
 
 /* Good Mover Cards */
-.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;min-width:0;width:100%;}
+.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;min-width:160px;max-width:220px;flex:1;}
 .gm-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25);}
 .gm-card.silver{border-color:var(--ac);}
 .gm-card.silver:hover{box-shadow:0 6px 20px rgba(99,102,241,.25);}
@@ -950,7 +947,7 @@ textarea.mfld{resize:vertical;}
       </div>
       <!-- Cards panel — full width block, separate from flex header -->
       <div id="fast-movers-panel" style="display:none;width:100%;box-sizing:border-box;padding-bottom:10px;">
-        <div id="fast-movers-cards" style="display:grid;gap:10px;width:100%;min-width:0;box-sizing:border-box;"></div>
+        <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
     </div>
 
@@ -2610,7 +2607,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
   var bsr      = total > 0 ? Math.round(t.buys/total*100) : 100;
   var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
   var pumpBuyUrl = 'https://pump.fun/'+t.ca;
-  var spark    = drawSparkChart(t, '100%', 52, color);
+  var spark    = drawSparkChart(t, 185, 52, color);
   var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
   var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
   var volSpike = mode === 'revival' ? Math.round(getVolSpike(t, 300)) : 0;
@@ -2622,7 +2619,10 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
     ? '<img src="'+safeStr(t.img)+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
     : '<div style="width:32px;height:32px;border-radius:6px;background:var(--a1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">'+(mode==='revival'?'🌙':'🎯')+'</div>';
 
-  return '<div class="gm-card" style="border-color:'+color+';" onclick="copySnipCA(\''+t.ca+'\')" title="Tap to copy CA">'
+  var container = document.getElementById('fast-movers-cards');
+  var minW = container ? (container.getAttribute('data-min-w')||'160') : '160';
+  var maxW = container ? (container.getAttribute('data-max-w')||'220') : '220';
+  return '<div class="gm-card" style="border-color:'+color+';min-width:'+minW+'px;max-width:'+maxW+'px;" onclick="copySnipCA(\''+t.ca+'\')" title="Tap to copy CA">'
     + spark
     +'<div class="gm-body">'
       + modeBadge
@@ -3300,31 +3300,33 @@ function getDefaultCols(){
   return 5;
 }
 var _gmCols = getDefaultCols();
-var _userPickedCols = false;
 
 function applyGmCols(){
-  var el = document.getElementById('fast-movers-cards');
-  if(el){
-    el.style.display = 'grid';
-    el.style.width = '100%';
-    el.style.boxSizing = 'border-box';
-    // Only set explicit columns when user has picked — else let CSS auto-fill decide
-    if(_userPickedCols){
-      el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
-    } else {
-      el.style.gridTemplateColumns = ''; // let CSS rule apply
-    }
+  // Card size: fewer cols = bigger cards, more cols = smaller cards
+  // Map _gmCols to card max-width: 2col=wide, 8col=narrow
+  var sizes = {1:400, 2:320, 3:240, 4:200, 5:170, 6:150, 7:135, 8:120};
+  var maxW = sizes[_gmCols] || 200;
+  var minW = Math.max(120, maxW - 40);
+  // Apply to all gm-cards
+  document.querySelectorAll('.gm-card').forEach(function(el){
+    el.style.minWidth = minW + 'px';
+    el.style.maxWidth = maxW + 'px';
+  });
+  // Also set on container for future cards
+  var container = document.getElementById('fast-movers-cards');
+  if(container){
+    container.style.display = 'flex';
+    container.style.flexWrap = 'wrap';
+    container.setAttribute('data-min-w', minW);
+    container.setAttribute('data-max-w', maxW);
   }
   var lbl = document.getElementById('gm-col-count');
   if(lbl) lbl.textContent = _gmCols;
-  try{
-    if(_userPickedCols) localStorage.setItem('gsx-gm-cols', _gmCols);
-  }catch(e){}
+  try{ localStorage.setItem('gsx-gm-cols', _gmCols); }catch(e){}
 }
 
 function changeGmCols(delta){
   _gmCols = Math.max(1, Math.min(8, _gmCols + delta));
-  _userPickedCols = true; // user explicitly chose — override auto-fill
   applyGmCols();
 }
 
