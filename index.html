@@ -88,7 +88,11 @@ select option{background:var(--s1);color:var(--tx);}
 .brand-dot{display:inline-block;width:5px;height:5px;background:#00d474;border-radius:50%;margin-left:3px;vertical-align:middle;animation:dotBlink 1.5s ease-in-out infinite;box-shadow:0 0 6px #00d474;}
 .tl-sub-new{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:2px;display:none;}
 @media(min-width:480px){.tl-sub-new{display:block;}}
-/* grid columns controlled by applyGmCols() JS */
+/* Grid columns — responsive defaults, overridden by applyGmCols() */
+#fast-movers-cards{grid-template-columns:repeat(2,1fr);}
+@media(min-width:600px){#fast-movers-cards{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1024px){#fast-movers-cards{grid-template-columns:repeat(4,1fr);}}
+@media(min-width:1400px){#fast-movers-cards{grid-template-columns:repeat(5,1fr);}}
 .gm-col-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--bd);color:var(--mu);width:22px;height:22px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .gm-col-btn:hover{border-color:var(--ac);color:var(--ac);}
 
@@ -946,7 +950,7 @@ textarea.mfld{resize:vertical;}
       </div>
       <!-- Cards — hidden until tokens qualify -->
       <div id="fast-movers-panel" style="display:none;margin-top:10px;">
-        <div id="fast-movers-cards" style="display:grid;grid-template-columns:repeat(var(--gm-cols,4),1fr);gap:10px;"></div>
+        <div id="fast-movers-cards" style="display:grid;gap:10px;"></div>
       </div>
     </div>
 
@@ -3286,11 +3290,21 @@ function runAutoRevivalImport(){
 
 
 /* ══ CARD COUNT CONTROL ═══════════════════════════════════ */
-var _gmCols = window.innerWidth <= 480 ? 2 : window.innerWidth <= 900 ? 3 : 4;
+function getDefaultCols(){
+  var w = window.innerWidth;
+  if(w <= 480)  return 2;
+  if(w <= 768)  return 3;
+  if(w <= 1200) return 4;
+  return 5;
+}
+var _gmCols = getDefaultCols();
 
 function applyGmCols(){
   var el = document.getElementById('fast-movers-cards');
-  if(el) el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
+  if(el){
+    el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
+    el.style.display = 'grid'; // ensure grid is set
+  }
   var lbl = document.getElementById('gm-col-count');
   if(lbl) lbl.textContent = _gmCols;
   try{ localStorage.setItem('gsx-gm-cols', _gmCols); }catch(e){}
@@ -3301,17 +3315,28 @@ function changeGmCols(delta){
   applyGmCols();
 }
 
-// Restore saved preference
+// Restore saved preference or use responsive default
 (function(){
   try{
     var saved = localStorage.getItem('gsx-gm-cols');
-    if(saved){ _gmCols = parseInt(saved) || _gmCols; }
-  }catch(e){}
-  setTimeout(applyGmCols, 200);
+    if(saved){
+      _gmCols = parseInt(saved) || getDefaultCols();
+    } else {
+      _gmCols = getDefaultCols(); // responsive default
+    }
+  }catch(e){ _gmCols = getDefaultCols(); }
+  // Apply after DOM is painted
+  setTimeout(applyGmCols, 100);
+  // Apply again after cards render
+  setTimeout(applyGmCols, 1000);
 })();
 
-// Re-apply on window resize — adjust default if no saved pref
+// On resize: if no saved preference, recalculate default for new screen size
 window.addEventListener('resize', function(){
+  try{
+    var saved = localStorage.getItem('gsx-gm-cols');
+    if(!saved) _gmCols = getDefaultCols(); // auto-adjust if no user pref
+  }catch(e){ _gmCols = getDefaultCols(); }
   applyGmCols();
 });
 
