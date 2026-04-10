@@ -277,7 +277,7 @@ select.fld{cursor:pointer;}
 .sig-liq{background:rgba(0,150,255,.1);color:#60a5fa;border:1px solid rgba(0,150,255,.25);}
 
 /* Good Mover Cards */
-.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;min-width:160px;max-width:220px;flex:1;}
+.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;min-width:155px;flex:1;max-width:185px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .gm-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25);}
 .gm-card.silver{border-color:var(--ac);}
 .gm-card.silver:hover{box-shadow:0 6px 20px rgba(99,102,241,.25);}
@@ -2619,10 +2619,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
     ? '<img src="'+safeStr(t.img)+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
     : '<div style="width:32px;height:32px;border-radius:6px;background:var(--a1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">'+(mode==='revival'?'🌙':'🎯')+'</div>';
 
-  var container = document.getElementById('fast-movers-cards');
-  var minW = container ? (container.getAttribute('data-min-w')||'160') : '160';
-  var maxW = container ? (container.getAttribute('data-max-w')||'220') : '220';
-  return '<div class="gm-card" style="border-color:'+color+';min-width:'+minW+'px;max-width:'+maxW+'px;" onclick="copySnipCA(\''+t.ca+'\')" title="Tap to copy CA">'
+  return '<div class="gm-card" style="border-color:'+color+';" onclick="copySnipCA(\''+t.ca+'\')" title="Tap to copy CA">'
     + spark
     +'<div class="gm-body">'
       + modeBadge
@@ -3302,24 +3299,18 @@ function getDefaultCols(){
 var _gmCols = getDefaultCols();
 
 function applyGmCols(){
-  // Card size: fewer cols = bigger cards, more cols = smaller cards
-  // Map _gmCols to card max-width: 2col=wide, 8col=narrow
-  var sizes = {1:400, 2:320, 3:240, 4:200, 5:170, 6:150, 7:135, 8:120};
-  var maxW = sizes[_gmCols] || 200;
-  var minW = Math.max(120, maxW - 40);
-  // Apply to all gm-cards
-  document.querySelectorAll('.gm-card').forEach(function(el){
-    el.style.minWidth = minW + 'px';
-    el.style.maxWidth = maxW + 'px';
-  });
-  // Also set on container for future cards
-  var container = document.getElementById('fast-movers-cards');
-  if(container){
-    container.style.display = 'flex';
-    container.style.flexWrap = 'wrap';
-    container.setAttribute('data-min-w', minW);
-    container.setAttribute('data-max-w', maxW);
+  // Map _gmCols to card width: fewer = bigger cards, more = smaller
+  var sizes = {1:600, 2:340, 3:240, 4:185, 5:160, 6:140, 7:125, 8:110};
+  var maxW = sizes[_gmCols] || 185;
+  var minW = Math.max(110, maxW - 30);
+  // Update CSS for all current and future cards via stylesheet rule
+  var styleEl = document.getElementById('gm-card-size-style');
+  if(!styleEl){
+    styleEl = document.createElement('style');
+    styleEl.id = 'gm-card-size-style';
+    document.head.appendChild(styleEl);
   }
+  styleEl.textContent = '.gm-card{min-width:'+minW+'px!important;max-width:'+maxW+'px!important;}';
   var lbl = document.getElementById('gm-col-count');
   if(lbl) lbl.textContent = _gmCols;
   try{ localStorage.setItem('gsx-gm-cols', _gmCols); }catch(e){}
