@@ -925,7 +925,7 @@ textarea.mfld{resize:vertical;}
     </div>
 
     <!-- ── GOOD MOVERS — always visible header + toggle ── -->
-    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:10px;width:100%;box-sizing:border-box;overflow:visible;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <!-- Title -->
         <span style="font-family:'Cinzel','Georgia',serif;font-size:10px;font-weight:900;letter-spacing:.12em;">
@@ -949,8 +949,8 @@ textarea.mfld{resize:vertical;}
         </div>
       </div>
       <!-- Cards — hidden until tokens qualify -->
-      <div id="fast-movers-panel" style="display:none;margin-top:10px;">
-        <div id="fast-movers-cards" style="display:grid;gap:10px;"></div>
+      <div id="fast-movers-panel" style="display:none;margin-top:10px;width:100%;overflow:visible;">
+        <div id="fast-movers-cards" style="display:grid;gap:10px;width:100%;"></div>
       </div>
     </div>
 
@@ -2772,7 +2772,7 @@ function renderFastMovers(){
     if(desc) desc.textContent = _gmMode === 'snipe' ? (liveTokenOrder.length > 0 ? 'No tokens score 35+ yet — more coming soon' : 'Connect Sniper to see live movers') : (Object.keys(dexRevivalTokens).length > 0 ? 'No revival tokens meet score threshold yet' : 'Loading revival data...');
     return;
   }
-  if(panel) panel.style.display = 'block';
+  if(panel){ panel.style.display = 'block'; panel.style.width = '100%'; }
   if(desc) desc.textContent = _gmMode === 'snipe' ? 'Fresh · Pumping · Clean · SILVER+' : 'Old tokens waking up · Volume spike detected';
   if(badge){
     badge.style.display = 'inline';
@@ -3302,8 +3302,14 @@ var _gmCols = getDefaultCols();
 function applyGmCols(){
   var el = document.getElementById('fast-movers-cards');
   if(el){
+    el.style.display = 'grid';
+    el.style.width = '100%';
+    el.style.boxSizing = 'border-box';
     el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
-    el.style.display = 'grid'; // ensure grid is set
+  }
+  var panel = document.getElementById('fast-movers-panel');
+  if(panel && panel.style.display !== 'none'){
+    panel.style.width = '100%';
   }
   var lbl = document.getElementById('gm-col-count');
   if(lbl) lbl.textContent = _gmCols;
