@@ -89,10 +89,10 @@ select option{background:var(--s1);color:var(--tx);}
 .tl-sub-new{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:2px;display:none;}
 @media(min-width:480px){.tl-sub-new{display:block;}}
 /* Grid columns — responsive defaults, overridden by applyGmCols() */
-#fast-movers-cards{grid-template-columns:repeat(2,1fr);}
-@media(min-width:600px){#fast-movers-cards{grid-template-columns:repeat(3,1fr);}}
-@media(min-width:1024px){#fast-movers-cards{grid-template-columns:repeat(4,1fr);}}
-@media(min-width:1400px){#fast-movers-cards{grid-template-columns:repeat(5,1fr);}}
+/* Grid auto-fills based on screen — JS overrides with repeat(N,1fr) on user +/- */
+#fast-movers-cards{
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
 .gm-col-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--bd);color:var(--mu);width:22px;height:22px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .gm-col-btn:hover{border-color:var(--ac);color:var(--ac);}
 
@@ -3300,6 +3300,7 @@ function getDefaultCols(){
   return 5;
 }
 var _gmCols = getDefaultCols();
+var _userPickedCols = false;
 
 function applyGmCols(){
   var el = document.getElementById('fast-movers-cards');
@@ -3307,19 +3308,23 @@ function applyGmCols(){
     el.style.display = 'grid';
     el.style.width = '100%';
     el.style.boxSizing = 'border-box';
-    el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
-  }
-  var panel = document.getElementById('fast-movers-panel');
-  if(panel && panel.style.display !== 'none'){
-    panel.style.width = '100%';
+    // Only set explicit columns when user has picked — else let CSS auto-fill decide
+    if(_userPickedCols){
+      el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
+    } else {
+      el.style.gridTemplateColumns = ''; // let CSS rule apply
+    }
   }
   var lbl = document.getElementById('gm-col-count');
   if(lbl) lbl.textContent = _gmCols;
-  try{ localStorage.setItem('gsx-gm-cols', _gmCols); }catch(e){}
+  try{
+    if(_userPickedCols) localStorage.setItem('gsx-gm-cols', _gmCols);
+  }catch(e){}
 }
 
 function changeGmCols(delta){
   _gmCols = Math.max(1, Math.min(8, _gmCols + delta));
+  _userPickedCols = true; // user explicitly chose — override auto-fill
   applyGmCols();
 }
 
@@ -3329,14 +3334,9 @@ function changeGmCols(delta){
     var saved = localStorage.getItem('gsx-gm-cols');
     if(saved){
       _gmCols = parseInt(saved) || getDefaultCols();
-    } else {
-      _gmCols = getDefaultCols(); // responsive default
+      _userPickedCols = true;
     }
-  }catch(e){ _gmCols = getDefaultCols(); }
-  // Apply after DOM is painted
-  setTimeout(applyGmCols, 100);
-  // Apply again after cards render
-  setTimeout(applyGmCols, 1000);
+  }catch(e){}
 })();
 
 // On resize: if no saved preference, recalculate default for new screen size
