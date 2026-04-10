@@ -280,7 +280,7 @@ select.fld{cursor:pointer;}
 .sig-liq{background:rgba(0,150,255,.1);color:#60a5fa;border:1px solid rgba(0,150,255,.25);}
 
 /* Good Mover Cards */
-.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;width:100%;}
+.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;min-width:0;width:100%;}
 .gm-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25);}
 .gm-card.silver{border-color:var(--ac);}
 .gm-card.silver:hover{box-shadow:0 6px 20px rgba(99,102,241,.25);}
@@ -2542,9 +2542,11 @@ function copySnipCA(ca){
 // ── VERDICT + CONFIDENCE BAND ─────────────────────────
 // ── SPARK CHART — SVG line from MC history ──────────────────
 function drawSparkChart(t, width, height, color){
+  var svgW = (typeof width === 'string') ? width : width;
+  var coordW = 185;
   if(!t.mcHistory || t.mcHistory.length < 2){
-    return '<svg width="'+width+'" height="'+height+'" xmlns="http://www.w3.org/2000/svg">'
-      +'<line x1="0" y1="'+height/2+'" x2="'+width+'" y2="'+height/2+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>'
+    return '<svg width="'+svgW+'" height="'+height+'" viewBox="0 0 185 '+height+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">'
+      +'<line x1="0" y1="'+height/2+'" x2="185" y2="'+height/2+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>'
       +'</svg>';
   }
   var pts = t.mcHistory.slice(-30); // last 30 snapshots
@@ -2565,7 +2567,7 @@ function drawSparkChart(t, width, height, color){
   });
   // Fill area under curve
   var fillCoords = coords[0].split(',')[0]+','+( height - pad)+' '+coords.join(' ')+' '+(pad+w)+','+(height-pad);
-  return '<svg width="'+width+'" height="'+height+'" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">'
+  return '<svg width="'+svgW+'" height="'+height+'" viewBox="0 0 185 '+height+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">'
     +'<polygon points="'+fillCoords+'" fill="'+color+'" fill-opacity="0.15"/>'
     +'<polyline points="'+coords.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
     +'<circle cx="'+coords[coords.length-1].split(',')[0]+'" cy="'+coords[coords.length-1].split(',')[1]+'" r="3" fill="'+color+'"/>'
@@ -2608,7 +2610,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
   var bsr      = total > 0 ? Math.round(t.buys/total*100) : 100;
   var trojanUrl = 'https://t.me/solana_trojanbot?start=r-'+t.ca;
   var pumpBuyUrl = 'https://pump.fun/'+t.ca;
-  var spark    = drawSparkChart(t, 185, 52, color);
+  var spark    = drawSparkChart(t, '100%', 52, color);
   var gainDisp = g1m >= 0 ? '+'+Math.round(g1m)+'%' : Math.round(g1m)+'%';
   var gain5Disp = g5m > 0 ? '+'+Math.round(g5m)+'%' : '—';
   var volSpike = mode === 'revival' ? Math.round(getVolSpike(t, 300)) : 0;
