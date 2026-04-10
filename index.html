@@ -88,8 +88,7 @@ select option{background:var(--s1);color:var(--tx);}
 .brand-dot{display:inline-block;width:5px;height:5px;background:#00d474;border-radius:50%;margin-left:3px;vertical-align:middle;animation:dotBlink 1.5s ease-in-out infinite;box-shadow:0 0 6px #00d474;}
 .tl-sub-new{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:2px;display:none;}
 @media(min-width:480px){.tl-sub-new{display:block;}}
-@media(max-width:480px){#fast-movers-cards{grid-template-columns:repeat(var(--gm-cols,2),1fr) !important;}}
-@media(min-width:481px) and (max-width:900px){#fast-movers-cards{grid-template-columns:repeat(var(--gm-cols,3),1fr) !important;}}
+/* grid columns controlled by applyGmCols() JS */
 .gm-col-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--bd);color:var(--mu);width:22px;height:22px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .gm-col-btn:hover{border-color:var(--ac);color:var(--ac);}
 
@@ -2737,11 +2736,11 @@ function renderFastMovers(){
         if(p1 < -10 && recentBuys < 1) return false;
 
         var realSpike = t._volSpikeRatio && t._volSpikeRatio > 0 && t._volSpikeRatio < 500;
-        // WS tokens: check buyRate. DexScreener: check price move or spike
         var hasActivity = buyRate >= 1
           || (t._priceChg1h && t._priceChg1h >= 3)
           || (realSpike && t._volSpikeRatio >= 1.5)
-          || (t._isDexRevival && t.vol > 5); // high volume alone = activity
+          || (t.vol > 5)   // meaningful volume = activity
+          || (t.buys > 5); // some buy transactions
 
         if(!hasActivity) return false;
 
@@ -2995,12 +2994,7 @@ function getDexRevivalScore(t){
     else if(t.mcUSD > 500000) sc -= 10; // too big, less pump potential
   }
 
-  // ── 7. DATA FRESHNESS — penalise stale scores ───────── penalty
-  var dataAge = t._lastRefreshed ? (now - t._lastRefreshed) / 60000 : 999;
-  if(dataAge > 5) sc -= 10;  // data > 5 min old
-  if(dataAge > 10) sc -= 10; // data > 10 min old — score unreliable
-
-  // ── 8. GMGN VERIFIED BONUS ──────────────────────────── +5
+  // ── 7. GMGN VERIFIED BONUS ──────────────────────────── +5
   if(t._gmgnVerified) sc += 5; // confirmed by second source
 
   return Math.max(0, Math.min(sc, 99));
@@ -3303,9 +3297,7 @@ function applyGmCols(){
 }
 
 function changeGmCols(delta){
-  var min = window.innerWidth <= 480 ? 1 : 1;
-  var max = window.innerWidth <= 480 ? 4 : 8;
-  _gmCols = Math.max(min, Math.min(max, _gmCols + delta));
+  _gmCols = Math.max(1, Math.min(8, _gmCols + delta));
   applyGmCols();
 }
 
@@ -3313,12 +3305,12 @@ function changeGmCols(delta){
 (function(){
   try{
     var saved = localStorage.getItem('gsx-gm-cols');
-    if(saved) _gmCols = parseInt(saved) || _gmCols;
+    if(saved){ _gmCols = parseInt(saved) || _gmCols; }
   }catch(e){}
-  setTimeout(applyGmCols, 100);
+  setTimeout(applyGmCols, 200);
 })();
 
-// Re-apply on window resize
+// Re-apply on window resize — adjust default if no saved pref
 window.addEventListener('resize', function(){
   applyGmCols();
 });
