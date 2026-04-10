@@ -2023,7 +2023,7 @@ function connectPumpPortal(){
         // ── NEW TOKEN ALERT ───────────────────────────────────
         if(!t.alerted){
           var sc2 = tokenScore(t);
-          if(sc2 >= 65){
+          if(sc2 >= 58){
             t.alerted = true;
             fireScoreAlert(t, sc2);
           }
@@ -2581,7 +2581,7 @@ function setGmMode(mode){
 // ── BUILD ONE MOVER CARD (shared by both modes) ─────────────
 function buildMoverCard(t, sc, g1m, g5m, color, mode){
   var nowMs    = Date.now();
-  var verd     = tokenVerdict(sc);
+  var verd     = tokenVerdict(sc, mode);
   var ageMs    = nowMs - t.ts;
   var ageMin   = Math.floor(ageMs / 60000);
   var ageHrs   = Math.floor(ageMs / 3600000);
@@ -2623,12 +2623,13 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<div style="font-size:9px;color:var(--mu);">/1min · '+ageStr+'</div>'
       +'</div>'
       +'<div class="gm-stats">'
-        +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong></div>'
-        +'<div>'+(mode==='revival' ? 'Spike <strong style="color:'+color+';">'+(volSpike>500?'N/A':volSpike+'%')+'</strong>' : '5m <strong style="color:'+color+';">'+gain5Disp+'</strong>')+'</div>'
+      +'<div class="gm-stats">'
+        +'<div>MC <strong style="color:var(--tx);">$'+formatNum(t.mcUSD)+'</strong>'+(t._gmgnVerified?'<span style="font-size:7px;color:#00d474;margin-left:2px;font-weight:700;">✓G</span>':'')+'</div>'
+        +'<div>'+(mode==='revival' ? 'Spike <strong style="color:'+color+';"> '+(volSpike>500?'N/A':volSpike+'%')+'</strong>' : '5m <strong style="color:'+color+';">'+gain5Disp+'</strong>')+'</div>'
         +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
         +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
       +'</div>'
-      +'<div style="font-size:9px;color:'+color+';font-weight:700;margin-bottom:6px;">'+verd.verdict+'</div>'
+      +(mode==='revival'&&(t._holders||t._smartBuys)?'<div style="display:flex;gap:6px;font-size:9px;color:var(--mu);margin-bottom:3px;">'+(t._holders?'<span>👥 '+t._holders+'</span>':'')+( t._smartBuys?'<span style="color:#00d474;">🧠 '+t._smartBuys+' smart</span>':'')+( t._rugScore&&t._rugScore>0.5?'<span style="color:var(--dn);">⚠ Rug</span>':'')+'</div>':'')
       +'<div class="gm-actions">'
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">PUMP.FUN↗</a>'
@@ -2675,7 +2676,7 @@ function renderFastMovers(){
       })
       .slice(0, 16);
     cards.innerHTML = movers.map(function(t){
-      var g1m=getMcGain(t,60), g5m=getMcGain(t,300), sc=tokenScore(t), col=sc>=80?'#f59e0b':'#818cf8';
+      var g1m=getMcGain(t,60), g5m=getMcGain(t,300), sc=tokenScore(t), col=sc>=75?'#f59e0b':'#818cf8';
       return buildMoverCard(t, sc, g1m, g5m, col, 'snipe');
     }).join('');
 
@@ -2870,7 +2871,8 @@ function pollDexRevival(){
 function startRevivalPoll(){
   if(_revivalPollTimer) clearInterval(_revivalPollTimer);
   pollDexRevival();
-  _revivalPollTimer=setInterval(pollDexRevival,45000);
+  _revivalPollTimer=setInterval(pollDexRevival,10000);
+  setTimeout(startGmgnEnrichment, 1000); // GMGN cross-verify
 }
 
 function refreshRevivalNow(){
@@ -2896,7 +2898,7 @@ function refreshRevivalNow(){
     });
   }
   if(_revivalPollTimer) clearInterval(_revivalPollTimer);
-  _revivalPollTimer=setInterval(pollDexRevival,20000);
+  _revivalPollTimer=setInterval(pollDexRevival,10000);
   setTimeout(function(){if(btn){btn.textContent='Refresh';btn.disabled=false;}},8000);
 }
 
@@ -2973,7 +2975,7 @@ function fireBotSignal(t,sc,mode){
   var now=Date.now(); if(_botSignalled[t.ca]&&now-_botSignalled[t.ca]<cfg.cooldown*60000) return;
   _botSignalled[t.ca]=now;
   var pName={trojan:'Trojan',bonk:'BonkBot',photon:'Photon',maestro:'Maestro'}[cfg.platform]||cfg.platform;
-  var band=sc>=80?'GOLD':sc>=65?'SILVER':'BRONZE';
+  var band=sc>=75?'GOLD':sc>=58?'SILVER':'BRONZE';
   // Log signal only — do NOT auto-open browser tab (user must click BOT SIGNAL manually)
   addBotLog('SIGNAL $'+safeStr(t.tick)+' score '+sc+' ('+band+') SL:'+cfg.sl+'% TP:'+cfg.tp+'% > '+pName, sc>=80?'#f59e0b':sc>=65?'var(--ac)':'#a78bfa');
   _botWatched[t.ca]={ca:t.ca,tick:safeStr(t.tick),entryMC:t.mcUSD,sl:cfg.sl,tp:cfg.tp,signalledAt:now,slFired:false,tpFired:false};
@@ -2992,7 +2994,7 @@ function checkBotWatched(){
     if(!w.tpFired&&chg>=w.tp){w.tpFired=true;addBotLog('TAKE-PROFIT $'+w.tick+' +'+chg.toFixed(1)+'%','#4ade80');showBotToast('TAKE-PROFIT $'+w.tick,'#4ade80');window.open(buildBotUrl(cfg.platform,ca),'_blank');}
   });
 }
-setInterval(checkBotWatched,10000);
+setInterval(checkBotWatched,5000);
 
 function checkBasketSLTP(b){
   if(!b || b.status !== 'open' || b.entry <= 0 || b.current <= 0 || b._slFired) return;
@@ -3005,12 +3007,13 @@ function checkBasketSLTP(b){
   var isSL = chg <= -slPct;
   var isTP = chg >= tpPct;
   if(!isSL && !isTP) return;
-  b._slFired = true; // lock immediately — prevents double-fire
+  // Lock FIRST before any async/render — prevents any concurrent call slipping through
+  b._slFired = true;
+  b.status = isSL ? 'stopped' : 'sold'; // close immediately so timer skips it
   var label = isSL ? 'STOP-LOSS' : 'TAKE-PROFIT';
   var color  = isSL ? '#ef4444' : '#4ade80';
   var sign   = chg >= 0 ? '+' : '';
-  // 1. Close position in dashboard RIGHT NOW at current price
-  b.status    = isSL ? 'stopped' : 'sold';
+  // 1. Position already closed above — just set exit details
   b.exitPrice = b.current;
   b.exitAt    = Date.now();
   renderBasket();
@@ -3196,11 +3199,21 @@ function runAutoRevivalImport(){
   }
 }
 
-function tokenVerdict(sc){
-  if(sc >= 80) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
-  if(sc >= 65) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
-  if(sc >= 45) return { verdict:'👀 MONITOR',    band:'BRONZE', color:'var(--go)', bg:'rgba(138,92,0,.10)' };
-  return            { verdict:'',                band:'WEAK',   color:'var(--mu)', bg:'transparent' };
+function tokenVerdict(sc, mode){
+  // Revival tokens use getDexRevivalScore (max ~99 but typically 20-70)
+  // Snipe tokens use tokenScore (max ~99 but typically 35-75)
+  // Thresholds calibrated to be achievable in practice
+  if(mode === 'revival'){
+    if(sc >= 70) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
+    if(sc >= 55) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
+    if(sc >= 35) return { verdict:'👀 MONITOR',    band:'BRONZE', color:'var(--go)', bg:'rgba(138,92,0,.10)' };
+    return              { verdict:'',              band:'WEAK',   color:'var(--mu)', bg:'transparent' };
+  }
+  // Snipe mode
+  if(sc >= 75) return { verdict:'🔥 STRONG BUY', band:'GOLD',   color:'#f59e0b', bg:'rgba(245,158,11,.15)' };
+  if(sc >= 58) return { verdict:'⚡ WATCH NOW',  band:'SILVER', color:'var(--ac)', bg:'rgba(99,102,241,.12)' };
+  if(sc >= 40) return { verdict:'👀 MONITOR',    band:'BRONZE', color:'var(--go)', bg:'rgba(138,92,0,.10)' };
+  return              { verdict:'',              band:'WEAK',   color:'var(--mu)', bg:'transparent' };
 }
 
 // ── IMPROVED SCORING ENGINE (Phase 1) ─────────────────
@@ -3414,6 +3427,85 @@ function addBasket(){
 }
 
 // Fetch real price from DexScreener
+
+/* ══ GMGN.AI INTEGRATION ══════════════════════════════════════
+   Cross-verify revival token data: MC, holders, smart money,
+   rug score. Used alongside DexScreener for richer signals.
+   Endpoint: gmgn.ai/defi/quotation/v1/tokens/sol/{CA}
+══════════════════════════════════════════════════════════════ */
+
+function fetchGmgnData(ca, cb){
+  fetch('https://gmgn.ai/defi/quotation/v1/tokens/sol/' + ca, {
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var t = d && d.data && d.data.token;
+    if(!t){ cb(null); return; }
+    cb({
+      price:       parseFloat(t.price || 0),
+      mcUSD:       parseFloat(t.market_cap || t.usd_market_cap || 0),
+      holders:     parseInt(t.holder_count || t.holders || 0),
+      volume24h:   parseFloat(t.volume_24h || 0),
+      priceChg1h:  parseFloat(t.price_change_1h || 0),
+      priceChg24h: parseFloat(t.price_change_24h || 0),
+      rugScore:    parseFloat(t.rug_ratio || 0),  // 0=safe, 1=rug
+      smartBuys:   parseInt(t.smart_buy_24h || 0),
+      smartSells:  parseInt(t.smart_sell_24h || 0),
+      dexPaid:     t.is_open_source || false,
+      name:        t.name || '',
+      symbol:      t.symbol || '',
+      _source:     'gmgn'
+    });
+  })
+  .catch(function(){ cb(null); });
+}
+
+function enrichFromGmgn(ca){
+  fetchGmgnData(ca, function(g){
+    if(!g) return;
+    // Update dexRevivalTokens with GMGN data
+    var t = dexRevivalTokens[ca] || liveTokens[ca];
+    if(!t) return;
+    var now = Date.now();
+    // Trust GMGN MC if significantly different from stale DexScreener data
+    if(g.mcUSD > 0) {
+      t.mcUSD = g.mcUSD;
+      t.mcSol = g.mcUSD / (getSolPrice() || 140);
+      if(!t.mcHistory) t.mcHistory = [];
+      t.mcHistory.push({ ts: now, mc: g.mcUSD });
+      t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > now - 600000; });
+    }
+    if(g.priceChg1h  !== undefined) t._priceChg1h  = g.priceChg1h;
+    if(g.priceChg24h !== undefined) t._priceChg24h = g.priceChg24h;
+    if(g.holders > 0) t._holders = g.holders;
+    if(g.rugScore > 0) t._rugScore = g.rugScore;
+    if(g.smartBuys > 0 || g.smartSells > 0){
+      t._smartBuys  = g.smartBuys;
+      t._smartSells = g.smartSells;
+    }
+    t._lastRefreshed = now;
+    t._gmgnVerified  = true;
+    if(_gmMode === 'revival') renderFastMovers();
+  });
+}
+
+// Enrich all visible revival cards with GMGN data on demand
+function enrichRevivalWithGmgn(){
+  var cas = Object.keys(dexRevivalTokens).slice(0, 30); // top 30
+  cas.forEach(function(ca, i){
+    setTimeout(function(){ enrichFromGmgn(ca); }, i * 200); // stagger 200ms
+  });
+}
+
+// Run GMGN enrichment every 30s for revival tokens
+var _gmgnTimer = null;
+function startGmgnEnrichment(){
+  if(_gmgnTimer) clearInterval(_gmgnTimer);
+  enrichRevivalWithGmgn();
+  _gmgnTimer = setInterval(enrichRevivalWithGmgn, 15000);
+}
+
 function fetchTokenPrice(ca, cb){
   // Primary: DexScreener
   fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
@@ -3649,6 +3741,7 @@ function massCloseAll(closeStatus, askPrice){
 function refreshBasketPrices(){
   basket.filter(function(b){return b.status==='open';}).forEach(function(b){
     fetchTokenPrice(b.ca,function(price){
+      if(b.status !== 'open') return; // may have been closed by SL during fetch
       if(price>0){if((b.entry<=0||b.priceError)&&!b._entryLocked){b.entry=price;b._entryLocked=true;}b.current=price;checkBasketSLTP(b);}
       renderBasket();renderDaySummary();
     });
@@ -3688,7 +3781,10 @@ function startBasketRefresh(){
       return b.status==='open' || b.priceError || b.entry===0;
     }).forEach(function(b, i){
       setTimeout(function(){
+        // Re-check at callback time — status may have changed since filter ran
+        if(b.status !== 'open' && !b.priceError && b.entry !== 0) return;
         fetchTokenPrice(b.ca,function(price){
+          if(b.status !== 'open') return; // closed between request and response
           if(price>0){
             if((b.entry===0||b.priceError)&&!b._entryLocked){b.entry=price;b._entryLocked=true;}
             b.current=price;b.priceError=false;b.loading=false;
