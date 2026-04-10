@@ -88,6 +88,10 @@ select option{background:var(--s1);color:var(--tx);}
 .brand-dot{display:inline-block;width:5px;height:5px;background:#00d474;border-radius:50%;margin-left:3px;vertical-align:middle;animation:dotBlink 1.5s ease-in-out infinite;box-shadow:0 0 6px #00d474;}
 .tl-sub-new{font-family:'Cinzel','Georgia',serif;font-size:7px;color:var(--mu);letter-spacing:.18em;margin-top:2px;display:none;}
 @media(min-width:480px){.tl-sub-new{display:block;}}
+@media(max-width:480px){#fast-movers-cards{grid-template-columns:repeat(var(--gm-cols,2),1fr) !important;}}
+@media(min-width:481px) and (max-width:900px){#fast-movers-cards{grid-template-columns:repeat(var(--gm-cols,3),1fr) !important;}}
+.gm-col-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--bd);color:var(--mu);width:22px;height:22px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+.gm-col-btn:hover{border-color:var(--ac);color:var(--ac);}
 
 /* Topbar divider */
 .tb-div{width:1px;height:28px;background:var(--bd);flex-shrink:0;}
@@ -273,7 +277,7 @@ select.fld{cursor:pointer;}
 .sig-liq{background:rgba(0,150,255,.1);color:#60a5fa;border:1px solid rgba(0,150,255,.25);}
 
 /* Good Mover Cards */
-.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;min-width:155px;flex:1;max-width:185px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.gm-card{background:var(--s1);border:2px solid #f59e0b;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;width:100%;}
 .gm-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25);}
 .gm-card.silver{border-color:var(--ac);}
 .gm-card.silver:hover{box-shadow:0 6px 20px rgba(99,102,241,.25);}
@@ -933,11 +937,17 @@ textarea.mfld{resize:vertical;}
         </div>
         <span id="gm-desc" style="font-size:9px;color:var(--mu);">Connect Sniper to see live movers</span>
         <button id="gm-refresh-btn" onclick="refreshRevivalNow()" style="display:none;font-size:9px;border:1px solid #a78bfa;background:rgba(167,139,250,.12);color:#a78bfa;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Refresh</button>
-        <button onclick="applyGoodMoversFilter()" id="gm-showall" style="margin-left:auto;font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;">Show All ▸</button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
+          <span style="font-size:9px;color:var(--mu);">Cards:</span>
+          <button class="gm-col-btn" onclick="changeGmCols(-1)" title="Fewer columns">−</button>
+          <span id="gm-col-count" style="font-size:10px;color:var(--tx);min-width:14px;text-align:center;">4</span>
+          <button class="gm-col-btn" onclick="changeGmCols(1)" title="More columns">+</button>
+          <button onclick="applyGoodMoversFilter()" id="gm-showall" style="font-size:9px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;margin-left:4px;">Show All ▸</button>
+        </div>
       </div>
       <!-- Cards — hidden until tokens qualify -->
       <div id="fast-movers-panel" style="display:none;margin-top:10px;">
-        <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+        <div id="fast-movers-cards" style="display:grid;grid-template-columns:repeat(var(--gm-cols,4),1fr);gap:10px;"></div>
       </div>
     </div>
 
@@ -1993,8 +2003,12 @@ function connectPumpPortal(){
             t.devSelling = true;
           }
         }
-        t.mcSol = d.marketCapSol || t.mcSol;
-        t.mcUSD = t.mcSol * getSolPrice();
+        // Only update MC from WS if token hasn't graduated (graduated = mcSol ≈ 1000+)
+        // After graduation PumpPortal sends no more trades, so d.marketCapSol = stale
+        if(d.marketCapSol && d.marketCapSol > 0){
+          t.mcSol = d.marketCapSol;
+          t.mcUSD = t.mcSol * getSolPrice();
+        }
         t.vol  += (d.solAmount || 0);
         if(d.vSolInBondingCurve){ t.vSol=d.vSolInBondingCurve; t.liq=t.vSol*getSolPrice(); }
 
@@ -2634,7 +2648,7 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">PUMP.FUN↗</a>'
       +'</div>'
-      +(mode==='revival' ? '<a href="https://gmgn.ai/sol/token/'+t.ca+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:4px;font-size:9px;font-weight:700;background:rgba(0,212,116,.12);border:1px solid #00d474;color:#00d474;border-radius:4px;padding:4px 0;text-align:center;text-decoration:none;">GMGN.AI↗</a>' : '')
+      +'<a href="https://gmgn.ai/sol/token/'+t.ca+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:4px;font-size:9px;font-weight:700;background:rgba(0,212,116,.12);border:1px solid #00d474;color:#00d474;border-radius:4px;padding:4px 0;text-align:center;text-decoration:none;">GMGN.AI↗</a>'
     +'</div>'
   +'</div>';
 }
@@ -2685,8 +2699,15 @@ function renderFastMovers(){
     var revCand = {};
     liveTokenOrder.forEach(function(ca){ if(liveTokens[ca]) revCand[ca] = liveTokens[ca]; });
     Object.keys(dexRevivalTokens).forEach(function(ca){
-      if(!revCand[ca]) revCand[ca] = dexRevivalTokens[ca];
-      else if(dexRevivalTokens[ca].mcUSD > revCand[ca].mcUSD) revCand[ca] = dexRevivalTokens[ca];
+      var dex = dexRevivalTokens[ca];
+      if(!revCand[ca]){
+        revCand[ca] = dex;
+      } else {
+        // Always prefer freshly-fetched DexScreener data over frozen WS data
+        // WS stops updating MC after token graduates — dex has current price
+        var dexFresh = dex._lastRefreshed && (Date.now() - dex._lastRefreshed < 120000);
+        if(dexFresh) revCand[ca] = dex; // dex was refreshed in last 2 min — trust it
+      }
     });
     // Dedup by ticker — prevent same token showing twice under different CAs
     var seenTick = {};
@@ -2700,9 +2721,10 @@ function renderFastMovers(){
         if(tick && seenTick[tick]) return false;
         if(tick) seenTick[tick] = true;
 
-        // ── Stale eject: only for DexScreener tokens with _lastRefreshed ─
-        // liveTokens (WS) never have _lastRefreshed so skip this check for them
+        // ── Stale eject ────────────────────────────────────────────────────
         if(t._isDexRevival && t._lastRefreshed && nowMs - t._lastRefreshed > 300000) return false;
+        // ── MC sanity: if MC < $500 it's essentially dead ───────────────
+        if(t.mcUSD > 0 && t.mcUSD < 500) return false;
 
         // ── Hard reject: clearly dead/dumping ───────────────────────────
         if(p24 < -30 && p1 <= 0) return false;
@@ -2755,6 +2777,8 @@ function renderFastMovers(){
     badge.style.background = _gmMode === 'snipe' ? '#f59e0b' : '#a78bfa';
     badge.style.color = '#000';
   }
+  // Apply column layout after cards render
+  applyGmCols();
 }
 
 // ── APPLY GOOD MOVERS FILTER ────────────────────────────────
@@ -2830,7 +2854,7 @@ function ingestDexRevivalPairs(pairs){
     buyTimes=buyTimes.filter(function(ts){return ts>now-60000;});
     var fd={ca:ca,name:safeStr((p.baseToken&&p.baseToken.name)||'UNKNOWN'),tick:safeStr((p.baseToken&&p.baseToken.symbol)||'???'),
       mcUSD:mcUSD,mcSol:mcUSD/solPrice,vol:volSol,liq:((p.liquidity&&p.liquidity.usd)||0)/solPrice,
-      buys:buys,sells:sells,ts:createdMs,img:(p.info&&p.info.imageUrl)||'',
+      buys:buys,sells:sells,_h1buys:buys,_h1sells:sells,ts:createdMs,img:(p.info&&p.info.imageUrl)||'',
       dexData:true,devSelling:false,whaleFlag:false,bundled:false,initBuy:0,
       volSnap:volSnap,mcHistory:mcHistory,buyTimes:buyTimes,volTimes:[],
       _priceChg1h:p1,_priceChg6h:p6,_priceChg24h:p24,_volSpikeRatio:spk,_isDexRevival:true,
@@ -2909,16 +2933,77 @@ function refreshRevivalNow(){
 }
 
 function getDexRevivalScore(t){
-  var sc=0,p1=t._priceChg1h||0,p24=t._priceChg24h||0,spk=t._volSpikeRatio||0;
-  var total=t.buys+t.sells,bsr=total>0?t.buys/total:0.5,ageHrs=(Date.now()-t.ts)/3600000;
-  if(p1>=100) sc+=35; else if(p1>=50) sc+=28; else if(p1>=20) sc+=18; else if(p1>=10) sc+=10; else if(p1>=5) sc+=5;
-  else if(p1<-50) sc-=40; else if(p1<-20) sc-=20; else if(p1<-10) sc-=8;
-  if(spk>=10) sc+=30; else if(spk>=5) sc+=22; else if(spk>=3) sc+=14; else if(spk>=2) sc+=8; else if(spk>=1.2) sc+=3;
-  if(p24<-30&&p1>20) sc+=15; else if(p24<-10&&p1>10) sc+=8;
-  if(bsr>=0.85) sc+=15; else if(bsr>=0.70) sc+=10; else if(bsr>=0.55) sc+=5; else sc-=10;
-  if(ageHrs>720) sc+=10; else if(ageHrs>168) sc+=7; else if(ageHrs>24) sc+=4;
-  if(t.mcUSD>500000) sc-=10; if(t.vol<0.5) sc-=10;
-  return Math.max(0,Math.min(sc,99));
+  var sc = 0;
+  var now = Date.now();
+  var p1  = t._priceChg1h  || 0;
+  var p24 = t._priceChg24h || 0;
+  var spk = t._volSpikeRatio || 0;
+  var ageHrs = (now - t.ts) / 3600000;
+  var total = t.buys + t.sells;
+
+  // ── 1. PRICE MOMENTUM (1h) — core revival signal ─────── max 35
+  // Cap extreme moves — +2000% in 1h is likely a wick not real revival
+  var p1cap = Math.min(p1, 500);
+  if(p1cap >= 100)     sc += 35;
+  else if(p1cap >= 50) sc += 25;
+  else if(p1cap >= 20) sc += 15;
+  else if(p1cap >= 10) sc += 8;
+  else if(p1cap >= 3)  sc += 3;
+  else if(p1 < -50)   sc -= 40;
+  else if(p1 < -20)   sc -= 20;
+  else if(p1 < -10)   sc -= 8;
+
+  // ── 2. VOLUME SPIKE — real demand surge ─────────────── max 25
+  // Only trust spikes with real h6 baseline (spk=0 when no h6 data)
+  if(spk >= 8)       sc += 25;
+  else if(spk >= 4)  sc += 18;
+  else if(spk >= 2)  sc += 10;
+  else if(spk >= 1.5) sc += 5;
+  // No data = neutral, not a bonus
+
+  // ── 3. VOLUME ABSOLUTE — minimum real activity ──────── max 15
+  if(t.vol >= 50)      sc += 15;
+  else if(t.vol >= 20) sc += 11;
+  else if(t.vol >= 10) sc += 7;
+  else if(t.vol >= 3)  sc += 3;
+  else if(t.vol < 0.5) sc -= 10; // nearly no volume = dead
+
+  // ── 4. BUY/SELL RATIO — recent h1 data ─────────────── max 15
+  // For DexScreener tokens use h1 buys/sells (more current than cumulative)
+  var h1buys  = t._h1buys  || t.buys  || 0;
+  var h1sells = t._h1sells || t.sells || 0;
+  var h1total = h1buys + h1sells;
+  var bsr = h1total > 0 ? h1buys / h1total : 0.5;
+  if(h1total >= 5){
+    if(bsr >= 0.85)      sc += 15;
+    else if(bsr >= 0.70) sc += 10;
+    else if(bsr >= 0.55) sc += 5;
+    else                 sc -= 8; // more sells than buys
+  }
+
+  // ── 5. 24H CONTEXT — recovering from dip ────────────── max 10
+  // Revival = was down, now moving up — that's the signal
+  if(p24 < -20 && p1 > 10)  sc += 10; // classic revival pattern
+  else if(p24 < -10 && p1 > 5) sc += 5;
+  else if(p24 > 100)          sc -= 5;  // already pumped hard, less upside
+
+  // ── 6. MC HEALTH ─────────────────────────────────────── penalties
+  if(t.mcUSD > 0){
+    if(t.mcUSD < 1000)       sc -= 40; // essentially dead
+    else if(t.mcUSD < 3000)  sc -= 20;
+    else if(t.mcUSD < 5000)  sc -= 8;
+    else if(t.mcUSD > 500000) sc -= 10; // too big, less pump potential
+  }
+
+  // ── 7. DATA FRESHNESS — penalise stale scores ───────── penalty
+  var dataAge = t._lastRefreshed ? (now - t._lastRefreshed) / 60000 : 999;
+  if(dataAge > 5) sc -= 10;  // data > 5 min old
+  if(dataAge > 10) sc -= 10; // data > 10 min old — score unreliable
+
+  // ── 8. GMGN VERIFIED BONUS ──────────────────────────── +5
+  if(t._gmgnVerified) sc += 5; // confirmed by second source
+
+  return Math.max(0, Math.min(sc, 99));
 }
 function getRevivalScore(t){return getDexRevivalScore(t);}
 
@@ -3205,6 +3290,39 @@ function runAutoRevivalImport(){
   }
 }
 
+
+/* ══ CARD COUNT CONTROL ═══════════════════════════════════ */
+var _gmCols = window.innerWidth <= 480 ? 2 : window.innerWidth <= 900 ? 3 : 4;
+
+function applyGmCols(){
+  var el = document.getElementById('fast-movers-cards');
+  if(el) el.style.gridTemplateColumns = 'repeat('+_gmCols+',1fr)';
+  var lbl = document.getElementById('gm-col-count');
+  if(lbl) lbl.textContent = _gmCols;
+  try{ localStorage.setItem('gsx-gm-cols', _gmCols); }catch(e){}
+}
+
+function changeGmCols(delta){
+  var min = window.innerWidth <= 480 ? 1 : 1;
+  var max = window.innerWidth <= 480 ? 4 : 8;
+  _gmCols = Math.max(min, Math.min(max, _gmCols + delta));
+  applyGmCols();
+}
+
+// Restore saved preference
+(function(){
+  try{
+    var saved = localStorage.getItem('gsx-gm-cols');
+    if(saved) _gmCols = parseInt(saved) || _gmCols;
+  }catch(e){}
+  setTimeout(applyGmCols, 100);
+})();
+
+// Re-apply on window resize
+window.addEventListener('resize', function(){
+  applyGmCols();
+});
+
 function tokenVerdict(sc, mode){
   // Revival tokens use getDexRevivalScore (max ~99 but typically 20-70)
   // Snipe tokens use tokenScore (max ~99 but typically 35-75)
@@ -3470,37 +3588,68 @@ function fetchGmgnData(ca, cb){
 function enrichFromGmgn(ca){
   fetchGmgnData(ca, function(g){
     if(!g) return;
-    // Update dexRevivalTokens with GMGN data
-    var t = dexRevivalTokens[ca] || liveTokens[ca];
-    if(!t) return;
     var now = Date.now();
-    // Trust GMGN MC if significantly different from stale DexScreener data
-    if(g.mcUSD > 0) {
-      t.mcUSD = g.mcUSD;
-      t.mcSol = g.mcUSD / (getSolPrice() || 140);
-      if(!t.mcHistory) t.mcHistory = [];
-      t.mcHistory.push({ ts: now, mc: g.mcUSD });
-      t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > now - 600000; });
+    var solPrice = getSolPrice() || 140;
+
+    // Helper: apply GMGN fields to any token object
+    function applyGmgn(t){
+      if(!t) return;
+      if(g.mcUSD > 0){
+        t.mcUSD = g.mcUSD;
+        t.mcSol = g.mcUSD / solPrice;
+        if(!t.mcHistory) t.mcHistory = [];
+        t.mcHistory.push({ ts: now, mc: g.mcUSD });
+        t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > now - 600000; });
+      }
+      if(g.priceChg1h  !== undefined) t._priceChg1h  = g.priceChg1h;
+      if(g.priceChg24h !== undefined) t._priceChg24h = g.priceChg24h;
+      if(g.holders > 0) t._holders = g.holders;
+      if(g.rugScore > 0) t._rugScore = g.rugScore;
+      if(g.smartBuys > 0 || g.smartSells > 0){
+        t._smartBuys  = g.smartBuys;
+        t._smartSells = g.smartSells;
+      }
+      t._lastRefreshed = now; // marks as fresh — merge will prefer this
+      t._gmgnVerified  = true;
     }
-    if(g.priceChg1h  !== undefined) t._priceChg1h  = g.priceChg1h;
-    if(g.priceChg24h !== undefined) t._priceChg24h = g.priceChg24h;
-    if(g.holders > 0) t._holders = g.holders;
-    if(g.rugScore > 0) t._rugScore = g.rugScore;
-    if(g.smartBuys > 0 || g.smartSells > 0){
-      t._smartBuys  = g.smartBuys;
-      t._smartSells = g.smartSells;
+
+    // Update BOTH stores so the merge always gets fresh data
+    // regardless of which object ends up in revCand
+    if(dexRevivalTokens[ca]) applyGmgn(dexRevivalTokens[ca]);
+    if(liveTokens[ca])       applyGmgn(liveTokens[ca]);
+
+    // If token only in one store, create/update dexRevivalTokens entry
+    if(!dexRevivalTokens[ca] && liveTokens[ca] && g.mcUSD > 0){
+      dexRevivalTokens[ca] = {
+        ca: ca, tick: liveTokens[ca].tick, name: liveTokens[ca].name,
+        mcUSD: g.mcUSD, mcSol: g.mcUSD / solPrice,
+        vol: liveTokens[ca].vol || 0, liq: liveTokens[ca].liq || 0,
+        buys: liveTokens[ca].buys || 0, sells: liveTokens[ca].sells || 0,
+        ts: liveTokens[ca].ts, img: liveTokens[ca].img || '',
+        _priceChg1h: g.priceChg1h, _priceChg24h: g.priceChg24h,
+        _isDexRevival: true, _lastRefreshed: now, _gmgnVerified: true,
+        mcHistory: [{ ts: now, mc: g.mcUSD }],
+        volSnap: [], buyTimes: [], volTimes: []
+      };
     }
-    t._lastRefreshed = now;
-    t._gmgnVerified  = true;
+
     if(_gmMode === 'revival') renderFastMovers();
   });
 }
 
 // Enrich all visible revival cards with GMGN data on demand
 function enrichRevivalWithGmgn(){
-  var cas = Object.keys(dexRevivalTokens).slice(0, 30); // top 30
-  cas.forEach(function(ca, i){
-    setTimeout(function(){ enrichFromGmgn(ca); }, i * 200); // stagger 200ms
+  // Enrich dexRevivalTokens + any liveTokens old enough to have graduated
+  var cas = Object.keys(dexRevivalTokens);
+  // Add live tokens older than 30 min (likely graduated, WS MC stale)
+  liveTokenOrder.forEach(function(ca){
+    if(cas.indexOf(ca) === -1){
+      var t = liveTokens[ca];
+      if(t && (Date.now() - t.ts) > 1800000) cas.push(ca); // > 30 min old
+    }
+  });
+  cas.slice(0, 30).forEach(function(ca, i){
+    setTimeout(function(){ enrichFromGmgn(ca); }, i * 200);
   });
 }
 
