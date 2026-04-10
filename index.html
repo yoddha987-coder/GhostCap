@@ -946,7 +946,7 @@ textarea.mfld{resize:vertical;}
         </div>
       </div>
       <!-- Cards panel — full width block, separate from flex header -->
-      <div id="fast-movers-panel" style="display:none;width:100%;box-sizing:border-box;padding-bottom:10px;">
+      <div id="fast-movers-panel" style="width:100%;padding-bottom:10px;">
         <div id="fast-movers-cards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
     </div>
@@ -2769,12 +2769,10 @@ function renderFastMovers(){
 
   // Show/hide cards panel
   if(!movers.length){
-    if(panel) panel.style.display = 'none';
     if(badge){ badge.style.display = 'none'; badge.textContent = ''; }
     if(desc) desc.textContent = _gmMode === 'snipe' ? (liveTokenOrder.length > 0 ? 'No tokens score 35+ yet — more coming soon' : 'Connect Sniper to see live movers') : (Object.keys(dexRevivalTokens).length > 0 ? 'No revival tokens meet score threshold yet' : 'Loading revival data...');
     return;
   }
-  if(panel){ panel.style.display = 'block'; panel.style.width = '100%'; }
   if(desc) desc.textContent = _gmMode === 'snipe' ? 'Fresh · Pumping · Clean · SILVER+' : 'Old tokens waking up · Volume spike detected';
   if(badge){
     badge.style.display = 'inline';
