@@ -980,9 +980,9 @@ textarea.mfld{resize:vertical;}
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">BUY (SOL)</div>
           <input id="bot-sol" type="number" value="0.1" min="0.01" step="0.01" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">STOP LOSS %</div>
-          <input id="bot-sl" type="number" value="10" min="1" max="90" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
+          <input id="bot-sl" type="number" value="7" min="1" max="90" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">TAKE PROFIT %</div>
-          <input id="bot-tp" type="number" value="50" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
+          <input id="bot-tp" type="number" value="25" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">MIN SCORE</div>
           <select id="bot-minscore" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;">
             <option value="45">&#x1f949; Bronze</option><option value="65">&#x1f948; Silver</option><option value="80">&#x1f947; Gold</option>
@@ -3085,6 +3085,19 @@ setInterval(checkBotWatched,5000);
 
 function checkBasketSLTP(b){
   if(!b || b.status !== 'open' || b.entry <= 0 || b.current <= 0 || b._slFired) return;
+  // ── TIME LIMIT: auto-exit at SL price after 10 min ──────────────
+  // pump.fun tokens that don't move in 10 min rarely recover
+  if(b.addedAt && (Date.now() - b.addedAt) > 600000 && !b._timeLimitWarned){
+    b._timeLimitWarned = true;
+    addBotLog('TIME LIMIT $'+safeStr(b.tick)+' — 10min, exiting at SL price','#f59e0b');
+    showBotToast('TIME LIMIT: $'+safeStr(b.tick)+' — 10min hold','#f59e0b');
+    b._slFired = true;
+    b.status = 'stopped';
+    b.exitPrice = b.current;
+    b.exitAt = Date.now();
+    renderBasket(); renderDaySummary();
+    return;
+  }
   // Read SL directly from input — fallback to 10 if panel not visible
   var slEl = document.getElementById('bot-sl');
   var tpEl = document.getElementById('bot-tp');
@@ -3123,6 +3136,55 @@ function setBskFilter(f){
   renderBasket();
 }
 
+
+/* ══ MOMENTUM CHECK — verify token still moving before import ══════════
+   Returns true if token shows active buying momentum RIGHT NOW.
+   Prevents buying tokens that pumped an hour ago and are now dumping.
+══════════════════════════════════════════════════════════════════════ */
+function hasMomentumNow(t, mode){
+  var nowMs = Date.now();
+
+  if(mode === 'revival'){
+    // Must have positive 1h price change (still up)
+    var p1 = t._priceChg1h || 0;
+    if(p1 <= 0) return false; // price went down in last hour — skip
+
+    // MC history must show upward trend in last 5 min
+    if(t.mcHistory && t.mcHistory.length >= 2){
+      var recent = t.mcHistory.filter(function(s){ return s.ts > nowMs - 300000; });
+      if(recent.length >= 2){
+        var oldest = recent[0].mc;
+        var newest = recent[recent.length-1].mc;
+        if(newest < oldest * 0.95) return false; // dropping in last 5 min — skip
+      }
+    }
+
+    // Volume spike must be real (not N/A)
+    var spk = t._volSpikeRatio || 0;
+    if(spk > 0 && spk < 500 && spk < 1.2) return false; // low spike = no interest
+
+    return true;
+  }
+
+  if(mode === 'snipe'){
+    // Must have active buys in last 60 seconds
+    var buyRate = t.buyTimes
+      ? t.buyTimes.filter(function(ts){ return ts > nowMs - 60000; }).length
+      : 0;
+    if(buyRate < 1) return false; // nobody buying right now
+
+    // MC must not be falling — check last 2 snapshots
+    if(t.mcHistory && t.mcHistory.length >= 2){
+      var last2 = t.mcHistory.slice(-2);
+      if(last2[1].mc < last2[0].mc * 0.97) return false; // falling last tick
+    }
+
+    return true;
+  }
+
+  return true; // unknown mode — allow
+}
+
 function massAddFromRevival(){
   showMassStatus('\U0001f319 Auto-import REVIVAL \u2014 qualifying revival tokens auto-added to basket');
   var cards=document.querySelectorAll('#fast-movers-cards .gm-card');
@@ -3132,7 +3194,7 @@ function massAddFromRevival(){
     var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/); if(!m) return;
     var t=dexRevivalTokens[m[1]]||liveTokens[m[1]]; if(!t) return;
     var sc=t._isDexRevival?getDexRevivalScore(t):getRevivalScore(t);
-    if(sc>=minScore) eligible.push(t);
+    if(sc>=minScore && hasMomentumNow(t,'revival')) eligible.push(t);
   });
   if(!eligible.length){showMassStatus('No Revival tokens meet score >= '+minScore);return;}
   var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,16);
@@ -3154,7 +3216,7 @@ function massAddFromSniper(){
   cards.forEach(function(card){
     var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/); if(!m) return;
     var t=liveTokens[m[1]]||dexRevivalTokens[m[1]]; if(!t) return;
-    if(tokenScore(t)>=minScore) eligible.push(t);
+    if(tokenScore(t)>=minScore && hasMomentumNow(t,'snipe')) eligible.push(t);
   });
   if(!eligible.length){showMassStatus('No SNIPE tokens meet score >= '+minScore);return;}
   var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,16);
@@ -3244,6 +3306,7 @@ function runAutoSniperImport(){
     if(_autoSniperSeen[ca] && now - _autoSniperSeen[ca] < 600000) return;
     var t = liveTokens[ca] || dexRevivalTokens[ca]; if(!t) return;
     if(tokenScore(t) < minScore) return;
+    if(!hasMomentumNow(t,'snipe')) return; // nobody buying right now
     if(basket.find(function(b){ return b.ca === ca; })) return;
     _autoSniperSeen[ca] = now;
     addBasketCA(ca, t.tick, 0, 'open');
@@ -3272,6 +3335,7 @@ function runAutoRevivalImport(){
     var t = dexRevivalTokens[ca] || liveTokens[ca]; if(!t) return;
     var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
     if(sc < minScore) return;
+    if(!hasMomentumNow(t,'revival')) return; // not moving right now
     if(basket.find(function(b){ return b.ca === ca; })) return;
     _autoRevivalSeen[ca] = now;
     addBasketCA(ca, t.tick, 0, 'open');
@@ -3956,9 +4020,26 @@ function startBasketRefresh(){
         // Re-check at callback time — status may have changed since filter ran
         if(b.status !== 'open' && !b.priceError && b.entry !== 0) return;
         fetchTokenPrice(b.ca,function(price){
-          if(b.status !== 'open') return; // closed between request and response
+          if(b.status !== 'open') return;
           if(price>0){
             if((b.entry===0||b.priceError)&&!b._entryLocked){b.entry=price;b._entryLocked=true;}
+            // ── RUG DETECTION: single-tick drop > 25% = instant exit ──
+            if(b._prevPrice && b._prevPrice > 0){
+              var tickDrop = (price - b._prevPrice) / b._prevPrice * 100;
+              if(tickDrop <= -25 && !b._slFired){
+                b._slFired = true;
+                b.status = 'stopped';
+                b.current = price;
+                b.exitPrice = price;
+                b.exitAt = Date.now();
+                var rugPct = (price - b.entry) / b.entry * 100;
+                addBotLog('RUG DETECTED $'+safeStr(b.tick)+' tick:'+tickDrop.toFixed(0)+'% total:'+rugPct.toFixed(0)+'%','#ff4444');
+                showBotToast('RUG: $'+safeStr(b.tick)+' '+tickDrop.toFixed(0)+'% crash','#ff4444');
+                renderBasket(); renderDaySummary();
+                return;
+              }
+            }
+            b._prevPrice = price;
             b.current=price;b.priceError=false;b.loading=false;
             checkBasketSLTP(b);
           }
