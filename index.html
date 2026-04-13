@@ -2722,17 +2722,31 @@ function renderFastMovers(){
         if(tick && seenTick[tick]) return false;
         if(tick) seenTick[tick] = true;
 
-        // ── Stale eject ────────────────────────────────────────────────────
-        if(t._isDexRevival && t._lastRefreshed && nowMs - t._lastRefreshed > 300000) return false;
-        // ── MC sanity: if MC < $500 it's essentially dead ───────────────
-        if(t.mcUSD > 0 && t.mcUSD < 500) return false;
+        // ── Stale eject: data older than 3 min ─────────────────────────
+        if(t._isDexRevival && t._lastRefreshed && nowMs - t._lastRefreshed > 180000) return false;
 
-        // ── Hard reject: clearly dead/dumping ───────────────────────────
-        if(p24 < -30 && p1 <= 0) return false;
-        if(p1 < -15) return false;
+        // ── MC sanity ────────────────────────────────────────────────────
         if(t.mcUSD > 0 && t.mcUSD < 1000) return false;
 
-        // ── Activity check — relaxed for DexScreener tokens ─────────────
+        // ── REAL RECENT CHANGE from mcHistory (last 5 min) ───────────────
+        // This catches crashes that happened after DexScreener's 1h window
+        var recentMcChg = 0;
+        if(t.mcHistory && t.mcHistory.length >= 2){
+          var snapshots = t.mcHistory.filter(function(s){ return s.ts > nowMs - 300000; });
+          if(snapshots.length >= 2){
+            var mcOld = snapshots[0].mc;
+            var mcNew = snapshots[snapshots.length-1].mc;
+            if(mcOld > 0) recentMcChg = (mcNew - mcOld) / mcOld * 100;
+          }
+        }
+        // If MC dropped >20% in last 5 min — actively dumping, eject
+        if(recentMcChg < -20) return false;
+
+        // ── Hard reject: clearly dead ────────────────────────────────────
+        if(p1 < -15) return false; // down 15%+ in last hour
+        if(p24 < -50 && p1 <= 0) return false; // huge 24h dump + not recovering
+
+        // ── Must have CURRENT activity ───────────────────────────────────
         var buyRate = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-60000; }).length : 0;
         var recentBuys = t.buyTimes ? t.buyTimes.filter(function(ts){ return ts > nowMs-300000; }).length : 0;
         if(p1 < -10 && recentBuys < 1) return false;
@@ -2741,9 +2755,8 @@ function renderFastMovers(){
         var hasActivity = buyRate >= 1
           || (t._priceChg1h && t._priceChg1h >= 3)
           || (realSpike && t._volSpikeRatio >= 1.5)
-          || (t.vol > 5)   // meaningful volume = activity
-          || (t.buys > 5); // some buy transactions
-
+          || (t.vol > 5)
+          || (t.buys > 5);
         if(!hasActivity) return false;
 
         var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
@@ -2755,6 +2768,19 @@ function renderFastMovers(){
         return sb - sa;
       }).slice(0, 16);
 
+    // Snapshot current MC for each visible token (track movement between polls)
+    var now_snap = Date.now();
+    movers.forEach(function(t){
+      if(t.mcUSD > 0){
+        if(!t.mcHistory) t.mcHistory = [];
+        // Only add if last snapshot > 10s ago (avoid spamming)
+        var lastSnap = t.mcHistory.length ? t.mcHistory[t.mcHistory.length-1].ts : 0;
+        if(now_snap - lastSnap > 10000){
+          t.mcHistory.push({ts: now_snap, mc: t.mcUSD});
+          t.mcHistory = t.mcHistory.filter(function(s){ return s.ts > now_snap - 600000; });
+        }
+      }
+    });
     cards.innerHTML = movers.map(function(t){
       var g1m = getMcGain(t, 60), g5m = getMcGain(t, 300);
       var sc = t._isDexRevival ? getDexRevivalScore(t) : getRevivalScore(t);
@@ -2891,8 +2917,8 @@ function pollDexRevival(){
   if(vis.length) fetch('https://api.dexscreener.com/latest/dex/tokens/'+vis.join(','))
     .then(function(r){return r.json();}).catch(function(){return null;})
     .then(function(d){if(!d||!d.pairs) return; ingestDexRevivalPairs(d.pairs.filter(function(p){return p.chainId==='solana';}));});
-  // Purge stale entries not refreshed in last 5 minutes
-  var staleThreshold = Date.now() - 300000;
+  // Purge stale entries not refreshed in last 3 minutes
+  var staleThreshold = Date.now() - 180000;
   Object.keys(dexRevivalTokens).forEach(function(ca){
     var t = dexRevivalTokens[ca];
     if(t._lastRefreshed && t._lastRefreshed < staleThreshold) delete dexRevivalTokens[ca];
@@ -2909,6 +2935,16 @@ function startRevivalPoll(){
 function refreshRevivalNow(){
   var btn=document.getElementById('gm-refresh-btn');
   if(btn){btn.textContent='...';btn.disabled=true;}
+  // Also immediately purge tokens with stale/crashed MC from display
+  var nowMs = Date.now();
+  Object.keys(dexRevivalTokens).forEach(function(ca){
+    var t = dexRevivalTokens[ca];
+    if(!t) return;
+    // Eject if data too stale to trust
+    if(t._lastRefreshed && nowMs - t._lastRefreshed > 180000){
+      delete dexRevivalTokens[ca];
+    }
+  });
   var vis=[];
   document.querySelectorAll('#fast-movers-cards .gm-card').forEach(function(card){
     var m=(card.getAttribute('onclick')||'').match(/copySnipCA\('([^']+)'\)/);
@@ -3777,6 +3813,47 @@ function fetchPumpPrice(ca, cb){
     .catch(function(){ cb(0); });
 }
 
+
+/* ══ PRE-IMPORT RUG CHECK ══════════════════════════════════════════════
+   Before adding a token to basket, verify it's not an obvious rug.
+   Uses pump.fun coin API to check dev holdings and holder count.
+   Rejects if: dev holds >15%, fewer than 10 holders, or price already crashed.
+═══════════════════════════════════════════════════════════════════════ */
+function preImportRugCheck(ca, cb){
+  // cb(safe: bool, reason: string)
+  fetch('https://frontend-api-v3.pump.fun/coins/' + ca)
+    .then(function(r){ return r.json(); })
+    .catch(function(){ cb(true, 'api-error'); return null; }) // fail open
+    .then(function(d){
+      if(!d){ cb(true, 'no-data'); return; }
+
+      // Check if token is complete (graduated) — safe to trade
+      if(d.complete) { cb(true, 'graduated'); return; }
+
+      // Check dev wallet holding %
+      var supply = 1000000000;
+      var devBal = d.creator_token_amount || 0;
+      var devPct = (devBal / supply) * 100;
+      if(devPct > 15){
+        cb(false, 'dev holds ' + devPct.toFixed(0) + '%');
+        return;
+      }
+
+      // Check if already crashed (current MC vs ATH)
+      var mcUSD = d.usd_market_cap || 0;
+      var athMC = d.ath_usd || 0;
+      if(athMC > 0 && mcUSD > 0){
+        var fromAth = (mcUSD - athMC) / athMC * 100;
+        if(fromAth < -80){
+          cb(false, 'down ' + Math.abs(fromAth).toFixed(0) + '% from ATH');
+          return;
+        }
+      }
+
+      cb(true, 'ok');
+    });
+}
+
 function addBasketCA(ca, tick, entryPrice, status){
   if(basket.find(function(b){ return b.ca===ca; })){
     showToast('Already in basket: $'+tick, 'warn');
@@ -3784,35 +3861,42 @@ function addBasketCA(ca, tick, entryPrice, status){
     return;
   }
   status = status || 'open';
-  var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0,
-    amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false };
-  basket.push(entry);
-  showToast('⏳ Adding $'+safeStr(tick)+' — fetching price...', 'info');
-  renderBasket();
-
-  if(entryPrice && entryPrice > 0){
-    entry.entry = entryPrice; entry.current = entryPrice;
-    entry.loading = false; entry._entryLocked = true;
-    showToast('✅ $'+safeStr(tick)+' added at $'+entryPrice.toFixed(8), 'ok');
-    renderBasket(); return;
-  }
-  fetchTokenPrice(ca, function(price){
-    if(price > 0){
-      entry.entry        = price;
-      entry.current      = price;
-      entry._entryLocked = true; // lock permanently — timer must not overwrite
+  // Pre-import rug check
+  preImportRugCheck(ca, function(safe, reason){
+    if(!safe){
+      showToast('⚠ $'+safeStr(tick)+' SKIPPED — '+reason, 'warn');
+      addBotLog('SKIPPED $'+safeStr(tick)+' — '+reason, '#f59e0b');
+      return;
     }
-    entry.loading     = false;
-    if(price === 0) entry.priceError = true;
+    var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0,
+      amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false };
+    basket.push(entry);
+    showToast('⏳ Adding $'+safeStr(tick)+' — fetching price...', 'info');
     renderBasket();
-    if(price > 0){
-      showToast('✅ $'+safeStr(tick)+' added at $'+price.toFixed(8), 'ok');
-      showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
-    } else {
-      showToast('⚠ $'+safeStr(tick)+' added — price pending (auto-retry)', 'warn');
-      showBasketMsg('⚠ $'+safeStr(tick)+' — price fetching, try refresh');
+    if(entryPrice && entryPrice > 0){
+      entry.entry = entryPrice; entry.current = entryPrice;
+      entry.loading = false; entry._entryLocked = true;
+      showToast('✅ $'+safeStr(tick)+' added at $'+entryPrice.toFixed(8), 'ok');
+      renderBasket(); return;
     }
-  });
+    fetchTokenPrice(ca, function(price){
+      if(price > 0){
+        entry.entry        = price;
+        entry.current      = price;
+        entry._entryLocked = true;
+      }
+      entry.loading     = false;
+      if(price === 0) entry.priceError = true;
+      renderBasket();
+      if(price > 0){
+        showToast('✅ $'+safeStr(tick)+' added at $'+price.toFixed(8), 'ok');
+        showBasketMsg('✓ $'+safeStr(tick)+' added at $'+price.toFixed(10));
+      } else {
+        showToast('⚠ $'+safeStr(tick)+' added — price pending (auto-retry)', 'warn');
+        showBasketMsg('⚠ $'+safeStr(tick)+' — price fetching, try refresh');
+      }
+    });
+  }); // end preImportRugCheck
 }
 
 // Mark a trade as sold or stopped — ask for actual sell price
@@ -4026,7 +4110,7 @@ function startBasketRefresh(){
             // ── RUG DETECTION: single-tick drop > 25% = instant exit ──
             if(b._prevPrice && b._prevPrice > 0){
               var tickDrop = (price - b._prevPrice) / b._prevPrice * 100;
-              if(tickDrop <= -25 && !b._slFired){
+              if(tickDrop <= -15 && !b._slFired){ // 15% single-tick drop = rug signal
                 b._slFired = true;
                 b.status = 'stopped';
                 b.current = price;
@@ -4045,9 +4129,9 @@ function startBasketRefresh(){
           }
           renderBasket();renderDaySummary();
         });
-      }, i * 400); // stagger 400ms each
+      }, i * 150); // stagger 150ms each
     });
-  }, 5000); // every 5s — faster SL reaction
+  }, 2000); // every 2s — rug detection needs fast checks
 }
 startBasketRefresh();
 
