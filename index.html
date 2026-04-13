@@ -3857,24 +3857,28 @@ function preImportRugCheck(ca, cb){
     });
 }
 
+// Global pending-add lock — prevents race condition duplicates
+var _basketPending = {};
+
 function addBasketCA(ca, tick, entryPrice, status){
-  // Quick sync check — by CA AND by ticker (prevent same token different CA)
-  var tickUpper = (tick||'').toUpperCase();
-  if(basket.find(function(b){
-    return b.ca===ca || (tickUpper && (b.tick||'').toUpperCase()===tickUpper && b.status==='open');
-  })){
-    showToast('Already in basket: $'+tick, 'warn');
-    showBasketMsg('Already in basket: $'+tick);
-    return;
+  // 1. Check already IN basket
+  if(basket.find(function(b){ return b.ca===ca; })){
+    return; // silent — already exists
   }
+  // 2. Check currently being added (pending lock) — KEY FIX
+  if(_basketPending[ca]){
+    return; // async call already in flight for this CA
+  }
+  // 3. Lock immediately before any async work
+  _basketPending[ca] = true;
+
   status = status || 'open';
-  // Pre-import rug check (async — re-check CA inside callback to prevent race)
   preImportRugCheck(ca, function(safe, reason){
-    // Re-check INSIDE callback — prevents duplicate from async race condition
-    if(basket.find(function(b){
-      return b.ca===ca || (tickUpper && (b.tick||'').toUpperCase()===tickUpper && b.status==='open');
-    })){
-      return; // already added by a concurrent call
+    // Always release lock when done
+    delete _basketPending[ca];
+    // Re-check basket (another call may have completed while we waited)
+    if(basket.find(function(b){ return b.ca===ca; })){
+      return;
     }
     if(!safe){
       showToast('⚠ $'+safeStr(tick)+' SKIPPED — '+reason, 'warn');
@@ -4104,6 +4108,17 @@ function refreshSinglePrice(ca){
   });
 }
 
+
+// Remove duplicate CAs from basket — keeps first occurrence
+function deduplicateBasket(){
+  var seen = {};
+  basket = basket.filter(function(b){
+    if(seen[b.ca]) return false;
+    seen[b.ca] = true;
+    return true;
+  });
+}
+
 var basketRefreshTimer = null;
 function startBasketRefresh(){
   if(basketRefreshTimer) clearInterval(basketRefreshTimer);
@@ -4146,6 +4161,7 @@ function startBasketRefresh(){
     });
   }, 2000); // every 2s — rug detection needs fast checks
 }
+deduplicateBasket(); // clean any duplicates on load
 startBasketRefresh();
 
 function showBasketMsg(msg){
@@ -4299,6 +4315,7 @@ function updateFeeCalc(n, exitMult){
 
 // ── Render individual position rows ────────────────────────────
 function renderBasket(){
+  deduplicateBasket(); // ensure no duplicates before render
   var el    = document.getElementById('basket-list');
   var pnlEl = document.getElementById('basket-pnl');
   renderDaySummary();
