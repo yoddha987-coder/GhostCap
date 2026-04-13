@@ -3858,14 +3858,24 @@ function preImportRugCheck(ca, cb){
 }
 
 function addBasketCA(ca, tick, entryPrice, status){
-  if(basket.find(function(b){ return b.ca===ca; })){
+  // Quick sync check — by CA AND by ticker (prevent same token different CA)
+  var tickUpper = (tick||'').toUpperCase();
+  if(basket.find(function(b){
+    return b.ca===ca || (tickUpper && (b.tick||'').toUpperCase()===tickUpper && b.status==='open');
+  })){
     showToast('Already in basket: $'+tick, 'warn');
     showBasketMsg('Already in basket: $'+tick);
     return;
   }
   status = status || 'open';
-  // Pre-import rug check
+  // Pre-import rug check (async — re-check CA inside callback to prevent race)
   preImportRugCheck(ca, function(safe, reason){
+    // Re-check INSIDE callback — prevents duplicate from async race condition
+    if(basket.find(function(b){
+      return b.ca===ca || (tickUpper && (b.tick||'').toUpperCase()===tickUpper && b.status==='open');
+    })){
+      return; // already added by a concurrent call
+    }
     if(!safe){
       showToast('⚠ $'+safeStr(tick)+' SKIPPED — '+reason, 'warn');
       addBotLog('SKIPPED $'+safeStr(tick)+' — '+reason, '#f59e0b');
