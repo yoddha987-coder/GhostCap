@@ -870,10 +870,10 @@ textarea.mfld{resize:vertical;}
           <input id="bot-tp" type="number" value="25" min="5" max="1000" step="5" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">MIN SCORE</div>
           <select id="bot-minscore" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;">
-            <option value="45">&#x1f949; Bronze</option><option value="65">&#x1f948; Silver</option><option value="80">&#x1f947; Gold</option>
+            <option value="45">&#x1f949; Bronze</option><option value="65">&#x1f948; Silver</option><option value="80" selected>&#x1f947; Gold</option>
           </select></div>
         <div><div style="font-size:9px;color:var(--mu);margin-bottom:3px;">COOLDOWN (min)</div>
-          <input id="bot-cooldown" type="number" value="5" min="1" max="60" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
+          <input id="bot-cooldown" type="number" value="15" min="1" max="60" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:4px;padding:5px;font-size:11px;box-sizing:border-box;"/></div>
       </div>
       <div style="font-size:9px;color:var(--mu);line-height:1.6;margin-bottom:8px;"><strong style="color:#a78bfa;">How it works:</strong> Revival token hits your min score &#x2192; deep-link opens your bot pre-filled &#x2192; you confirm.</div>
       <div style="font-family:'Cinzel','Georgia',serif;font-size:9px;color:#a78bfa;letter-spacing:.12em;margin-bottom:6px;">&#x1f4e1; SIGNAL LOG</div>
@@ -1965,6 +1965,10 @@ function connectPumpPortal(){
           alerted:    false,
           revivalAlerted: false   // separate cooldown for revival alert
         };
+        // Mark pending GMGN validation before storing
+        token._gmgnPending     = true;
+        token._gmgnPendingSince = Date.now();
+        token._gmgnVerified    = false;
         liveTokens[ca] = token;
         liveTokenOrder.unshift(ca);
         if(liveTokenOrder.length > 500) {
@@ -1977,6 +1981,8 @@ function connectPumpPortal(){
         }
         // Enrich with DexScreener after 15s (pair needs time to appear)
         setTimeout(function(){ enrichFromDex(ca); }, 15000);
+        // GMGN validation — run after 5s (pump.fun API needs time to index)
+        setTimeout(function(){ enrichFromGmgn(ca); }, 5000);
         updateSniperTable();
         showFlash(token.tick + ' launched!');
       }
@@ -2323,6 +2329,12 @@ function updateSniperTable(){
 
       // Min score
       if(minScore > 0 && tokenScore(t) < minScore) return false;
+      // GMGN gate for table view too
+      if(t._gmgnPending && !t._gmgnVerified){
+        var tPendAge = (Date.now() - (t._gmgnPendingSince||Date.now()));
+        if(tPendAge < 10000) return false;
+        t._gmgnPending = false;
+      }
 
       // Fast mover filter — min MC gain % in last 1 min
       if(minGain > 0 && getMcGain(t, 60) < minGain) return false;
@@ -2684,6 +2696,12 @@ function renderFastMovers(){
         var total = t.buys + t.sells;
         var bsr = total > 0 ? t.buys/total : 1;
         if(total > 10 && bsr < 0.5) return false;
+        // GMGN gate — hide until verified (fail-open after 10s)
+        if(t._gmgnPending && !t._gmgnVerified){
+          var pendingAge = (Date.now() - (t._gmgnPendingSince||Date.now()));
+          if(pendingAge < 10000) return false; // wait up to 10s for GMGN
+          t._gmgnPending = false; // fail-open
+        }
         return tokenScore(t) >= 35;
       })
       .sort(function(a, b){
@@ -2725,11 +2743,19 @@ function renderFastMovers(){
         // ── Stale eject: data older than 3 min ─────────────────────────
         if(t._isDexRevival && t._lastRefreshed && nowMs - t._lastRefreshed > 180000) return false;
 
+        // ── GMGN gate: hide token until verified (max 8s wait then fail-open) ──
+        if(t._gmgnPending && !t._gmgnVerified){
+          var pendingAge = nowMs - (t._gmgnPendingSince || nowMs);
+          if(pendingAge < 8000) return false; // still waiting for GMGN
+          // After 8s with no response — fail open, clear pending
+          t._gmgnPending = false;
+        }
+
         // ── Age filter: old tokens need stronger signal ──────────────────
         var ageHrsT = (nowMs - t.ts) / 3600000;
         if(ageHrsT > 48) return false; // older than 2 days = ignore completely
         // Between 6h-48h: require stronger signal
-        var minScoreForAge = ageHrsT > 6 ? 45 : 25; // score already penalises age
+        var minScoreForAge = ageHrsT > 6 ? 65 : 45; // old tokens need strong signal
 
         // ── MC sanity ────────────────────────────────────────────────────
         if(t.mcUSD > 0 && t.mcUSD < 1000) return false;
@@ -2750,6 +2776,8 @@ function renderFastMovers(){
 
         // ── Hard reject: clearly dead ────────────────────────────────────
         if(p1 < -15) return false; // down 15%+ in last hour
+        // Tokens older than 1h must show positive momentum to be worth trading
+        if(ageHrsT > 1 && p1 <= 0) return false;
         if(p24 < -50 && p1 <= 0) return false; // huge 24h dump + not recovering
 
         // ── Must have CURRENT activity ───────────────────────────────────
@@ -2886,6 +2914,19 @@ function ingestDexRevivalPairs(pairs){
       volSnap:volSnap,mcHistory:mcHistory,buyTimes:buyTimes,volTimes:[],
       _priceChg1h:p1,_priceChg6h:p6,_priceChg24h:p24,_volSpikeRatio:spk,_isDexRevival:true,
       _lastRefreshed:now};
+    // If NEW token — mark pending GMGN validation, don't show yet
+    var isNew = !existing;
+    if(isNew){
+      fd._gmgnPending = true;
+      fd._gmgnPendingSince = now;
+      // Fire GMGN check immediately for new token
+      setTimeout(function(){ enrichFromGmgn(ca); }, 300);
+    } else {
+      // Existing token — keep current verification state
+      fd._gmgnVerified  = existing._gmgnVerified  || false;
+      fd._gmgnPending   = existing._gmgnPending   || false;
+      fd._gmgnPendingSince = existing._gmgnPendingSince || now;
+    }
     dexRevivalTokens[ca]=fd;
     if(liveTokens[ca]&&mcUSD>0){
       liveTokens[ca].mcUSD=mcUSD; liveTokens[ca].mcSol=mcUSD/solPrice;
@@ -2981,6 +3022,9 @@ function getDexRevivalScore(t){
   var h1total = h1buys + h1sells;
   var bsr = h1total > 0 ? h1buys / h1total : 0.5;
 
+  // ── GMGN not yet verified — cap score at 40 (won't reach Gold/Silver) ──
+  if(t._gmgnPending && !t._gmgnVerified) return 0;
+
   // ── DEAD COIN HARD KILLS — instant 0 before scoring ─────────────
   // These signals mean the coin is dead — don't waste a score on it
   if(t.mcUSD > 0 && t.mcUSD < 1500)   return 0; // MC too low to trade
@@ -2988,6 +3032,8 @@ function getDexRevivalScore(t){
   if(p24 < -80 && p1 < 5)              return 0; // crashed 80%+ and not recovering
   if(h1total >= 10 && bsr < 0.35)      return 0; // 65%+ sells = exit dump
   if(t.vol < 0.3 && ageHrs > 1)        return 0; // essentially no volume
+  if(ageHrs > 1 && p1 <= 0)            return 0; // old token going nowhere
+  if(ageHrs > 6 && p1 < 10)            return 0; // old token needs strong signal
 
   // ── 1. PRICE MOMENTUM (1h) ───────────────────────────── max 30
   var p1cap = Math.min(p1, 300); // cap at 300% — above that is likely a wick
@@ -3138,10 +3184,11 @@ function checkBasketSLTP(b){
     return;
   }
   // Read SL directly from input — fallback to 10 if panel not visible
+  // Use locked SL/TP from entry if set — else read from input
   var slEl = document.getElementById('bot-sl');
   var tpEl = document.getElementById('bot-tp');
-  var slPct = slEl ? (parseFloat(slEl.value) || 10) : 10;
-  var tpPct = tpEl ? (parseFloat(tpEl.value) || 50) : 50;
+  var slPct = b._sl || (slEl ? (parseFloat(slEl.value) || 7) : 7);
+  var tpPct = b._tp || (tpEl ? (parseFloat(tpEl.value) || 25) : 25);
   var chg = (b.current - b.entry) / b.entry * 100;
   var isSL = chg <= -slPct;
   var isTP = chg >= tpPct;
@@ -3236,7 +3283,7 @@ function massAddFromRevival(){
     if(sc>=minScore && hasMomentumNow(t,'revival')) eligible.push(t);
   });
   if(!eligible.length){showMassStatus('No Revival tokens meet score >= '+minScore);return;}
-  var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,16);
+  var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,2); // max 2 per cycle
   if(!newOnes.length){showMassStatus('All qualifying Revival tokens already in basket');return;}
   newOnes.forEach(function(t,i){
     setTimeout(function(){
@@ -3258,7 +3305,7 @@ function massAddFromSniper(){
     if(tokenScore(t)>=minScore && hasMomentumNow(t,'snipe')) eligible.push(t);
   });
   if(!eligible.length){showMassStatus('No SNIPE tokens meet score >= '+minScore);return;}
-  var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,16);
+  var newOnes=eligible.filter(function(t){return !basket.find(function(b){return b.ca===t.ca;});}).slice(0,2); // max 2 per cycle
   if(!newOnes.length){showMassStatus('All qualifying SNIPE tokens already in basket');return;}
   newOnes.forEach(function(t,i){
     setTimeout(function(){
@@ -3332,8 +3379,11 @@ function stopAutoImportTimer(){
 }
 
 function runAutoSniperImport(){
+  // Hard limit: max 5 open positions at once
+  var openCount = basket.filter(function(b){ return b.status==='open'; }).length;
+  if(openCount >= 3) return; // max 3 open — quality over quantity
   var cfg = getBotConfig();
-  var minScore = cfg.minScore || 45;
+  var minScore = cfg.minScore || 80;
   var now = Date.now();
   var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
   var imported = 0;
@@ -3361,8 +3411,11 @@ function runAutoSniperImport(){
 }
 
 function runAutoRevivalImport(){
+  // Hard limit: max 5 open positions at once
+  var openCount = basket.filter(function(b){ return b.status==='open'; }).length;
+  if(openCount >= 3) return; // max 3 open — quality over quantity
   var cfg = getBotConfig();
-  var minScore = cfg.minScore || 45;
+  var minScore = cfg.minScore || 80;
   var now = Date.now();
   var cards = document.querySelectorAll('#fast-movers-cards .gm-card');
   var imported = 0;
@@ -3531,6 +3584,8 @@ function getRevivalScore(t){
 }
 
 function tokenScore(t){
+  // Not GMGN verified yet — score 0 so it can't appear on cards
+  if(t._gmgnPending && !t._gmgnVerified) return 0;
   var sc = 0;
 
   var nowMs   = Date.now();
@@ -3707,11 +3762,40 @@ function fetchGmgnData(ca, cb){
 
 function enrichFromGmgn(ca){
   fetchGmgnData(ca, function(g){
-    if(!g) return;
+    if(!g){
+      // GMGN API failed — fail open, clear pending on both stores
+      if(dexRevivalTokens[ca]) dexRevivalTokens[ca]._gmgnPending = false;
+      if(liveTokens[ca])       liveTokens[ca]._gmgnPending = false;
+      return;
+    }
     var now = Date.now();
     var solPrice = getSolPrice() || 140;
 
-    // Helper: apply GMGN fields to any token object
+    // ── GMGN hard reject checks ──────────────────────────────────────
+    if(g.rugScore > 0.7){
+      var rugTick = (dexRevivalTokens[ca]||liveTokens[ca]||{}).tick || '?';
+      addBotLog('GMGN RUG BLOCKED $'+safeStr(rugTick)+' rugScore:'+g.rugScore.toFixed(2),'#ff4444');
+      delete dexRevivalTokens[ca];
+      delete liveTokens[ca];
+      var li = liveTokenOrder.indexOf(ca);
+      if(li !== -1) liveTokenOrder.splice(li, 1);
+      return;
+    }
+    if(g.smartSells > 3 && g.smartBuys === 0){
+      delete dexRevivalTokens[ca];
+      delete liveTokens[ca];
+      var li2 = liveTokenOrder.indexOf(ca);
+      if(li2 !== -1) liveTokenOrder.splice(li2, 1);
+      return;
+    }
+    if(g.mcUSD > 0 && g.mcUSD < 1000){
+      delete dexRevivalTokens[ca];
+      delete liveTokens[ca];
+      var li3 = liveTokenOrder.indexOf(ca);
+      if(li3 !== -1) liveTokenOrder.splice(li3, 1);
+      return;
+    }
+
     function applyGmgn(t){
       if(!t) return;
       if(g.mcUSD > 0){
@@ -3729,8 +3813,10 @@ function enrichFromGmgn(ca){
         t._smartBuys  = g.smartBuys;
         t._smartSells = g.smartSells;
       }
-      t._lastRefreshed = now; // marks as fresh — merge will prefer this
-      t._gmgnVerified  = true;
+      t._lastRefreshed    = now;
+      t._gmgnVerified     = true;
+      t._gmgnPending      = false; // ✅ GMGN approved — allow on cards
+      t._gmgnCheckedAt    = now;
     }
 
     // Update BOTH stores so the merge always gets fresh data
@@ -3782,20 +3868,43 @@ function startGmgnEnrichment(){
 }
 
 function fetchTokenPrice(ca, cb){
-  // Primary: DexScreener
+  // Primary: DexScreener — also grabs fresh MC and updates token stores
   fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)
     .then(function(r){ return r.json(); })
     .then(function(d){
       var pairs = (d.pairs||[]).filter(function(p){ return p.chainId==='solana'; });
       if(!pairs.length){
-        // Fallback: pump.fun bonding curve API
         fetchPumpPrice(ca, cb);
         return;
       }
       pairs.sort(function(a,b){
         return ((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0);
       });
-      var price = parseFloat(pairs[0].priceUsd||0);
+      var best  = pairs[0];
+      var price = parseFloat(best.priceUsd||0);
+
+      // ── Update MC in all token stores so cards show fresh data ──
+      var freshMC = 0;
+      if(best.marketCap)            freshMC = parseFloat(best.marketCap)||0;
+      else if(best.fdv)             freshMC = parseFloat(best.fdv)||0;
+      if(freshMC > 0){
+        var now = Date.now();
+        // Update revival token store
+        if(dexRevivalTokens[ca]){
+          dexRevivalTokens[ca].mcUSD = freshMC;
+          dexRevivalTokens[ca]._lastRefreshed = now;
+          if(!dexRevivalTokens[ca].mcHistory) dexRevivalTokens[ca].mcHistory = [];
+          dexRevivalTokens[ca].mcHistory.push({ts:now, mc:freshMC});
+        }
+        // Update live token store
+        if(liveTokens[ca]){
+          liveTokens[ca].mcUSD = freshMC;
+        }
+        // Update basket entry MC
+        var bEntry = basket.find(function(b){ return b.ca===ca; });
+        if(bEntry) bEntry.mcUSD = freshMC;
+      }
+
       if(price > 0){ cb(price); return; }
       fetchPumpPrice(ca, cb);
     })
@@ -3807,10 +3916,23 @@ function fetchPumpPrice(ca, cb){
   fetch('https://frontend-api-v3.pump.fun/coins/'+ca)
     .then(function(r){ return r.json(); })
     .then(function(d){
-      // Calculate price from bonding curve: priceUsd = market_cap / total_supply
-      var usdMc = d.usd_market_cap || 0;
-      var supply = 1000000000; // pump.fun always 1B supply
-      if(usdMc > 0){ cb(usdMc / supply); return; }
+      var usdMc  = d.usd_market_cap || 0;
+      var supply = 1000000000;
+      // Update MC in token stores
+      if(usdMc > 0){
+        var now = Date.now();
+        if(dexRevivalTokens[ca]){
+          dexRevivalTokens[ca].mcUSD = usdMc;
+          dexRevivalTokens[ca]._lastRefreshed = now;
+          if(!dexRevivalTokens[ca].mcHistory) dexRevivalTokens[ca].mcHistory = [];
+          dexRevivalTokens[ca].mcHistory.push({ts:now, mc:usdMc});
+        }
+        if(liveTokens[ca]) liveTokens[ca].mcUSD = usdMc;
+        var bEntry = basket.find(function(b){ return b.ca===ca; });
+        if(bEntry) bEntry.mcUSD = usdMc;
+        cb(usdMc / supply);
+        return;
+      }
       cb(0);
     })
     .catch(function(){ cb(0); });
@@ -3885,8 +4007,12 @@ function addBasketCA(ca, tick, entryPrice, status){
       addBotLog('SKIPPED $'+safeStr(tick)+' — '+reason, '#f59e0b');
       return;
     }
+    var slLock = document.getElementById('bot-sl');
+    var tpLock = document.getElementById('bot-tp');
     var entry = { ca:ca, tick:safeStr(tick)||'???', entry:0, current:0,
-      amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false };
+      amount:PER_TRADE, status:status, addedAt:Date.now(), loading:true, priceError:false,
+      _sl: slLock ? (parseFloat(slLock.value)||7) : 7,
+      _tp: tpLock ? (parseFloat(tpLock.value)||25) : 25 };
     basket.push(entry);
     showToast('⏳ Adding $'+safeStr(tick)+' — fetching price...', 'info');
     renderBasket();
@@ -4076,11 +4202,21 @@ function massCloseAll(closeStatus, askPrice){
 }
 
 function refreshBasketPrices(){
-  basket.filter(function(b){return b.status==='open';}).forEach(function(b){
+  var toRefresh = basket.filter(function(b){return b.status==='open';});
+  var done = 0;
+  if(!toRefresh.length) return;
+  toRefresh.forEach(function(b){
     fetchTokenPrice(b.ca,function(price){
-      if(b.status !== 'open') return; // may have been closed by SL during fetch
-      if(price>0){if((b.entry<=0||b.priceError)&&!b._entryLocked){b.entry=price;b._entryLocked=true;}b.current=price;checkBasketSLTP(b);}
-      renderBasket();renderDaySummary();
+      if(b.status !== 'open') return;
+      if(price>0){
+        if((b.entry<=0||b.priceError)&&!b._entryLocked){b.entry=price;b._entryLocked=true;}
+        b.current=price;
+        checkBasketSLTP(b);
+      }
+      renderBasket(); renderDaySummary();
+      done++;
+      // Re-render revival cards once all prices updated (MC now fresh)
+      if(done === toRefresh.length) renderFastMovers();
     });
   });
 }
@@ -4093,12 +4229,13 @@ function refreshSinglePrice(ca){
   fetchTokenPrice(ca, function(price){
     if(price > 0){
       if((b.entry === 0 || b.priceError) && !b._entryLocked){
-        b.entry = price; b._entryLocked = true; // lock entry once
+        b.entry = price; b._entryLocked = true;
       }
       b.current    = price;
       b.priceError = false;
       b.loading    = false;
-      checkBasketSLTP(b); // check SL/TP on every refresh
+      checkBasketSLTP(b);
+      renderFastMovers(); // refresh MC on revival cards too
     } else {
       b.priceError = true;
       b.loading    = false;
