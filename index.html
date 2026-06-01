@@ -2670,7 +2670,13 @@ function buildMoverCard(t, sc, g1m, g5m, color, mode){
         +'<div>B/S <strong style="color:var(--tx);">'+bsr+'%</strong></div>'
         +'<div>Vol <strong style="color:var(--tx);">'+t.vol.toFixed(1)+' SOL</strong></div>'
       +'</div>'
-      +(mode==='revival'&&(t._holders||t._smartBuys)?'<div style="display:flex;gap:6px;font-size:9px;color:var(--mu);margin-bottom:3px;">'+(t._holders?'<span>👥 '+t._holders+'</span>':'')+( t._smartBuys?'<span style="color:#00d474;">🧠 '+t._smartBuys+' smart</span>':'')+( t._rugScore&&t._rugScore>0.5?'<span style="color:var(--dn);">⚠ Rug</span>':'')+'</div>':'')
+      +(mode==='revival'&&(t._holders||t._smartBuys||t.liq)?'<div style="display:flex;gap:6px;font-size:9px;margin-bottom:3px;flex-wrap:wrap;">'
+  +(t._holders?'<span style="color:'+(t._holders<20?'#ef4444':t._holders<50?'#f59e0b':'var(--mu)')+';">👥 '+t._holders+'</span>':'')
+  +(t.liq>0?'<span style="color:'+(t.liq<500?'#ef4444':t.liq<2000?'#f59e0b':'var(--mu)')+';">💧$'+Math.round(t.liq/1000)+'K liq</span>':'')
+  +(t._smartBuys?'<span style="color:#00d474;">🧠 '+t._smartBuys+'B</span>':'')
+  +(t._smartSells?'<span style="color:#ef4444;">🧠 '+t._smartSells+'S</span>':'')
+  +(t._rugScore&&t._rugScore>0.5?'<span style="color:var(--dn);">⚠ Rug '+Math.round(t._rugScore*100)+'%</span>':'')
++'</div>':'')
       +'<div class="gm-actions">'
         +'<button class="gm-btn" style="background:'+color+';color:#000;" onclick="event.stopPropagation();copySnipCA(\''+t.ca+'\');">⧉ COPY CA</button>'
         +'<a href="'+pumpBuyUrl+'" target="_blank" class="gm-btn gm-btn-buy" onclick="event.stopPropagation();">PUMP.FUN↗</a>'
@@ -3040,18 +3046,52 @@ function getDexRevivalScore(t){
   var h1total = h1buys + h1sells;
   var bsr = h1total > 0 ? h1buys / h1total : 0.5;
 
-  // ── GMGN not yet verified — cap score at 40 (won't reach Gold/Silver) ──
+  // ── GMGN not yet verified — score 0 ──────────────────────────────
   if(t._gmgnPending && !t._gmgnVerified) return 0;
 
-  // ── DEAD COIN HARD KILLS — instant 0 before scoring ─────────────
-  // These signals mean the coin is dead — don't waste a score on it
-  if(t.mcUSD > 0 && t.mcUSD < 1500)   return 0; // MC too low to trade
-  if(p1 <= -30)                         return 0; // actively dumping hard
-  if(p24 < -80 && p1 < 5)              return 0; // crashed 80%+ and not recovering
-  if(h1total >= 10 && bsr < 0.35)      return 0; // 65%+ sells = exit dump
-  if(t.vol < 0.3 && ageHrs > 1)        return 0; // essentially no volume
-  if(ageHrs > 1 && p1 <= 0)            return 0; // old token going nowhere
-  if(ageHrs > 6 && p1 < 10)            return 0; // old token needs strong signal
+  // ── HARD KILLS — instant 0, don't score ──────────────────────────
+  if(t.mcUSD > 0 && t.mcUSD < 1500)    return 0; // MC too low
+  if(p1 <= -30)                          return 0; // hard dump
+  if(p24 < -80 && p1 < 5)               return 0; // crashed, not recovering
+  if(h1total >= 10 && bsr < 0.35)       return 0; // 65%+ sells = dump
+  // BSR trend — if buys were 70%+ but now falling fast = distribution starting
+  // Check last 10 min buys vs sells using buyTimes if available
+  if(t.buyTimes && t.sellTimes){
+    var nowBsr = Date.now();
+    var recentB = t.buyTimes.filter(function(ts){return ts>nowBsr-300000;}).length;
+    var recentS = t.sellTimes ? t.sellTimes.filter(function(ts){return ts>nowBsr-300000;}).length : 0;
+    var recentTotal = recentB + recentS;
+    var recentBsr = recentTotal > 0 ? recentB/recentTotal : 0.5;
+    if(recentTotal >= 5 && recentBsr < 0.35) return 0; // recent 5min BSR < 35%
+  }
+  if(t.vol < 0.3 && ageHrs > 1)         return 0; // ghost token
+  if(ageHrs > 1 && p1 <= 0)             return 0; // no momentum
+  if(ageHrs > 6 && p1 < 10)             return 0; // old + weak
+
+  // ── NEW: HOLDER CHECK — thin holder base = rug risk ─────────────
+  if(t._holders > 0 && t._holders < 15) return 0; // <15 holders = 1-2 wallets control price
+
+  // ── NEW: LIQUIDITY CHECK — can't exit with thin book ────────────
+  if(t.liq > 0 && t.liq < 500)          return 0; // <$500 liq = trap
+
+  // ── NEW: SMART MONEY NET SELL — informed wallets exiting ────────
+  var smartNet = (t._smartBuys||0) - (t._smartSells||0);
+  if(t._smartSells > 0 && smartNet < -2) return 0; // smart money net selling
+
+  // ── NEW: RECENT PUMP CHECK — don't buy the top ──────────────────
+  // If MC jumped >100% in last 5 min it already pumped — late entry
+  var recentPump = 0;
+  if(t.mcHistory && t.mcHistory.length >= 2){
+    var snapshots5m = t.mcHistory.filter(function(s){
+      return s.ts > (Date.now() - 300000);
+    });
+    if(snapshots5m.length >= 2){
+      var oldest5m = snapshots5m[0].mc;
+      var newest5m = snapshots5m[snapshots5m.length-1].mc;
+      if(oldest5m > 0) recentPump = (newest5m - oldest5m) / oldest5m * 100;
+    }
+  }
+  if(recentPump > 150) return 0; // already pumped 150%+ in 5 min = buying top
 
   // ── 1. PRICE MOMENTUM (1h) ───────────────────────────── max 30
   var p1cap = Math.min(p1, 300); // cap at 300% — above that is likely a wick
@@ -3099,8 +3139,28 @@ function getDexRevivalScore(t){
   if(ageHrs > 24)      sc -= 10;
   else if(ageHrs > 6)  sc -= 5;
 
-  // ── 8. GMGN VERIFIED ────────────────────────────────── +5
+  // ── 8. GMGN VERIFIED ──────────────────────────────────── +5
   if(t._gmgnVerified) sc += 5;
+
+  // ── 9. SMART MONEY ─────────────────────────────────────── ±10
+  if(t._smartBuys > 0 || t._smartSells > 0){
+    var sNet = (t._smartBuys||0) - (t._smartSells||0);
+    if(sNet >= 3)      sc += 10;
+    else if(sNet >= 1) sc += 5;
+    else if(sNet < 0)  sc -= 8;
+  }
+
+  // ── 10. HOLDER QUALITY ─────────────────────────────────── ±8
+  if(t._holders > 0){
+    if(t._holders >= 100)     sc += 8;
+    else if(t._holders >= 50) sc += 5;
+    else if(t._holders >= 25) sc += 2;
+    else if(t._holders < 20)  sc -= 8;
+  }
+
+  // ── 11. RECENT PUMP PENALTY ────────────────────────────── penalty
+  if(recentPump > 80)       sc -= 12;
+  else if(recentPump > 50)  sc -= 6;
 
   return Math.max(0, Math.min(sc, 99));
 }
@@ -3940,10 +4000,12 @@ function fetchTokenPrice(ca, cb){
       var best  = pairs[0];
       var price = parseFloat(best.priceUsd||0);
 
-      // ── Update MC in all token stores so cards show fresh data ──
-      var freshMC = 0;
+      // ── Update MC + liquidity in all token stores ──────────────
+      var freshMC  = 0;
+      var freshLiq = 0;
       if(best.marketCap)            freshMC = parseFloat(best.marketCap)||0;
       else if(best.fdv)             freshMC = parseFloat(best.fdv)||0;
+      if(best.liquidity && best.liquidity.usd) freshLiq = parseFloat(best.liquidity.usd)||0;
       if(freshMC > 0){
         var now = Date.now();
         // Update revival token store
@@ -3960,6 +4022,11 @@ function fetchTokenPrice(ca, cb){
         // Update basket entry MC
         var bEntry = basket.find(function(b){ return b.ca===ca; });
         if(bEntry) bEntry.mcUSD = freshMC;
+        // Also store liquidity
+        if(freshLiq > 0){
+          if(dexRevivalTokens[ca]) dexRevivalTokens[ca].liq = freshLiq;
+          if(liveTokens[ca])       liveTokens[ca].liq = freshLiq;
+        }
       }
 
       if(price > 0){ cb(price); return; }
